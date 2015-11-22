@@ -1,0 +1,6 @@
+let
+ function main ():void =
+    if 6 > 4 then 4 + 6
+ in
+     nil
+ end

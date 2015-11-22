@@ -1,0 +1,15 @@
+/*
+ * get_five and sum are in the same scope, sum can use get_five
+ */
+let
+    function main ():int =
+        let
+            function get_five():int = 5
+            function sum (a:int, b:int):int =
+                a + b + get_five()
+        in
+            sum (3, 4)
+        end
+in
+     nil
+end

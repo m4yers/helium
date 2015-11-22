@@ -1,0 +1,22 @@
+/*
+ * blah and sum and in the different levels and sum can still use blah
+ */
+let
+    function main ():int =
+        let
+            /* level x */
+            var blah := 1337
+            function get_value ():int = 
+                let
+                    /* level x + 1 */
+                    function sum (a:int, b:int):int =
+                        a + b + blah
+                in
+                    sum(3, 5)
+                end
+        in
+            get_value ()
+        end
+in
+     nil
+end
