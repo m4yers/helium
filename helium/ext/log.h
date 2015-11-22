@@ -16,28 +16,28 @@
 #define ERR(...) \
     fprintf(stderr, __VA_ARGS__);
 #else
-#define ERR(...) (void) 0
+#define ERR(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_ERROR
 #define WRN(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
-#define WRN(...) (void) 0
+#define WRN(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_WARNING
 #define NFO(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
-#define NFO(...) (void) 0
+#define NFO(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_INFO
 #define DBG(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
-#define DBG(...) (void) 0
+#define DBG(...) (void) 0;
 
 #endif
 

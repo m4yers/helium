@@ -5,7 +5,7 @@
 #include "ext/util.h"
 #include "ext/mem.h"
 
-#define LOG_LEVEL LOG_LEVEL_DEBUG
+#define LOG_LEVEL LOG_LEVEL_WARNING
 #include "ext/log.h"
 
 #include "mipsmachine.h"
