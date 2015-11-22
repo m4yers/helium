@@ -1,0 +1,9 @@
+# Build
+_build/*
+_install/*
+
+# Mac
+.DS_Store
+
+# Vim
+.ycm*
