@@ -6,7 +6,7 @@
 - [x] new front-end
 - [ ] BIG CLEAN UP
     - [x] module-based debug
-    - [ ] proper front-end error system
+    - [ ] proper front-end error message system
 - [ ] new test system
     - [ ] syntax
     - [ ] semant
@@ -37,10 +37,14 @@
     - [ ] Subsystems split akin LLVM
 - [ ] C runtime interface
 - [ ] functions' specifications -> tempesting
+- [ ] lexer/parser/semant error recovery
 
 - [ ] ...
 
 - [ ] self-hoisting?
+
+# QUESTIONS
+- classes, to be or not to be?
 
 # THOUGTS
 - $fp set to $sp - wordsize? Now it points to $a0

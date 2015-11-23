@@ -16,7 +16,6 @@
 #include "semant.h"
 #include "translate.h"
 #include "canon.h"
-#include "errormsg.h"
 #include "codegen.h"
 #include "regalloc.h"
 #include "mipsmachine.h"
@@ -24,24 +23,26 @@
 
 #include "program.h"
 
-static void run_cases (void ** state, const char *cases[], size_t len)
+static void run_cases (void ** state, const char * cases[], size_t len)
 {
     for (size_t i = 0; i < len; ++i)
     {
         Program_Module m = Program_ModuleNew();
+
+        /* printf ("Program:\n%s\n", cases[i]); */
 
         if (Parse_String (m, cases[i]) != 0)
         {
             printf ("Lex errors: %lu\n", Vector_Size (m->errors.lexer));
             VECTOR_FOREACH (const char *, error, m->errors.lexer)
             {
-                printf (" - %s\n", *error);
+                printf (" %s\n", *error);
             }
 
             printf ("Parse errors: %lu\n", Vector_Size (m->errors.parser));
             VECTOR_FOREACH (const char *, error, m->errors.parser)
             {
-                printf (" - %s\n", *error);
+                printf (" %s\n", *error);
             }
 
             fail();
@@ -58,7 +59,7 @@ static void run_cases (void ** state, const char *cases[], size_t len)
             printf ("Semant errors: %lu\n", Vector_Size (m->errors.semant));
             VECTOR_FOREACH (const char *, error, m->errors.semant)
             {
-                printf (" - %s\n", *error);
+                printf (" %s\n", *error);
             }
             fail();
         }
@@ -180,7 +181,7 @@ static void decl__functions_nested (void ** state)
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
 }
 
-static void decl__types(void ** state)
+static void decl__types (void ** state)
 {
     const char * cases[] =
     {
@@ -220,7 +221,7 @@ static void decl__types(void ** state)
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
 }
 
-static void stack__arrays(void ** state)
+static void stack__arrays (void ** state)
 {
     const char * cases[] =
     {
@@ -241,7 +242,7 @@ static void stack__arrays(void ** state)
 
 }
 
-static void stack__arrays_nested(void ** state)
+static void stack__arrays_nested (void ** state)
 {
     const char * cases[] =
     {
@@ -263,7 +264,7 @@ static void stack__arrays_nested(void ** state)
 
 }
 
-static void stack__records(void ** state)
+static void stack__records (void ** state)
 {
     const char * cases[] =
     {
@@ -283,7 +284,7 @@ static void stack__records(void ** state)
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
 }
 
-static void stack__records_nested(void ** state)
+static void stack__records_nested (void ** state)
 {
     const char * cases[] =
     {
@@ -306,7 +307,7 @@ static void stack__records_nested(void ** state)
         /*  {\ */
         /*      let point = { i = 8, x = [ 1, 2, 3, 4, 5], y = 10 };\ */
         /*      point.x[3];\ */
-         /* }", */
+        /* }", */
         /* "fn main\n\ */
         /*  {\n\ */
         /*      def Point = { x: [int;3], y: int }\n\ */

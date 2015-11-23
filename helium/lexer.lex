@@ -1,25 +1,27 @@
 %{
     #include <string.h>
 
+    #include "ext/vector.h"
+    #include "ext/mem.h"
+
     #include "parser.h"
-    #include "errormsg.h"
 
     #define YY_USER_ACTION adjust();
 
-    int charPos = 1;
+    int yycolumn = 1;
 
-    int yywrap (void)
+    static void adjust (void)
     {
-        charPos = 1;
-        return 1;
-    }
-
-    void adjust (void)
-    {
-        EM_tokPos = charPos;
-        charPos += yyleng;
+        yylloc.token = strdup(yytext);
+        yylloc.first_line = yylloc.last_line = yylineno;
+        yylloc.first_column = yycolumn;
+        yylloc.last_column = yycolumn + yyleng - 1;
+        yycolumn += yyleng;
     }
 %}
+
+%option noyywrap
+%option yylineno
 
 %x comment
 %x string
@@ -43,8 +45,8 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
     \"           { BEGIN(INITIAL); return STRING; }
 }
 " "|\t           { continue; }
-\n	             { EM_newline(); continue; }
-","	             { return COMMA; }
+\n               { yycolumn = 1; continue; }
+","              { return COMMA; }
 ":"              { return COLON; }
 ";"              { return SEMICOLON; }
 "("              { return LPAREN; }
@@ -93,4 +95,12 @@ method           { return METHOD; }
 promitive        { return PRIMITIVE; }
 import           { return IMPORT; }
 {ID}             { yylval.sval = strdup (yytext); return ID;}
-.	             { EM_error(EM_tokPos,"illegal token"); }
+.                {
+                    char * buffer = checked_malloc(100);
+                    sprintf(buffer, "%d,%d: Unknown token %s",
+                        yylloc.first_line,
+                        yylloc.first_column,
+                        yylloc.token);
+
+                    Vector_PushBack(module->errors.lexer, buffer);
+                 }

@@ -245,10 +245,10 @@ A_ty A_RecordTy (A_pos pos, A_fieldList record)
     return p;
 }
 
-A_field A_Field (A_pos pos, S_symbol name, A_ty type)
+A_field A_Field (A_loc loc, S_symbol name, A_ty type)
 {
     A_field p = checked_malloc (sizeof (*p));
-    p->pos = pos;
+    p->loc = *loc;
     p->name = name;
     p->type = type;
     p->escape = TRUE;

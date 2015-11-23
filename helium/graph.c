@@ -11,7 +11,6 @@
 #include "asm.h"
 #include "frame.h"
 #include "graph.h"
-#include "errormsg.h"
 
 struct G_graph_
 {

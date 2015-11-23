@@ -10,7 +10,6 @@
 #include "tree.h"
 #include "asm.h"
 #include "frame.h"
-#include "errormsg.h"
 
 ASM_targets ASM_Targets (Temp_labelList labels)
 {

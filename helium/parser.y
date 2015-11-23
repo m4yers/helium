@@ -1,4 +1,6 @@
 %define parse.trace
+%define parse.error verbose
+%locations
 %code requires
 {
     #include <stdio.h>
@@ -6,10 +8,12 @@
     #include "ext/util.h"
 
     #include "symbol.h"
-    #include "errormsg.h"
+    #include "program.h"
     #include "ast.h"
 
-    A_decList ast_root;
+    #define YYLTYPE struct A_loc_
+
+    extern Program_Module module;
 
     int yylex (void);
 
@@ -18,9 +22,23 @@
 
 %code
 {
-    void yyerror (const char * s)
+    Program_Module module = NULL;
+
+    int Parse (Program_Module m)
     {
-        EM_error (EM_tokPos, "%s", s);
+        module = m;
+        return yyparse();
+    }
+
+    void yyerror (const char * message)
+    {
+        char * buffer = checked_malloc(100);
+        sprintf(buffer, "%d,%d: %s",
+            yylloc.first_line,
+            yylloc.first_column,
+            message);
+
+        Vector_PushBack(module->errors.parser, buffer);
     }
 }
 
@@ -108,7 +126,7 @@
 
 %%
 
-program:                  declarations { ast_root = $1; }
+program:                  declarations { module->ast = $1; }
                         ;
 stm_list:                 stm stm_semi
                         {
@@ -434,7 +452,6 @@ decl_type:                DEF ID EQ type
                           }
                         ;
 decl_variable:            LET ID COLON type SEMICOLON
-
                           {
                               $$ = A_VarDec (0, S_Symbol ($2), $4, NULL);
                           }
@@ -541,7 +558,7 @@ typed_field_comma:         %empty { $$ = NULL; }
 typed_field:              ID COLON type
                           {
                               // id: type
-                              $$ = A_Field (0, S_Symbol($1), $3);
+                              $$ = A_Field (&yylloc, S_Symbol($1), $3);
                           }
                         ;
 

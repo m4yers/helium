@@ -12,6 +12,16 @@
 
 typedef int A_pos;
 
+typedef struct A_loc_
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  //NOTE token MUST NOT be used outside lexer and parser
+  const char * token;
+} * A_loc;
+
 typedef struct A_var_ * A_var;
 typedef struct A_exp_ * A_exp;
 typedef struct A_dec_ * A_dec;
@@ -243,9 +253,9 @@ struct A_specList_
 
 struct A_field_
 {
+    struct A_loc_ loc;
     S_symbol name;
     A_ty type;
-    A_pos pos;
     bool escape;
 };
 struct A_fieldList_
@@ -340,7 +350,7 @@ A_ty A_NameTy (A_pos pos, S_symbol name, A_specList specs);
 A_ty A_ArrayTy (A_pos pos, A_expList list);
 A_ty A_RecordTy (A_pos pos, A_fieldList record);
 
-A_field A_Field (A_pos pos, S_symbol name, A_ty type);
+A_field A_Field (A_loc loc, S_symbol name, A_ty type);
 A_fieldList A_FieldList (A_field head, A_fieldList tail);
 
 A_efield A_Efield (S_symbol name, A_exp exp);

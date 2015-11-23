@@ -7,12 +7,54 @@
 #include "ext/list.h"
 
 #include "semant.h"
-#include "errormsg.h"
 #include "ast.h"
 #include "types.h"
 #include "symbol.h"
 #include "escape.h"
 #include "env.h"
+
+#define ERROR_PUSH(line, pos, format, ...)                               \
+    {                                                                    \
+        char * buffer = checked_malloc(100);                             \
+        sprintf(buffer, format, __VA_ARGS__);                            \
+        Vector_PushBack(context->module->errors.semant, buffer);         \
+    }                                                                    \
+
+#define ERROR_WRONG_TYPE(expected, actual, pos)                          \
+    ERROR_PUSH(                                                          \
+        __LINE__,                                                        \
+        pos,                                                             \
+        "Expected '%s', got '%s'",                                       \
+        expected->meta.name,                                             \
+        actual->meta.name);                                              \
+
+#define ERROR_MALFORMED_EXP(pos, text)                                   \
+    ERROR_PUSH(                                                          \
+        __LINE__,                                                        \
+        pos,                                                             \
+        "Malformed exprassion: %s",                                      \
+        text);                                                           \
+
+#define ERROR_INVALID_TYPE(pos, name)                                    \
+    ERROR_PUSH(                                                          \
+        __LINE__,                                                        \
+        pos,                                                             \
+        "Invalid type '%s'",                                             \
+        S_Name(name));                                                   \
+
+#define ERROR_UNKNOWN_TYPE(pos, name)                                    \
+    ERROR_PUSH(                                                          \
+        __LINE__,                                                        \
+        pos,                                                             \
+        "Unknown type '%s'",                                             \
+        S_Name(name));                                                   \
+
+#define ERROR_UNKNOWN_VAR(var)                                           \
+    ERROR_PUSH(                                                          \
+        __LINE__,                                                        \
+        pos,                                                             \
+        "Unknown var '%s'",                                              \
+        S_Name(var->u.simple));                                          \
 
 typedef struct Semant_ExpType
 {
@@ -20,22 +62,6 @@ typedef struct Semant_ExpType
     Ty_ty ty;
 
 } Semant_Exp;
-
-#define ERROR_WRONG_TYPE(expected, actual, pos)\
-    EM_error (pos, "%d: Expected '%s', got '%s'",\
-            __LINE__, expected->meta.name, actual->meta.name);
-
-#define ERROR_MALFORMED_EXP(pos, text) \
-    EM_error (pos, "%d: Malformed exprassion: %s", __LINE__, text);
-
-#define ERROR_INVALID_TYPE(pos, name) \
-    EM_error (pos, "%d: Invalid type '%s'", __LINE__, S_Name (name));
-
-#define ERROR_UNKNOWN_TYPE(pos, name) \
-    EM_error (pos, "%d: Unknown type '%s'", __LINE__, S_Name (name));
-
-#define ERROR_UNKNOWN_VAR(var) \
-    EM_error (var->pos, "%d: Unknown var '%s'", __LINE__, S_Name (var->u.simple));
 
 static bool is_auto (Ty_ty ty)
 {

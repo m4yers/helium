@@ -1,9 +1,10 @@
 #ifndef PROGRAM_H_NTR7UGNX
 #define PROGRAM_H_NTR7UGNX
 
+#include "ext/vector.h"
+
 #include "frame.h"
 #include "ast.h"
-#include "ext/vector.h"
 
 typedef struct Program_Module_
 {
