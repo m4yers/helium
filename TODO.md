@@ -6,7 +6,7 @@
 - [x] new front-end
 - [ ] BIG CLEAN UP
     - [x] module-based debug
-    - [ ] proper front-end error message system
+    - [x] proper front-end error message system
 - [ ] new test system
     - [ ] syntax
     - [ ] semant

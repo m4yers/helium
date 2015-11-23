@@ -995,10 +995,7 @@ int Semant_Translate (Program_Module m)
     Env_Init (&context);
     Tr_Init (&context);
 
-    LIST_FOREACH (dec, m->ast)
-    {
-        TransDec (&context, dec);
-    }
+    LIST_FOREACH (dec, m->ast) TransDec (&context, dec);
 
-    return 0;
+    return Vector_Size (m->errors.semant);
 }
