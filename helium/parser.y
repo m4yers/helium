@@ -170,37 +170,37 @@ stm:                      expression SEMICOLON
                         ;
 expression:               literals
                         | creation
-                        | lvalue %prec REDUCE { $$ = A_VarExp (0, $1); }
+                        | lvalue %prec REDUCE { $$ = A_VarExp (&(@$), $1); }
                         | call_function
                         | operations
                         | assignment
                         ;
-literals:                 NIL     { $$ = A_NilExp (0);        }
-                        | INT     { $$ = A_IntExp (0, $1);    }
-                        | STRING  { $$ = A_StringExp (0, $1); }
+literals:                 NIL     { $$ = A_NilExp (&(@$));        }
+                        | INT     { $$ = A_IntExp (&(@$), $1);    }
+                        | STRING  { $$ = A_StringExp (&(@$), $1); }
                         ;
 creation:                 LBRACK expression exp_comma RBRACK
                           {
-                              $$ = A_ArrayExp (0, A_ExpList ($2, $3));
+                              $$ = A_ArrayExp (&(@$), A_ExpList ($2, $3));
                           }
                         | LBRACE record_field record_field_comma RBRACE
                           {
-                              $$ = A_RecordExp (0, NULL, A_EfieldList($2, $3));
+                              $$ = A_RecordExp (&(@$), NULL, A_EfieldList($2, $3));
                           }
                         | lvalue LBRACE record_field record_field_comma RBRACE
                           {
                               //TODO make it accept any lvalue
-                              $$ = A_RecordExp (0, $1->u.simple, A_EfieldList($3, $4));
+                              $$ = A_RecordExp (&(@$), $1->u.simple, A_EfieldList($3, $4));
                           }
                         | lvalue LBRACE RBRACE
                           {
                               //TODO make it accept any lvalue
-                              $$ = A_RecordExp (0, $1->u.simple, NULL);
+                              $$ = A_RecordExp (&(@$), $1->u.simple, NULL);
                           }
                         ;
 lvalue:                   ID
                           {
-                              $$ = A_SimpleVar (0, S_Symbol ($1));
+                              $$ = A_SimpleVar (&(@$), S_Symbol ($1));
                           }
                         /* | ID LBRACK expression RBRACK */
                         /*   { */
@@ -208,77 +208,77 @@ lvalue:                   ID
                         /*   } */
                         | lvalue DOT ID
                           {
-                              $$ = A_FieldVar (0, $1, S_Symbol ($3));
+                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3));
                           }
                         | lvalue LBRACK expression RBRACK
                           {
-                              $$ = A_SubscriptVar (0, $1, $3);
+                              $$ = A_SubscriptVar (&(@$), $1, $3);
                           }
                         ;
 call_function:            lvalue LPAREN exp_list_comma RPAREN
                           {
                               // TODO make it accept any lvalue
-                              $$ = A_CallExp (0, $1->u.simple, $3);
+                              $$ = A_CallExp (&(@$), $1->u.simple, $3);
                           }
                         ;
 operations:               MINUS expression %prec UMINUS
                           {
-                              $$ = A_OpExp (0, A_minusOp, A_IntExp (0, 0), $2);
+                              $$ = A_OpExp (&(@$), A_minusOp, A_IntExp (0, 0), $2);
                           }
                         | LPAREN exp_list_semi RPAREN
                           {
-                              $$ = A_SeqExp (0, $2);
+                              $$ = A_SeqExp (&(@$), $2);
                           }
                         | expression PLUS expression
                           {
-                              $$ = A_OpExp (0, A_plusOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_plusOp, $1, $3);
                           }
                         | expression MINUS expression
                           {
-                              $$ = A_OpExp (0, A_minusOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_minusOp, $1, $3);
                           }
                         | expression TIMES expression
                           {
-                              $$ = A_OpExp (0, A_timesOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_timesOp, $1, $3);
                           }
                         | expression DIVIDE expression
                           {
-                              $$ = A_OpExp (0, A_divideOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_divideOp, $1, $3);
                           }
                         | expression EQEQ expression
                           {
-                              $$ = A_OpExp (0, A_eqOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_eqOp, $1, $3);
                           }
                         | expression NEQ expression
                           {
-                              $$ = A_OpExp (0, A_neqOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_neqOp, $1, $3);
                           }
                         | expression GT expression
                           {
-                              $$ = A_OpExp (0, A_gtOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_gtOp, $1, $3);
                           }
                         | expression LT expression
                           {
-                              $$ = A_OpExp (0, A_ltOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_ltOp, $1, $3);
                           }
                         | expression GE expression
                           {
-                              $$ = A_OpExp (0, A_geOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_geOp, $1, $3);
                           }
                         | expression LE expression
                           {
-                              $$ = A_OpExp (0, A_leOp, $1, $3);
+                              $$ = A_OpExp (&(@$), A_leOp, $1, $3);
                           }
                         | expression AND expression
                           {
-                              $$ = A_IfExp (0,
+                              $$ = A_IfExp (&(@$),
                                   $1,
                                   A_Scope(A_StmList(A_StmExp($3), NULL)),
                                   A_Scope(A_StmList(A_StmExp(A_IntExp(0, 0)), NULL)));
                           }
                         | expression OR expression
                           {
-                              $$ = A_IfExp (0,
+                              $$ = A_IfExp (&(@$),
                                   $1,
                                   A_Scope(A_StmList(A_StmExp(A_IntExp(0, 1)), NULL)),
                                   A_Scope(A_StmList(A_StmExp($3), NULL)));
@@ -286,26 +286,26 @@ operations:               MINUS expression %prec UMINUS
                         ;
 assignment:               lvalue EQ expression
                           {
-                              $$ = A_AssignExp (0, $1, $3);
+                              $$ = A_AssignExp (&(@$), $1, $3);
                           }
                         ;
 controls:                 IF LPAREN expression RPAREN scope
                           {
-                              $$ = A_IfExp (0, $3, $5, NULL);
+                              $$ = A_IfExp (&(@$), $3, $5, NULL);
                           }
                         | IF LPAREN expression RPAREN scope ELSE scope
                           {
-                              $$ = A_IfExp (0, $3, $5, $7);
+                              $$ = A_IfExp (&(@$), $3, $5, $7);
                           }
                         | WHILE LPAREN expression RPAREN scope
                           {
-                              $$ = A_WhileExp (0, $3, $5);
+                              $$ = A_WhileExp (&(@$), $3, $5);
                           }
                         | FOR LPAREN ID EQ expression TO expression RPAREN scope
                           {
-                              $$ = A_ForExp (0, S_Symbol ($3), $5, $7, $9);
+                              $$ = A_ForExp (&(@$), S_Symbol ($3), $5, $7, $9);
                           }
-                        | BREAK { $$ = A_BreakExp (0); }
+                        | BREAK { $$ = A_BreakExp (&(@$)); }
                         ;
 scope:                    LBRACE stm_list RBRACE
                           {
@@ -388,15 +388,15 @@ exp_semi:                 %empty { $$ = NULL; }
                         ;
 spec:                     type
                           {
-                              $$ = A_SpecType(0, $1);
+                              $$ = A_SpecType(&(@$), $1);
                           }
                         | INT
                           {
-                              $$ = A_SpecLiteral(0, A_LiteralInt(0, $1));
+                              $$ = A_SpecLiteral(&(@$), A_LiteralInt(&(@$), $1));
                           }
                         | STRING
                           {
-                              $$ = A_SpecLiteral(0, A_LiteralString(0, $1));
+                              $$ = A_SpecLiteral(&(@$), A_LiteralString(&(@$), $1));
                           }
                         ;
 spec_comma:                %empty { $$ = NULL; }
@@ -453,21 +453,21 @@ decl_type:                DEF ID EQ type
                         ;
 decl_variable:            LET ID COLON type SEMICOLON
                           {
-                              $$ = A_VarDec (0, S_Symbol ($2), $4, NULL);
+                              $$ = A_VarDec (&(@$), S_Symbol ($2), $4, NULL);
                           }
                         | LET ID COLON type EQ expression SEMICOLON
                           {
-                              $$ = A_VarDec (0, S_Symbol ($2), $4, $6);
+                              $$ = A_VarDec (&(@$), S_Symbol ($2), $4, $6);
                           }
                         | LET ID EQ expression SEMICOLON
                           {
-                              $$ = A_VarDec (0, S_Symbol ($2), NULL, $4);
+                              $$ = A_VarDec (&(@$), S_Symbol ($2), NULL, $4);
                           }
                         ;
 decl_function:            FN ID scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   NULL,
                                   NULL,
@@ -476,7 +476,7 @@ decl_function:            FN ID scope
                         | FN ID LPAREN RPAREN scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   NULL,
                                   NULL,
@@ -485,7 +485,7 @@ decl_function:            FN ID scope
                         | FN ID LPAREN typed_field typed_field_comma RPAREN scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   A_FieldList ($4, $5),
                                   NULL,
@@ -494,7 +494,7 @@ decl_function:            FN ID scope
                         | FN ID COLON type scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   NULL,
                                   $4,
@@ -503,7 +503,7 @@ decl_function:            FN ID scope
                         | FN ID LPAREN RPAREN COLON type scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   NULL,
                                   $6,
@@ -512,7 +512,7 @@ decl_function:            FN ID scope
                         | FN ID LPAREN typed_field typed_field_comma RPAREN COLON type scope
                           {
                               $$ = A_FunctionDec (
-                                  0,
+                                  &(@$),
                                   S_Symbol ($2),
                                   A_FieldList ($4, $5),
                                   $8,
@@ -521,19 +521,19 @@ decl_function:            FN ID scope
                         ;
 type:                     LBRACE typed_field typed_field_comma RBRACE
                           {
-                              $$ = A_RecordTy (0, A_FieldList ($2, $3));
+                              $$ = A_RecordTy (&(@$), A_FieldList ($2, $3));
                           }
                         | LBRACK expression exp_semi RBRACK
                           {
-                              $$ = A_ArrayTy (0, A_ExpList($2, $3));
+                              $$ = A_ArrayTy (&(@$), A_ExpList($2, $3));
                           }
                         | ID specs
                           {
-                              $$ = A_NameTy (0, S_Symbol($1), $2);
+                              $$ = A_NameTy (&(@$), S_Symbol($1), $2);
                           }
                         | ID
                           {
-                              $$ = A_NameTy (0, S_Symbol($1), NULL);
+                              $$ = A_NameTy (&(@$), S_Symbol($1), NULL);
                           }
                         ;
 typed_field_comma:         %empty { $$ = NULL; }
@@ -558,7 +558,7 @@ typed_field_comma:         %empty { $$ = NULL; }
 typed_field:              ID COLON type
                           {
                               // id: type
-                              $$ = A_Field (&yylloc, S_Symbol($1), $3);
+                              $$ = A_Field (&(@$), S_Symbol($1), $3);
                           }
                         ;
 

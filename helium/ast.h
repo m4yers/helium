@@ -8,18 +8,14 @@
 
 #include "symbol.h"
 
-/* Type Definitions */
-
-typedef int A_pos;
-
 typedef struct A_loc_
 {
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-  //NOTE token MUST NOT be used outside lexer and parser
-  const char * token;
+    int first_line;
+    int first_column;
+    int last_line;
+    int last_column;
+    //NOTE token MUST NOT be used outside lexer and parser
+    const char * token;
 } * A_loc;
 
 typedef struct A_var_ * A_var;
@@ -49,21 +45,25 @@ typedef enum
 
 struct A_var_
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_simpleVar,
         A_fieldVar,
         A_subscriptVar
     } kind;
-    A_pos pos;
+
     union
     {
         S_symbol simple;
+
         struct
         {
             A_var var;
             S_symbol sym;
         } field;
+
         struct
         {
             A_var var;
@@ -74,13 +74,15 @@ struct A_var_
 
 struct A_exp_
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp,
         A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
         A_whileExp, A_forExp, A_breakExp, A_arrayExp
     } kind;
-    A_pos pos;
+
     union
     {
         A_var var;
@@ -145,8 +147,9 @@ struct A_exp_
 };
 
 struct A_dec_
-
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_typeDec,
@@ -158,7 +161,6 @@ struct A_dec_
     {
         struct
         {
-            A_pos pos;
             S_symbol name;
             A_fieldList params;
             A_ty type;
@@ -179,12 +181,12 @@ struct A_dec_
             A_ty type;
         } type;
     } u;
-
-    A_pos pos;
 };
 
 struct A_ty_
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_nameTy,
@@ -201,12 +203,12 @@ struct A_ty_
     } u;
 
     A_specList specs;
-
-    A_pos pos;
 };
 
 struct A_literal_
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_literalBool,
@@ -228,6 +230,8 @@ struct A_literal_
 
 struct A_spec_
 {
+    struct A_loc_ loc;
+
     enum
     {
         A_specType,
@@ -312,43 +316,43 @@ struct A_scope_
 
 A_scope A_Scope (A_stmList list);
 
-A_literal A_LiteralBool (A_pos pos, bool value);
-A_literal A_LiteralInt (A_pos pos, int value);
-A_literal A_LiteralFloat (A_pos pos, double value);
-A_literal A_LiteralString (A_pos pos, const char * value);
+A_literal A_LiteralBool (A_loc loc, bool value);
+A_literal A_LiteralInt (A_loc loc, int value);
+A_literal A_LiteralFloat (A_loc loc, double value);
+A_literal A_LiteralString (A_loc loc, const char * value);
 
-A_spec A_SpecType (A_pos pos, A_ty type);
-A_spec A_SpecLiteral (A_pos pos, A_literal literal);
+A_spec A_SpecType (A_loc loc, A_ty type);
+A_spec A_SpecLiteral (A_loc loc, A_literal literal);
 A_specList A_SpecList (A_spec head, A_specList tail);
 
-A_var A_SimpleVar (A_pos pos, S_symbol sym);
-A_var A_FieldVar (A_pos pos, A_var var, S_symbol sym);
-A_var A_SubscriptVar (A_pos pos, A_var var, A_exp exp);
+A_var A_SimpleVar (A_loc loc, S_symbol sym);
+A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym);
+A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp);
 
-A_exp A_VarExp (A_pos pos, A_var var);
-A_exp A_NilExp (A_pos pos);
-A_exp A_IntExp (A_pos pos, int i);
-A_exp A_StringExp (A_pos pos, string s);
-A_exp A_CallExp (A_pos pos, S_symbol func, A_expList args);
-A_exp A_OpExp (A_pos pos, A_oper oper, A_exp left, A_exp right);
-A_exp A_RecordExp (A_pos pos, S_symbol name, A_efieldList fields);
-A_exp A_SeqExp (A_pos pos, A_expList seq);
-A_exp A_AssignExp (A_pos pos, A_var var, A_exp exp);
-A_exp A_IfExp (A_pos pos, A_exp test, A_scope tr, A_scope fl);
-A_exp A_WhileExp (A_pos pos, A_exp test, A_scope body);
-A_exp A_ForExp (A_pos pos, S_symbol var, A_exp lo, A_exp hi, A_scope body);
-A_exp A_BreakExp (A_pos pos);
-A_exp A_ArrayExp (A_pos pos, A_expList list);
+A_exp A_VarExp (A_loc loc, A_var var);
+A_exp A_NilExp (A_loc loc);
+A_exp A_IntExp (A_loc loc, int i);
+A_exp A_StringExp (A_loc loc, string s);
+A_exp A_CallExp (A_loc loc, S_symbol func, A_expList args);
+A_exp A_OpExp (A_loc loc, A_oper oper, A_exp left, A_exp right);
+A_exp A_RecordExp (A_loc loc, S_symbol name, A_efieldList fields);
+A_exp A_SeqExp (A_loc loc, A_expList seq);
+A_exp A_AssignExp (A_loc loc, A_var var, A_exp exp);
+A_exp A_IfExp (A_loc loc, A_exp test, A_scope tr, A_scope fl);
+A_exp A_WhileExp (A_loc loc, A_exp test, A_scope body);
+A_exp A_ForExp (A_loc loc, S_symbol var, A_exp lo, A_exp hi, A_scope body);
+A_exp A_BreakExp (A_loc loc);
+A_exp A_ArrayExp (A_loc loc, A_expList list);
 A_expList A_ExpList (A_exp head, A_expList tail);
 
-A_dec A_FunctionDec (A_pos pos, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
-A_dec A_VarDec (A_pos pos, S_symbol var, A_ty type, A_exp init);
+A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
+A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init);
 A_dec A_TypeDec (S_symbol name, A_ty type);
 A_decList A_DecList (A_dec head, A_decList tail);
 
-A_ty A_NameTy (A_pos pos, S_symbol name, A_specList specs);
-A_ty A_ArrayTy (A_pos pos, A_expList list);
-A_ty A_RecordTy (A_pos pos, A_fieldList record);
+A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs);
+A_ty A_ArrayTy (A_loc loc, A_expList list);
+A_ty A_RecordTy (A_loc loc, A_fieldList record);
 
 A_field A_Field (A_loc loc, S_symbol name, A_ty type);
 A_fieldList A_FieldList (A_field head, A_fieldList tail);
