@@ -20,6 +20,7 @@
 #include "regalloc.h"
 #include "mipsmachine.h"
 #include "escape.h"
+#include "error.h"
 
 #include "program.h"
 
@@ -34,15 +35,15 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         if (Parse_String (m, cases[i]) != 0)
         {
             printf ("Lex errors: %lu\n", Vector_Size (m->errors.lexer));
-            VECTOR_FOREACH (const char *, error, m->errors.lexer)
+            VECTOR_FOREACH (struct Error, error, m->errors.lexer)
             {
-                printf (" %s\n", *error);
+                Error_Print (stdout, error);
             }
 
             printf ("Parse errors: %lu\n", Vector_Size (m->errors.parser));
-            VECTOR_FOREACH (const char *, error, m->errors.parser)
+            VECTOR_FOREACH (struct Error, error, m->errors.parser)
             {
-                printf (" %s\n", *error);
+                Error_Print (stdout, error);
             }
 
             fail();
@@ -57,9 +58,9 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         {
             printf ("Failed to translate program\n");
             printf ("Semant errors: %lu\n", Vector_Size (m->errors.semant));
-            VECTOR_FOREACH (const char *, error, m->errors.semant)
+            VECTOR_FOREACH (struct Error, error, m->errors.semant)
             {
-                printf (" %s\n", *error);
+                Error_Print (stdout, error);
             }
             fail();
         }

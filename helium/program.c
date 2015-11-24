@@ -8,6 +8,7 @@
 #include "ext/mem.h"
 
 #include "program.h"
+#include "error.h"
 #include "regalloc.h"
 
 Program_Module Program_ModuleNew()
@@ -19,9 +20,9 @@ Program_Module Program_ModuleNew()
     r->fragments.strings = NULL;
     r->fragments.functions = NULL;
 
-    r->errors.lexer = Vector_New (const char *);
-    r->errors.parser = Vector_New (const char *);
-    r->errors.semant = Vector_New (const char *);
+    r->errors.lexer = Vector_New (struct Error);
+    r->errors.parser = Vector_New (struct Error);
+    r->errors.semant = Vector_New (struct Error);
 
     r->results = Vector_New (RA_Result);
 

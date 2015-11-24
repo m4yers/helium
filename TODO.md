@@ -8,6 +8,7 @@
     - [x] module-based debug
     - [x] proper front-end error message system
 - [ ] new test system
+    - [ ] internals
     - [ ] syntax
     - [ ] semant
     - [ ] codegen?
@@ -41,6 +42,7 @@
 
 - [ ] ...
 
+- [ ] x86?
 - [ ] self-hoisting?
 
 # QUESTIONS

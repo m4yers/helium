@@ -51,6 +51,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/ast.c
     ${CMAKE_SOURCE_DIR}/helium/canon.c
     ${CMAKE_SOURCE_DIR}/helium/env.c
+    ${CMAKE_SOURCE_DIR}/helium/error.c
     ${CMAKE_SOURCE_DIR}/helium/escape.c
     ${CMAKE_SOURCE_DIR}/helium/flowgraph.c
     ${CMAKE_SOURCE_DIR}/helium/graph.c

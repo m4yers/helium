@@ -11,48 +11,54 @@
 #include "types.h"
 #include "symbol.h"
 #include "escape.h"
+#include "error.h"
 #include "env.h"
 
-#define ERROR_PUSH(line, pos, format, ...)                               \
+#define ERROR_PUSH(line, loc, code, format, ...)                         \
     {                                                                    \
-        char * buffer = checked_malloc(100);                             \
-        sprintf(buffer, format, __VA_ARGS__);                            \
-        Vector_PushBack(context->module->errors.semant, buffer);         \
+        struct A_loc_ l;\
+        Vector_PushBack(context->module->errors.semant,                  \
+                Error_New(&l, code, format, __VA_ARGS__));              \
     }                                                                    \
 
-#define ERROR_WRONG_TYPE(expected, actual, pos)                          \
+#define ERROR_WRONG_TYPE(expected, actual, loc)                          \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        pos,                                                             \
+        loc,                                                             \
+        3001,                                                            \
         "Expected '%s', got '%s'",                                       \
         expected->meta.name,                                             \
         actual->meta.name);                                              \
 
-#define ERROR_MALFORMED_EXP(pos, text)                                   \
+#define ERROR_MALFORMED_EXP(loc, text)                                   \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        pos,                                                             \
+        loc,                                                             \
+        3002,                                                            \
         "Malformed exprassion: %s",                                      \
         text);                                                           \
 
-#define ERROR_INVALID_TYPE(pos, name)                                    \
+#define ERROR_INVALID_TYPE(loc, name)                                    \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        pos,                                                             \
+        loc,                                                             \
+        3003,                                                            \
         "Invalid type '%s'",                                             \
         S_Name(name));                                                   \
 
-#define ERROR_UNKNOWN_TYPE(pos, name)                                    \
+#define ERROR_UNKNOWN_TYPE(loc, name)                                    \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        pos,                                                             \
+        loc,                                                             \
+        3004,                                                            \
         "Unknown type '%s'",                                             \
         S_Name(name));                                                   \
 
 #define ERROR_UNKNOWN_VAR(var)                                           \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        pos,                                                             \
+        loc,                                                             \
+        3005,                                                            \
         "Unknown var '%s'",                                              \
         S_Name(var->u.simple));                                          \
 

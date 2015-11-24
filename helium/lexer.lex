@@ -96,11 +96,10 @@ promitive        { return PRIMITIVE; }
 import           { return IMPORT; }
 {ID}             { yylval.sval = strdup (yytext); return ID;}
 .                {
-                    char * buffer = checked_malloc(100);
-                    sprintf(buffer, "%d,%d: Unknown token %s",
-                        yylloc.first_line,
-                        yylloc.first_column,
-                        yylloc.token);
-
-                    Vector_PushBack(module->errors.lexer, buffer);
+                    Vector_PushBack(module->errors.lexer,
+                        Error_New(
+                            &yylloc,
+                            1000,
+                            "Unknown token %s",
+                            yylloc.token));
                  }

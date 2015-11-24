@@ -9,6 +9,7 @@
 
     #include "symbol.h"
     #include "program.h"
+    #include "error.h"
     #include "ast.h"
 
     #define YYLTYPE struct A_loc_
@@ -32,13 +33,12 @@
 
     void yyerror (const char * message)
     {
-        char * buffer = checked_malloc(100);
-        sprintf(buffer, "%d,%d: %s",
-            yylloc.first_line,
-            yylloc.first_column,
-            message);
-
-        Vector_PushBack(module->errors.parser, buffer);
+        Vector_PushBack(module->errors.parser,
+            Error_New(
+                &yylloc,
+                2000,
+                "%s",
+                message));
     }
 }
 

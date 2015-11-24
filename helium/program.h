@@ -19,9 +19,9 @@ typedef struct Program_Module_
 
     struct
     {
-        Vector /* of const char * */ lexer;
-        Vector /* of const char * */ parser;
-        Vector /* of const char * */ semant;
+        Vector /* struct Error */ lexer;
+        Vector /* struct Error */ parser;
+        Vector /* struct Error */ semant;
     } errors;
 
     Vector /* of RA_Result */ results;
