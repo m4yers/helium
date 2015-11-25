@@ -12,7 +12,6 @@
 #include "env.h"
 #include "semant.h"
 #include "translate.h"
-#include "errormsg.h"
 #include "mipsmachine.h"
 #include "program.h"
 

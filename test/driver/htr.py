@@ -56,14 +56,14 @@ def dig_file(info):
 
 
 def test_parse(env):
-    path = '../parse-fail'
+    path = os.path.join(env.folder, 'parse-fail')
     for f in (f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))):
-        info = TestInfo(path, env['compiler'], f)
+        info = TestInfo(path, env.compiler, f)
         dig_file(info)
 
         output = None
         try:
-            print "Running test {:.<80}".format(f),
+            print "Running {:.<80}".format(os.path.join(path,f)),
             output = subprocess.check_output(
                 info.get_run_command(), shell=True)
         except subprocess.CalledProcessError as e:
@@ -93,10 +93,9 @@ def test_parse(env):
 
 
 def test(options):
-    env = {'compiler': options.compiler}
     for target in options.targets:
         if target == 'parse':
-            test_parse(env)
+            test_parse(options)
     pass
 
 #
@@ -109,6 +108,7 @@ subparsers = parser.add_subparsers(title='Actions', dest='action')
 #
 # Run
 parser_test = subparsers.add_parser('test', help='')
+parser_test.add_argument('folder', metavar='FOLDER', help='')
 parser_test.add_argument('compiler', metavar='COMPILER', help='')
 parser_test.add_argument('-t', '--targets', metavar='TARGET',  nargs='+',
                          default=['parse'],

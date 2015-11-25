@@ -7,7 +7,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "vector.h"
+#include "ext/vector.h"
 
 static void vector_ints_ok (void ** state)
 {

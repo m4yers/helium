@@ -7,13 +7,11 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "absyn.h"
 #include "symbol.h"
 #include "parse.h"
 #include "env.h"
 #include "semant.h"
 #include "translate.h"
-#include "errormsg.h"
 
 static void run_cases (void ** state, const char ** cases, size_t len)
 {
@@ -191,7 +189,6 @@ static void stack__records_nested(void ** state)
 
 int main (void)
 {
-    EM_disable();
     const struct CMUnitTest tests[] =
     {
         /* cmocka_unit_test (control__if), */

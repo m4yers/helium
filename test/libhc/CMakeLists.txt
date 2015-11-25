@@ -1,5 +1,20 @@
 include_directories (${CMAKE_SOURCE_DIR}/helium)
 
+macro(add_helium_test name file)
+    add_cmocka_test (${ARGV0} ${ARGV1}
+        ${HELIUM_SOURCES}
+        # TODO solve these dependencies
+        ${BISON_Parser_OUTPUTS}
+        ${FLEX_Lexer_OUTPUTS})
+endmacro()
+
+add_helium_test(BitArray bitarray.c)
+add_helium_test(Vector vector.c)
+add_helium_test(Table table.c)
+add_helium_test(Stack stack.c)
+
+add_helium_test(Escaping escaping.c)
+
 # add_cmocka_test (ScannerTest scanner_test.c
 #     ${HELIUM_SOURCES}
 #     ${BISON_Parser_OUTPUTS}
@@ -61,7 +76,7 @@ include_directories (${CMAKE_SOURCE_DIR}/helium)
 #     ${BISON_Parser_OUTPUTS}
 #     ${FLEX_Lexer_OUTPUTS})
 
-add_cmocka_test (TestProgram test_program.c
-    ${HELIUM_SOURCES}
-    ${BISON_Parser_OUTPUTS}
-    ${FLEX_Lexer_OUTPUTS})
+# add_cmocka_test (TestProgram test_program.c
+#     ${HELIUM_SOURCES}
+#     ${BISON_Parser_OUTPUTS}
+#     ${FLEX_Lexer_OUTPUTS})

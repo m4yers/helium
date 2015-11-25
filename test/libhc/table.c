@@ -7,7 +7,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "table.h"
+#include "ext/table.h"
 
 static void table_getKeys_ok (void ** state)
 {
