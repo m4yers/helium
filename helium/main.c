@@ -31,13 +31,12 @@ static const char * file_drop_extension (const char * file)
 
 int main (int argc, char * argv[])
 {
-    (void) argc;
-
     char * filename = argv[1];
 
     printf ("Compiling %s\n", filename);
 
     Program_Module m = Program_ModuleNew();
+    Program_ParseArguments (m, argc, argv);
 
     if (Parse_File (m, filename) != 0)
     {

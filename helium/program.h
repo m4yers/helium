@@ -29,8 +29,8 @@ typedef struct Program_Module_
 } * Program_Module;
 
 Program_Module Program_ModuleNew (void);
+void Program_ParseArguments (Program_Module m, int argc, char ** argv);
 void Program_AddFragment (Program_Module p, F_frag f);
 void Program_PrintAssembly (FILE * file, Program_Module p);
-
 
 #endif /* end of include guard: PROGRAM_H_NTR7UGNX */

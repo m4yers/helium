@@ -8,10 +8,9 @@
     - [x] module-based debug
     - [x] proper front-end error message system
 - [ ] new test system
-    - [ ] internals
-    - [ ] internals
-    - [ ] syntax
-    - [ ] semant
+    - [x] internals
+    - [x] syntax
+    - [x] semant
     - [ ] codegen?
     - [ ] runtime
 - [ ] lang

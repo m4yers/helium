@@ -70,14 +70,17 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/types.c
     ${CMAKE_SOURCE_DIR}/helium/program.c)
 
+add_subdirectory (test/libhc)
+
 add_executable (Helium_Compiler ${CMAKE_SOURCE_DIR}/helium/main.c
     ${HELIUM_SOURCES}
     ${BISON_Parser_OUTPUTS}
     ${FLEX_Lexer_OUTPUTS})
 
+target_link_libraries(Helium_Compiler /usr/local/lib/libargp.a)
 set_target_properties (Helium_Compiler PROPERTIES OUTPUT_NAME "helium")
-
-add_subdirectory (test/libhc)
+target_compile_definitions(Helium_Compiler PRIVATE
+    CONFIG_BUILD_EXE=1)
 
 install (
     FILES "${CMAKE_BINARY_DIR}/$<TARGET_FILE_NAME:Helium_Compiler>"

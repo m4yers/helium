@@ -1,3 +1,4 @@
+#include <argp.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -29,6 +30,28 @@ Program_Module Program_ModuleNew()
     return r;
 }
 
+/*********************************************************************
+ *                         Arguments parsing                         *
+ *********************************************************************/
+
+const char * argp_program_version = "helium-0.0.1";
+const char * argp_program_bug_address = "<m4yers@gmail.com>";
+static char doc[] = "Helium is a system language and compiler. Work in progress...";
+static struct argp argp = { 0, 0, 0, doc, 0, 0, 0 };
+
+void Program_ParseArguments (Program_Module m, int argc, char ** argv)
+{
+    (void) m;
+#ifdef CONFIG_BUILD_EXE
+    argp_parse (&argp, argc, argv, 0, 0, 0);
+#endif
+}
+
+
+/*********************************************************************
+ *                             Fragments                             *
+ *********************************************************************/
+
 void Program_AddFragment (Program_Module p, F_frag f)
 {
     assert (p);
@@ -49,6 +72,11 @@ void Program_AddFragment (Program_Module p, F_frag f)
         break;
     }
 }
+
+
+/*********************************************************************
+ *                             Printing                              *
+ *********************************************************************/
 
 void Program_PrintAssembly (FILE * file, Program_Module p)
 {
