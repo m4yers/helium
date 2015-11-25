@@ -31,7 +31,7 @@ char * Error_ToString (struct Error * err)
 
 void Error_Print (FILE * out, struct Error * err)
 {
-    fprintf (out, "%d,%d %d %s\n",
+    fprintf (out, "ERROR %d,%d %d %s\n",
              err->loc.first_line,
              err->loc.first_column,
              err->code,

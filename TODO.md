@@ -9,6 +9,7 @@
     - [x] proper front-end error message system
 - [ ] new test system
     - [ ] internals
+    - [ ] internals
     - [ ] syntax
     - [ ] semant
     - [ ] codegen?

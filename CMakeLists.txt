@@ -77,7 +77,7 @@ add_executable (Helium_Compiler ${CMAKE_SOURCE_DIR}/helium/main.c
 
 set_target_properties (Helium_Compiler PROPERTIES OUTPUT_NAME "helium")
 
-add_subdirectory (tests)
+add_subdirectory (test/libhc)
 
 install (
     FILES "${CMAKE_BINARY_DIR}/$<TARGET_FILE_NAME:Helium_Compiler>"

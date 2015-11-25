@@ -14,6 +14,7 @@
 #include "canon.h"
 #include "codegen.h"
 #include "regalloc.h"
+#include "error.h"
 
 static const char * file_drop_extension (const char * file)
 {
@@ -41,15 +42,15 @@ int main (int argc, char * argv[])
     if (Parse_File (m, filename) != 0)
     {
         printf ("Lex errors: %lu\n", Vector_Size (m->errors.lexer));
-        VECTOR_FOREACH (const char *, error, m->errors.lexer)
+        VECTOR_FOREACH (struct Error, error, m->errors.lexer)
         {
-            printf (" - %s\n", *error);
+            Error_Print (stdout, error);
         }
 
         printf ("Parse errors: %lu\n", Vector_Size (m->errors.parser));
-        VECTOR_FOREACH (const char *, error, m->errors.parser)
+        VECTOR_FOREACH (struct Error, error, m->errors.parser)
         {
-            printf (" - %s\n", *error);
+            Error_Print (stdout, error);
         }
 
         exit (1);
@@ -63,9 +64,9 @@ int main (int argc, char * argv[])
     {
         printf ("Failed to translate program\n");
         printf ("Semant errors: %lu\n", Vector_Size (m->errors.semant));
-        VECTOR_FOREACH (const char *, error, m->errors.semant)
+        VECTOR_FOREACH (struct Error, error, m->errors.semant)
         {
-            printf (" - %s\n", *error);
+            Error_Print (stdout, error);
         }
 
         exit (1);
