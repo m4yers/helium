@@ -37,6 +37,7 @@ BISON_TARGET (Parser
 
 ADD_FLEX_BISON_DEPENDENCY (Lexer Parser)
 
+include_directories (/usr/local/include)
 include_directories (${CMAKE_SOURCE_DIR}/helium)
 
 set (HELIUM_SOURCES
@@ -46,6 +47,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/ext/stack.c
     ${CMAKE_SOURCE_DIR}/helium/ext/table.c
     ${CMAKE_SOURCE_DIR}/helium/ext/util.c
+    ${CMAKE_SOURCE_DIR}/helium/ext/str.c
     ${CMAKE_SOURCE_DIR}/helium/ext/vector.c
     ${CMAKE_SOURCE_DIR}/helium/asm.c
     ${CMAKE_SOURCE_DIR}/helium/ast.c

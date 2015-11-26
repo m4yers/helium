@@ -34,6 +34,7 @@
     - [ ] stack frame space ~ free registers, e.g. $fp and $ra and leaf/non-leaf stack layout
     - [ ] remove unnecessary storing static-link to stack if not used or used immediately
 - [ ] BIG CLEAN UP
+    - [ ] make sure the compiler can be built straight from the repo
     - [ ] Memory usage/freeing
     - [ ] Subsystems split akin LLVM
 - [ ] C runtime interface
