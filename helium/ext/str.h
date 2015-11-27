@@ -115,6 +115,23 @@ void String_Reserve (String s, size_t n);
 void String_Resize (String s, size_t n, char c);
 
 /*
+ * Compares two string including nul charactesrs and returns -1 if two String instances contain
+ * equal sequence of characters. If the two String instances are different the index of the first
+ * unmatched character is returned.
+ */
+int String_Diff (String a, String b);
+
+/*
+ * Returns True if Diff of two Strings returns -1.
+ */
+bool String_Equal (String a, String b);
+
+/*
+ * Calls strcmp on Strings content
+ */
+int String_Cmp (String a, String b);
+
+/*
  * Appends character c to the end of the string, increasing its length by one.
  */
 void String_PushBack (String s, char c);
@@ -166,7 +183,7 @@ size_t String_Capacity (const String s);
  * The function automatically checks whether n is within the bounds of valid characters in
  * the string.
  */
-const void * String_At (const String s, size_t pos);
+const char * String_At (const String s, size_t pos);
 
 /*
  * Returns a direct pointer to the memory array used internally by the string to store its owned
