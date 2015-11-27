@@ -5,9 +5,41 @@
 
 #include "bool.h"
 
-typedef struct Vector_Type * Vector;
-
 typedef void (*VectorElementDestructor) (void * value);
+
+typedef struct Vector_t * Vector;
+
+struct Vector_t
+{
+    char * data;
+
+    /*
+     * allocated = type_size * capacity
+     */
+    size_t allocated;
+
+    /*
+     * size of items in vector
+     */
+    size_t type_size;
+
+    /*
+     * The size of the storage space currently allocated for the vector, expressed in terms of
+     * elements.
+     */
+    size_t capacity;
+
+    /*
+     * This is the number of actual objects held in the vector, which is not necessarily equal
+     * to its storage capacity.
+     */
+    size_t size;
+
+    /*
+     * Function used to destroy a vector element.
+     */
+    VectorElementDestructor dest;
+};
 
 /*
  * Initializes existing or creates a new vector.
@@ -134,7 +166,7 @@ size_t Vector_Capacity (const Vector v);
  * The function automatically checks whether n is within the bounds of valid elements in
  * the vector.
  */
-void * Vector_At (const Vector v, size_t n);
+void * Vector_At (const Vector v, size_t pos);
 
 /*
  * Returns a direct pointer to the memory array used internally by the vector to store its owned

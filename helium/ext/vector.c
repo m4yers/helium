@@ -8,38 +8,6 @@
 #include "bool.h"
 #include "log.h"
 
-struct Vector_Type
-{
-    char * data;
-
-    /*
-     * allocated = type_size * capacity
-     */
-    size_t allocated;
-
-    /*
-     * size of items in vector
-     */
-    size_t type_size;
-
-    /*
-     * The size of the storage space currently allocated for the vector, expressed in terms of
-     * elements.
-     */
-    size_t capacity;
-
-    /*
-     * This is the number of actual objects held in the vector, which is not necessarily equal
-     * to its storage capacity.
-     */
-    size_t size;
-
-    /*
-     * Function used to destroy a vector element.
-     */
-    VectorElementDestructor dest;
-};
-
 Vector Vector_Init (Vector r, size_t type_size, size_t n)
 {
     assert (type_size != 0);
@@ -170,12 +138,12 @@ size_t Vector_Capacity (Vector v)
     return v->capacity;
 }
 
-void * Vector_At (Vector v, size_t n)
+void * Vector_At (Vector v, size_t pos)
 {
     assert (v);
-    assert (n < v->size);
+    assert (pos < v->size);
 
-    return v->data + v->type_size * n;
+    return v->data + v->type_size * pos;
 }
 
 void * Vector_Data (Vector v)
