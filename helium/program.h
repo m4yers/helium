@@ -2,12 +2,26 @@
 #define PROGRAM_H_NTR7UGNX
 
 #include "ext/vector.h"
+#include "ext/str.h"
+#include "ext/list.h"
 
 #include "frame.h"
 #include "ast.h"
 
+struct Program_Option_t
+{
+    struct String_t key;
+    struct String_t value;
+};
+
+struct Program_Options_t
+{
+    struct Vector_t /** of Program_Option_t */ debug;
+};
+
 typedef struct Program_Module_
 {
+    struct Program_Options_t options;
     const char * input;
     A_decList ast;
 
@@ -19,12 +33,12 @@ typedef struct Program_Module_
 
     struct
     {
-        Vector /* struct Error */ lexer;
-        Vector /* struct Error */ parser;
-        Vector /* struct Error */ semant;
+        struct Vector_t /* struct Error */ lexer;
+        struct Vector_t /* struct Error */ parser;
+        struct Vector_t /* struct Error */ semant;
     } errors;
 
-    Vector /* of RA_Result */ results;
+    struct Vector_t /* of RA_Result */ results;
 
 } * Program_Module;
 

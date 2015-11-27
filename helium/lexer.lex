@@ -96,7 +96,7 @@ promitive        { return PRIMITIVE; }
 import           { return IMPORT; }
 {ID}             { yylval.sval = strdup (yytext); return ID;}
 .                {
-                    Vector_PushBack(module->errors.lexer,
+                    Vector_PushBack(&module->errors.lexer,
                         Error_New(
                             &yylloc,
                             1000,

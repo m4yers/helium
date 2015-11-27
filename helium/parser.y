@@ -33,7 +33,7 @@
 
     void yyerror (const char * message)
     {
-        Vector_PushBack(module->errors.parser,
+        Vector_PushBack(&module->errors.parser,
             Error_New(
                 &yylloc,
                 2000,
@@ -46,7 +46,7 @@
 {
     int pos;
     int ival;
-    string sval;
+    char * sval;
     A_var var;
     A_exp exp;
     A_expList expList;

@@ -12,28 +12,28 @@ extern FILE * yyin;
 extern void * yy_scan_string (const char * str);
 extern int Parse (Program_Module m);
 
-int Parse_File (Program_Module m, string fname)
+int Parse_File (Program_Module m, const char * fname)
 {
     yyin = fopen (fname, "r");
 
     if (!yyin)
     {
-        Vector_PushBack (m->errors.lexer, "Could not open file");
+        Vector_PushBack (&m->errors.lexer, "Could not open file");
         return 1;
     }
 
-    return Parse (m) || !Vector_Empty (m->errors.lexer) || !Vector_Empty (m->errors.parser);
+    return Parse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
 }
 
 int Parse_String (Program_Module m, const char * input)
 {
     if (!input)
     {
-        Vector_PushBack (m->errors.lexer, "Empty input");
+        Vector_PushBack (&m->errors.lexer, "Empty input");
         return 1;
     }
 
     yy_scan_string (input);
 
-    return Parse (m) || !Vector_Empty (m->errors.lexer) || !Vector_Empty (m->errors.parser);
+    return Parse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
 }

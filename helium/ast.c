@@ -64,7 +64,7 @@ A_exp A_IntExp (A_loc loc, int i)
     return p;
 }
 
-A_exp A_StringExp (A_loc loc, string s)
+A_exp A_StringExp (A_loc loc, const char * s)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_stringExp;

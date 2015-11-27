@@ -40,14 +40,14 @@ int main (int argc, char * argv[])
 
     if (Parse_File (m, filename) != 0)
     {
-        printf ("Lex errors: %lu\n", Vector_Size (m->errors.lexer));
-        VECTOR_FOREACH (struct Error, error, m->errors.lexer)
+        printf ("Lex errors: %lu\n", Vector_Size (&m->errors.lexer));
+        VECTOR_FOREACH (struct Error, error, &m->errors.lexer)
         {
             Error_Print (stdout, error);
         }
 
-        printf ("Parse errors: %lu\n", Vector_Size (m->errors.parser));
-        VECTOR_FOREACH (struct Error, error, m->errors.parser)
+        printf ("Parse errors: %lu\n", Vector_Size (&m->errors.parser));
+        VECTOR_FOREACH (struct Error, error, &m->errors.parser)
         {
             Error_Print (stdout, error);
         }
@@ -62,8 +62,8 @@ int main (int argc, char * argv[])
     if (Semant_Translate (m) != 0)
     {
         printf ("Failed to translate program\n");
-        printf ("Semant errors: %lu\n", Vector_Size (m->errors.semant));
-        VECTOR_FOREACH (struct Error, error, m->errors.semant)
+        printf ("Semant errors: %lu\n", Vector_Size (&m->errors.semant));
+        VECTOR_FOREACH (struct Error, error, &m->errors.semant)
         {
             Error_Print (stdout, error);
         }
@@ -82,7 +82,7 @@ int main (int argc, char * argv[])
         RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
         lines = F_ProcEntryExit3 (frame, lines, rar->colors);
 
-        Vector_PushBack (m->results, rar);
+        Vector_PushBack (&m->results, rar);
 
     }
 

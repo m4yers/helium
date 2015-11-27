@@ -33,7 +33,7 @@ void Vector_Fini (Vector v)
     free (v->data);
 }
 
-Vector Vector_New (size_t type_size, size_t n)
+Vector _Vector_New (size_t type_size, size_t n)
 {
     Vector v = checked_malloc (sizeof (*v));
     return _Vector_Init (v, type_size, n);

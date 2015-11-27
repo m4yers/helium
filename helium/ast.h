@@ -91,7 +91,7 @@ struct A_exp_
 
         int intt;
 
-        string stringg;
+        const char * stringg;
 
         struct
         {
@@ -332,7 +332,7 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp);
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);
 A_exp A_IntExp (A_loc loc, int i);
-A_exp A_StringExp (A_loc loc, string s);
+A_exp A_StringExp (A_loc loc, const char * s);
 A_exp A_CallExp (A_loc loc, S_symbol func, A_expList args);
 A_exp A_OpExp (A_loc loc, A_oper oper, A_exp left, A_exp right);
 A_exp A_RecordExp (A_loc loc, S_symbol name, A_efieldList fields);

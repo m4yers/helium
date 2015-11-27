@@ -3,14 +3,6 @@
 #include "util.h"
 #include "mem.h"
 
-string String (char * s)
-{
-    string p = checked_malloc (strlen (s) + 1);
-    strcpy (p, s);
-    return p;
-}
-
-
 char * itoa (int value, char * result, int base)
 {
     // check that the base if valid

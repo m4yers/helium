@@ -16,7 +16,7 @@
 
 #define ERROR_PUSH(line, loc, code, format, ...)                         \
     {                                                                    \
-        Vector_PushBack(context->module->errors.semant,                  \
+        Vector_PushBack(&context->module->errors.semant,                  \
                 Error_New(&loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
@@ -1002,5 +1002,5 @@ int Semant_Translate (Program_Module m)
 
     LIST_FOREACH (dec, m->ast) TransDec (&context, dec);
 
-    return Vector_Size (m->errors.semant);
+    return Vector_Size (&m->errors.semant);
 }

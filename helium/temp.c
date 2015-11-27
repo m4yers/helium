@@ -26,7 +26,7 @@ Temp_label Temp_NewLabel (void)
 {
     char buf[100];
     sprintf (buf, "L%d", labels++);
-    return Temp_NamedLabel (String (buf));
+    return Temp_NamedLabel (buf);
 }
 
 /* The label will be created only if it is not found. */
@@ -44,7 +44,7 @@ Temp_temp Temp_NewTemp (void)
     {
         char r[16];
         sprintf (r, "t%d", p->num);
-        Temp_Enter (Temp_Name(), p, String (r));
+        Temp_Enter (Temp_Name(), p, r);
     }
     return p;
 }
@@ -93,7 +93,7 @@ Temp_map Temp_LayerMap (Temp_map over, Temp_map under)
     }
 }
 
-void Temp_Enter (Temp_map m, Temp_temp t, string s)
+void Temp_Enter (Temp_map m, Temp_temp t, char * s)
 {
     assert (m && m->tab);
     TAB_Enter (m->tab, t, s);
@@ -101,7 +101,7 @@ void Temp_Enter (Temp_map m, Temp_temp t, string s)
 
 const char * Temp_Look (Temp_map m, Temp_temp t)
 {
-    string s;
+    char * s;
     assert (m && m->tab);
     s = TAB_Look (m->tab, t);
     if (s)
@@ -191,7 +191,7 @@ Temp_labelList Temp_LabelList (Temp_label h, Temp_labelList t)
 }
 
 static FILE * outfile;
-static void showit (Temp_temp t, string r)
+static void showit (Temp_temp t, char * r)
 {
     fprintf (outfile, "t%d -> %s\n", t->num, r);
 }

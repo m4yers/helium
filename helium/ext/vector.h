@@ -59,8 +59,9 @@ void Vector_Fini (Vector v);
 /*
  * Same as Vector_Init but the instance is allocated on heap
  */
-Vector Vector_New (size_t type_size, size_t n);
+Vector _Vector_New (size_t type_size, size_t n);
 
+#define Vector_New(type) _Vector_New (sizeof (type), 4);
 /*
  * Same as Vector_Fini plus the instance is freed and assigned to NULL.
  */
