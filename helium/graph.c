@@ -249,7 +249,7 @@ void G_Enter (G_table t, G_node node, void * value)
     TAB_Enter (t, node, value);
 }
 
-void * G_Look (G_table t, G_node node)
+const void * G_Look (G_table t, G_node node)
 {
     return TAB_Look (t, node);
 }

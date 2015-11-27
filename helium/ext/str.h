@@ -34,8 +34,8 @@ struct String_t
 /*
  * struct String_t initialization expression. Just a shortcut.
  */
-#define String(s)\
-    { .data = (char *) s, .is_static = TRUE, .capacity = strlen(s) + 1, .size = strlen(s) }
+// #define String(s)\
+//     { .data = (char *) s, .is_static = TRUE, .capacity = strlen(s) + 1, .size = strlen(s) }
 
 /*
  * Initializes the String instance with raw c-like string. By default the instance of String
@@ -144,7 +144,7 @@ void String_PushBack (String s, char c);
 void String_PopBack (String s);
 
 /*
- * Returns a reference to the first character in the string. Essentially the same as Vector_Data
+ * Returns a reference to the first character in the string. Essentially the same as String_Data
  * but does additional check for size.
  */
 const char * String_Front (const String s);
@@ -173,7 +173,7 @@ size_t String_Size (const String s);
  * capacity is exhausted and more is needed, it is automatically expanded by the container
  * (reallocating it storage space).
  *
- * The capacity of a string can be explicitly altered by calling Vector_Reserve.
+ * The capacity of a string can be explicitly altered by calling String_Reserve.
  */
 size_t String_Capacity (const String s);
 

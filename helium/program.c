@@ -16,7 +16,8 @@ Program_Module Program_ModuleNew()
 {
     Program_Module r = checked_malloc (sizeof * r);
 
-    r->input = NULL;
+    r->options.file = NULL;
+
     r->ast = NULL;
     r->fragments.strings = NULL;
     r->fragments.functions = NULL;
@@ -36,72 +37,73 @@ Program_Module Program_ModuleNew()
 
 const char * argp_program_version = "helium-0.0.1";
 const char * argp_program_bug_address = "<m4yers@gmail.com>";
+
 static char doc[] = "Helium is a system language and compiler. Work in progress...";
+
 static char args_doc[] = "FILENAME";
+
 static struct argp_option options[] =
 {
     {
-        "verbose", 'v', "LEVEL", OPTION_ARG_OPTIONAL,
-        "Verbosity level. Default is 3.", 0
+        .name = "verbose",
+        .key = 'v',
+        .arg = "LEVEL",
+        .group = 0,
+        .flags = OPTION_ARG_OPTIONAL,
+        .doc = "Verbosity level. Default is 3."
     },
     {
-        0, 'Z', "FLAG", OPTION_ARG_OPTIONAL,
-        "Internal debug options Use -Z help to print available options.", 0
-    }
+        .name = 0,
+        .key = 'Z',
+        .arg = "OPTIONS",
+        .group = 0,
+        .flags = OPTION_ARG_OPTIONAL,
+        .doc = "Internal debug options Use -Z help to print available options."
+    },
+    {0, 0, 0, 0, 0, 0}
 };
 
-static struct argp argp = { 0, 0, 0, doc, 0, 0, 0 };
+static void ParseArguments (Vector /** struct Program_Option_t */ v, const char * args)
+{
+    struct Program_Option_t opt;
+    String_Init (&opt.key, "");
+    String_Init (&opt.value, "");
 
-/* static Program_Option Program_OptionNew (const char * key, const char * value) */
-/* { */
-/*     Program_Option r = checked_malloc (sizeof (*r)); */
-/*     r->key = key; */
-/*     r->key_len = 0; */
-/*     r->value = value; */
-/*     r->value_len = 0; */
-/*     return r; */
-/* } */
+    bool isKey = TRUE;
 
-/* static Program_OptionList ParseArguments (const char * args) */
-/* { */
-/* Program_OptionList list = NULL; */
-/* Program_Option opt = Program_OptionNew (NULL, NULL); */
-/*  */
-/* bool isKey = TRUE; */
-/*  */
-/* for (; *args != '\n'; args++) */
-/* { */
-/*     char token = * args; */
-/*     switch (token) */
-/*     { */
-/*     case ',': */
-/*     { */
-/*         LIST_PUSH (list, opt); */
-/*         opt = Program_OptionNew (NULL, NULL); */
-/*         isKey = TRUE; */
-/*         break; */
-/*     } */
-/*     case '=': */
-/*     { */
-/*         isKey = FALSE; */
-/*         break; */
-/*     } */
-/*     default: */
-/*     { */
-/*         if (isKey) */
-/*         { */
-/*             if (opt->key == NULL) */
-/*             { */
-/*  */
-/*             } */
-/*         } */
-/*         break; */
-/*     } */
-/*     } */
-/* } */
-/*  */
-/* return list; */
-/* } */
+    for (; *args != '\0'; args++)
+    {
+        char token = *args;
+        switch (token)
+        {
+        case ',':
+        {
+            Vector_PushBack (v, opt);
+            String_Init (&opt.key, "");
+            String_Init (&opt.value, "");
+            isKey = TRUE;
+            break;
+        }
+        case '=':
+        {
+            isKey = FALSE;
+            break;
+        }
+        default:
+        {
+            if (isKey)
+            {
+                String_PushBack (&opt.key, token);
+            }
+            else
+            {
+                String_PushBack (&opt.value, token);
+            }
+            break;
+        }
+        }
+    }
+}
 
 static error_t parse_opt (int key, char * arg, struct argp_state * state)
 {
@@ -111,11 +113,39 @@ static error_t parse_opt (int key, char * arg, struct argp_state * state)
     {
     case 'Z':
     {
-        /* m->options.debug = ParseArguments (arg); */
+        ParseArguments (&m->options.debug, arg);
         break;
     }
+    case ARGP_KEY_ARG:
+    {
+        if (state->arg_num > 1)
+        {
+            argp_usage (state);
+            break;
+        }
+
+        m->options.file = String_New (arg);
+        break;
     }
+    case ARGP_KEY_END:
+    {
+        if (m->options.file == NULL)
+        {
+            printf ("You must provide a file to compile.\n\n");
+            argp_usage (state);
+        }
+        break;
+    }
+    default:
+    {
+        return ARGP_ERR_UNKNOWN;
+    }
+    }
+
+    return 0;
 }
+
+static struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
 
 void Program_ParseArguments (Program_Module m, int argc, char ** argv)
 {

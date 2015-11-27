@@ -170,7 +170,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
     {
     case A_nameTy:
     {
-        type = S_Look (context->tenv, ty->u.name);
+        type = (Ty_ty)S_Look (context->tenv, ty->u.name);
         if (!type)
         {
             ERROR_UNKNOWN_TYPE (ty->loc, ty->u.name);
@@ -183,7 +183,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
     case A_arrayTy:
     {
         // SHIT well u did it again
-        type = S_Look (context->tenv, ty->u.array->head->u.var->u.simple);
+        type = (Ty_ty)S_Look (context->tenv, ty->u.array->head->u.var->u.simple);
         int size = ty->u.array->tail->head->u.intt;
         return Ty_Array (type, size);
     }
@@ -195,7 +195,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             A_field field = l->head;
             if (field->type->kind == A_nameTy)
             {
-                type = S_Look (context->tenv, field->type->u.name);
+                type = (Ty_ty)S_Look (context->tenv, field->type->u.name);
             }
             else
             {
@@ -322,7 +322,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             Ty_ty fty;
             if (field->type->kind == A_nameTy)
             {
-                fty = S_Look (context->tenv, field->type->u.name);
+                fty = (Ty_ty)S_Look (context->tenv, field->type->u.name);
             }
             else
             {
@@ -415,7 +415,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
     {
     case A_simpleVar:
     {
-        Env_Entry e = S_Look (context->venv, var->u.simple);
+        Env_Entry e = (Env_Entry)S_Look (context->venv, var->u.simple);
         if (e && e->kind == Env_varEntry)
         {
             return Expression_New (
@@ -555,7 +555,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_callExp:
     {
-        Env_Entry fun = S_Look (context->venv, exp->u.call.func);
+        Env_Entry fun = (Env_Entry)S_Look (context->venv, exp->u.call.func);
         if (!fun || fun->kind != Env_funEntry)
         {
             // TODO add proper error here
@@ -744,7 +744,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
             if (exp->u.record.name)
             {
-                ty = GetActualType (S_Look (context->tenv, exp->u.record.name));
+                ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
                 if (!ty)
                 {
                     ERROR_UNKNOWN_TYPE (exp->loc, exp->u.record.name);

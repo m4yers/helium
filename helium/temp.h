@@ -37,7 +37,7 @@ Temp_labelList Temp_LabelList (Temp_label h, Temp_labelList t);
 typedef struct Temp_map_ * Temp_map;
 Temp_map Temp_Empty (void);
 Temp_map Temp_LayerMap (Temp_map over, Temp_map under);
-void Temp_Enter (Temp_map m, Temp_temp t, char * s);
+void Temp_Enter (Temp_map m, Temp_temp t, const char * s);
 const char * Temp_Look (Temp_map m, Temp_temp t);
 void Temp_DumpMap (FILE * out, Temp_map m);
 

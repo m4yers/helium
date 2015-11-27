@@ -424,7 +424,7 @@ static BitArray NodeMoves (Workspace w, Temp_temp t)
     {
         return NULL;
     }
-    BitArray a = TAB_Look (w->movesTable, t);
+    BitArray a = (BitArray)TAB_Look (w->movesTable, t);
     if (!a)
     {
         return NULL;
@@ -443,7 +443,7 @@ static int GetAlias (Workspace w, int n)
     {
         // FIXME: Artyom Goncharov not addition conversion
         Temp_temp ntmp = GetTemp (n, w->temps);
-        int index = GetIndex (TAB_Look (w->aliases, ntmp), w->temps);
+        int index = GetIndex ((Temp_temp)TAB_Look (w->aliases, ntmp), w->temps);
         return GetAlias (w, index);
     }
     return n;
@@ -468,8 +468,8 @@ static void MakeWorkLists (Workspace w)
              * We need to check whether the processed node has already
              * a color, if so we push it the result map immediately
              */
-            Temp_temp t = GetTemp (index, w->temps);
-            Temp_temp color = TAB_Look (w->coloring, t);
+            Temp_temp t = (Temp_temp)GetTemp (index, w->temps);
+            Temp_temp color = (Temp_temp)TAB_Look (w->coloring, t);
             if (color)
             {
                 TAB_Enter (w->coloring, t, color);
@@ -660,8 +660,8 @@ static void Combine (Workspace w, int u, int v)
     Temp_temp vt = GetTemp (v, w->temps);
     TAB_Enter (w->aliases, vt, ut);
 
-    BitArray umb = TAB_Look (w->movesTable, ut);
-    BitArray vmb = TAB_Look (w->movesTable, vt);
+    BitArray umb = (BitArray)TAB_Look (w->movesTable, ut);
+    BitArray vmb = (BitArray)TAB_Look (w->movesTable, vt);
     BitArray_Union (umb, vmb, umb);
 
     UpdateMoveLists (w, v);
@@ -779,7 +779,7 @@ static void FreezeMoves (Workspace w, int u)
 
         Temp_temp vt = GetTemp (v, w->temps);
 
-        if (!BitArray_HasSet (TAB_Look (w->movesTable, vt))
+        if (!BitArray_HasSet ((BitArray)TAB_Look (w->movesTable, vt))
                 && BitMatrix_GetRowDegree (w->interference, v) < w->K)
         {
             BitArray_UnSet (w->freezify, v);
@@ -852,7 +852,7 @@ static void Colorify (Workspace w)
             if (BitArray_IsSet (colored, a) || BitArray_IsSet (w->precolored, a))
             {
                 Temp_temp t = GetTemp (a, w->temps);
-                Temp_temp color = TAB_Look (w->coloring, t);
+                Temp_temp color = (Temp_temp)TAB_Look (w->coloring, t);
                 if (color)
                 {
                     int index = GetIndex (color, w->regs);
@@ -898,7 +898,7 @@ static void Colorify (Workspace w)
         Temp_temp ct = GetTemp (c, w->temps);
         int a = GetAlias (w, c);
         Temp_temp at = GetTemp (a, w->temps);
-        Temp_temp color = TAB_Look (w->coloring, at);
+        Temp_temp color = (Temp_temp)TAB_Look (w->coloring, at);
         TAB_Enter (w->coloring, ct, color);
         Temp_Enter (w->results, ct, (char *)Temp_Look (w->results, color));
         DBG ("coalesced temp %d colored as %s\n", c, Temp_Look (w->results, color));
@@ -1104,7 +1104,7 @@ RA_Result RA_RegAlloc (F_frame f, ASM_lineList ll, F_registers regs_all, F_regis
     /* printf("\n"); */
 
     /* Temp_DumpMap (stdout, w->results); */
-    RA_Result rar = checked_malloc(sizeof * rar);
+    RA_Result rar = checked_malloc (sizeof * rar);
     rar->coloring = w->results;
     rar->colors = w->colors;
     rar->il = ll;

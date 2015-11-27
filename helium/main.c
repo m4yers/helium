@@ -33,12 +33,12 @@ int main (int argc, char * argv[])
 {
     char * filename = argv[1];
 
-    printf ("Compiling %s\n", filename);
-
     Program_Module m = Program_ModuleNew();
     Program_ParseArguments (m, argc, argv);
 
-    if (Parse_File (m, filename) != 0)
+    printf ("Compiling %s\n", String_Data (m->options.file));
+
+    if (Parse_File (m, m->options.file) != 0)
     {
         printf ("Lex errors: %lu\n", Vector_Size (&m->errors.lexer));
         VECTOR_FOREACH (struct Error, error, &m->errors.lexer)

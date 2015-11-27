@@ -29,7 +29,7 @@ void S_Enter (S_table t, S_symbol sym, void * value);
 
 /* Look up the most recent binding of "sym" in "t", or return NULL
  *    if sym is unbound. */
-void * S_Look (S_table t, S_symbol sym);
+const void * S_Look (const S_table t, const S_symbol sym);
 
 /* Start a new "scope" in "t".  Scopes are nested. */
 void S_BeginScope (S_table t);
@@ -38,7 +38,7 @@ void S_BeginScope (S_table t);
    and end the current scope. */
 void S_EndScope (S_table t);
 
-void S_Dump (S_table t, void (*show) (S_symbol sym, void * binding));
+void S_Dump (S_table t, void (*show) (const S_symbol sym, const void * binding));
 
 
 #endif /* end of include guard: SYMBOL_H_A9CT48M3 */

@@ -100,7 +100,7 @@ void Vector_Push (Vector v, const void * value)
 
     if (v->size == v->capacity)
     {
-        Vector_Reserve (v, v->capacity * 2);
+        Vector_Reserve (v, v->capacity == 0 ? 4 : v->capacity * 2);
     }
 
     memcpy (v->data + v->type_size * v->size, value, v->type_size);

@@ -87,7 +87,7 @@ static void TraverseVar (S_table env, int depth, A_var var)
     {
     case A_simpleVar:
     {
-        Entry e = S_Look (env, var->u.simple);
+        Entry e = (Entry) S_Look (env, var->u.simple);
         if (depth > e->depth)
         {
             *e->escape = TRUE;

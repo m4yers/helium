@@ -12,9 +12,9 @@ extern FILE * yyin;
 extern void * yy_scan_string (const char * str);
 extern int Parse (Program_Module m);
 
-int Parse_File (Program_Module m, const char * fname)
+int Parse_File (Program_Module m, String filename)
 {
-    yyin = fopen (fname, "r");
+    yyin = fopen (String_Data(filename), "r");
 
     if (!yyin)
     {

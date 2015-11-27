@@ -8,10 +8,11 @@ macro(add_helium_test name file)
         ${FLEX_Lexer_OUTPUTS})
 endmacro()
 
-add_helium_test(Test_BitArray bitarray.c)
-add_helium_test(Test_Vector vector.c)
-add_helium_test(Test_String str.c)
-add_helium_test(Test_Table table.c)
-add_helium_test(Test_Stack stack.c)
+# TODO make it separate
+# add_helium_test(Test_BitArray bitarray.c)
+# add_helium_test(Test_Vector vector.c)
+# add_helium_test(Test_String str.c)
+# add_helium_test(Test_Table table.c)
+# add_helium_test(Test_Stack stack.c)
 
-add_helium_test(Escaping escaping.c)
+# add_helium_test(Escaping escaping.c)

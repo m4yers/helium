@@ -147,8 +147,8 @@ static struct stmExp DoExp (T_exp exp)
     case T_BINOP:
     {
         return StmExp (Reorder (
-                    ExpRefList (&exp->u.BINOP.left,
-                    ExpRefList (&exp->u.BINOP.right, NULL))), exp);
+                           ExpRefList (&exp->u.BINOP.left,
+                                       ExpRefList (&exp->u.BINOP.right, NULL))), exp);
     }
     case T_MEM:
     {
@@ -191,7 +191,7 @@ static T_stm DoStm (T_stm stm)
     {
         return Seq (Reorder (
                         ExpRefList (&stm->u.CJUMP.left,
-                        ExpRefList (&stm->u.CJUMP.right, NULL))), stm);
+                                    ExpRefList (&stm->u.CJUMP.right, NULL))), stm);
     }
     case T_MOVE:
     {
@@ -207,7 +207,7 @@ static T_stm DoStm (T_stm stm)
         {
             return Seq (Reorder (
                             ExpRefList (&stm->u.MOVE.dst->u.MEM,
-                            ExpRefList (&stm->u.MOVE.src, NULL))), stm);
+                                        ExpRefList (&stm->u.MOVE.src, NULL))), stm);
         }
         /*
          * If 'dst' is an ESEQ, for some reason, the stm part is returned as part of the result
@@ -278,9 +278,9 @@ static C_stmListList Next (T_stmList list, T_stmList tail, Temp_label done)
     if (!tail)
     {
         return Next (
-                list,
-                T_StmList (T_Jump (T_Name (done), Temp_LabelList (done, NULL)), NULL),
-                done);
+                   list,
+                   T_StmList (T_Jump (T_Name (done), Temp_LabelList (done, NULL)), NULL),
+                   done);
     }
 
     if (tail->head->kind == T_JUMP || tail->head->kind == T_CJUMP)
@@ -295,9 +295,9 @@ static C_stmListList Next (T_stmList list, T_stmList tail, Temp_label done)
     {
         Temp_label lab = tail->head->u.LABEL;
         return Next (
-                list,
-                T_StmList (T_Jump (T_Name (lab), Temp_LabelList (lab, NULL)), tail),
-                done);
+                   list,
+                   T_StmList (T_Jump (T_Name (lab), Temp_LabelList (lab, NULL)), tail),
+                   done);
     }
     else
     {
@@ -358,7 +358,7 @@ static void Trace (T_stmList list)
     S_Enter (block_env, lab->u.LABEL, NULL);
     if (s->kind == T_JUMP)
     {
-        T_stmList target = S_Look (block_env, s->u.JUMP.jumps->head);
+        T_stmList target = (T_stmList)S_Look (block_env, s->u.JUMP.jumps->head);
         if (!s->u.JUMP.jumps->tail && target)
         {
             last->tail = target; /* merge the 2 lists removing JUMP stm */
@@ -372,8 +372,8 @@ static void Trace (T_stmList list)
     /* we want false label to follow CJUMP */
     else if (s->kind == T_CJUMP)
     {
-        T_stmList true = S_Look (block_env, s->u.CJUMP.true);
-        T_stmList false = S_Look (block_env, s->u.CJUMP.false);
+        T_stmList true = (T_stmList)S_Look (block_env, s->u.CJUMP.true);
+        T_stmList false = (T_stmList)S_Look (block_env, s->u.CJUMP.false);
         if (false)
         {
             last->tail->tail = false;
@@ -382,11 +382,11 @@ static void Trace (T_stmList list)
         else if (true)   /* convert so that existing label is a false label */
         {
             last->tail->head = T_Cjump (
-                    T_notRel (s->u.CJUMP.op),
-                    s->u.CJUMP.left,
-                    s->u.CJUMP.right,
-                    s->u.CJUMP.false,
-                    s->u.CJUMP.true);
+                                   T_notRel (s->u.CJUMP.op),
+                                   s->u.CJUMP.left,
+                                   s->u.CJUMP.right,
+                                   s->u.CJUMP.false,
+                                   s->u.CJUMP.true);
 
             last->tail->tail = true;
             Trace (true);
@@ -396,11 +396,11 @@ static void Trace (T_stmList list)
             Temp_label f = Temp_NewLabel();
 
             last->tail->head = T_Cjump (
-                    s->u.CJUMP.op,
-                    s->u.CJUMP.left,
-                    s->u.CJUMP.right,
-                    s->u.CJUMP.true,
-                    f);
+                                   s->u.CJUMP.op,
+                                   s->u.CJUMP.left,
+                                   s->u.CJUMP.right,
+                                   s->u.CJUMP.true,
+                                   f);
 
             last->tail->tail = T_StmList (T_Label (f), GetNext());
         }

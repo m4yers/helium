@@ -16,13 +16,14 @@ struct Program_Option_t
 
 struct Program_Options_t
 {
-    struct Vector_t /** of Program_Option_t */ debug;
+    String file;
+    struct Vector_t /** Program_Option_t */ debug;
 };
 
 typedef struct Program_Module_
 {
     struct Program_Options_t options;
-    const char * input;
+
     A_decList ast;
 
     struct

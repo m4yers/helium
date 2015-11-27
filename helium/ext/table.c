@@ -10,19 +10,19 @@
 typedef struct binder_ * binder;
 struct binder_
 {
-    void * key;
-    void * value;
+    const void * key;
+    const void * value;
     binder next;
-    void * prevtop;
+    const void * prevtop;
 };
 
 struct TAB_table_
 {
     binder table[TABSIZE];
-    void * top;
+    const void * top;
 };
 
-static binder Binder (void * key, void * value, binder next, void * prevtop)
+static binder Binder (const void * key, const void * value, binder next, const void * prevtop)
 {
     binder b = checked_malloc (sizeof (*b));
     b->key = key;
@@ -55,7 +55,7 @@ TAB_table TAB_Empty (void)
  * reasonable and repeatable index into the table will result.
  */
 
-void TAB_Enter (TAB_table t, void * key, void * value)
+void TAB_Enter (TAB_table t, const void * key, const void * value)
 {
     int index;
     assert (t);
@@ -65,7 +65,7 @@ void TAB_Enter (TAB_table t, void * key, void * value)
     t->top = key;
 }
 
-void * TAB_Look (TAB_table t, void * key)
+const void * TAB_Look (TAB_table t, const void * key)
 {
     int index;
     binder b;
@@ -84,7 +84,7 @@ void * TAB_Look (TAB_table t, void * key)
 
 void * TAB_Pop (TAB_table t)
 {
-    void * k;
+    const void * k;
     binder b;
     int index;
     assert (t);
@@ -95,7 +95,7 @@ void * TAB_Pop (TAB_table t)
     assert (b);
     t->table[index] = b->next;
     t->top = b->prevtop;
-    return b->key;
+    return (void *)b->key;
 }
 
 void ** TAB_Keys (TAB_table t)
@@ -103,7 +103,7 @@ void ** TAB_Keys (TAB_table t)
     int size = 10;
     void ** r = checked_malloc (sizeof (void *) * size);
     int i = 0;
-    void * hash = t->top;
+    const void * hash = t->top;
     while (hash)
     {
         int index = ((unsigned)hash) % TABSIZE;
@@ -113,15 +113,15 @@ void ** TAB_Keys (TAB_table t)
             size *= 2;
             r = realloc (r, sizeof (void *) * size);
         }
-        r[i++] = b->key;
+        r[i++] = (void *) b->key;
     }
 
     return r;
 }
 
-void TAB_Dump (TAB_table t, void (*show) (void * key, void * value))
+void TAB_Dump (TAB_table t, void (*show) (const void * key, const void * value))
 {
-    void * k = t->top;
+    const void * k = t->top;
     int index = ((unsigned)k) % TABSIZE;
     binder b = t->table[index];
 

@@ -97,6 +97,6 @@ void G_Enter (G_table t, G_node node, void * value);
 /**
  * Tell what "node" maps to in table "t"
  */
-void * G_Look (G_table t, G_node node);
+const void * G_Look (G_table t, G_node node);
 
 #endif /* end of include guard: GRAPH_H_KJDKJRCO */

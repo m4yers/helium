@@ -49,7 +49,7 @@ S_symbol S_Symbol (const char * name)
         }
     }
 
-    sym = mksymbol (name, syms);
+    sym = mksymbol (strdup(name), syms);
     hashtable[index] = sym;
     return sym;
 }
@@ -69,7 +69,7 @@ void S_Enter (S_table t, S_symbol sym, void * value)
     TAB_Enter (t, sym, value);
 }
 
-void * S_Look (S_table t, S_symbol sym)
+const void * S_Look (const S_table t, const S_symbol sym)
 {
     return TAB_Look (t, sym);
 }
@@ -92,7 +92,7 @@ void S_EndScope (S_table t)
     while (s != &marksym);
 }
 
-void S_Dump (S_table t, void (*show) (S_symbol sym, void * binding))
+void S_Dump (S_table t, void (*show) (const S_symbol sym, const void * binding))
 {
-    TAB_Dump (t, (void (*) (void *, void *)) show);
+    TAB_Dump (t, (void (*) (const void *, const void *)) show);
 }

@@ -49,7 +49,7 @@ Flow_graph FG_AsmFlowGraph (ASM_lineList l)
      */
     Temp_labelList ll = NULL;
 
-    Temp_tempList tl = Temp_TempList(NULL, NULL), tll = tl;
+    Temp_tempList tl = Temp_TempList (NULL, NULL), tll = tl;
     int tlLen = 0;
 
     for (; l; l = l->tail)
@@ -65,7 +65,7 @@ Flow_graph FG_AsmFlowGraph (ASM_lineList l)
                 for (Temp_labelList j = line->u.OPER.jumps->labels; j; j = j->tail)
                 {
                     Temp_label label = j->head;
-                    TAB_Enter (tj, label, ASM_LineList (line, TAB_Look (tj, label)));
+                    TAB_Enter (tj, label, ASM_LineList (line, (ASM_lineList)TAB_Look (tj, label)));
                 }
             }
 
@@ -109,7 +109,7 @@ Flow_graph FG_AsmFlowGraph (ASM_lineList l)
             }
             else // should not happen
             {
-                // FIXME Artyom Goncharov (A) well, it does happen because of the munch func 
+                // FIXME Artyom Goncharov (A) well, it does happen because of the munch func
                 /* assert (0); */
             }
             break;
@@ -123,10 +123,10 @@ Flow_graph FG_AsmFlowGraph (ASM_lineList l)
     for (; ll; ll = ll->tail)
     {
         Temp_label label = ll->head;
-        ASM_lineList jl = TAB_Look (tj, label);
-        ASM_line fol  = TAB_Look (td, label);
+        ASM_lineList jl = (ASM_lineList)TAB_Look (tj, label);
+        ASM_line fol  = (ASM_line)TAB_Look (td, label);
 
-        // FIXME Artyom Goncharov (A) yeap 
+        // FIXME Artyom Goncharov (A) yeap
         if (!jl || !fol)
         {
             continue;
@@ -135,17 +135,17 @@ Flow_graph FG_AsmFlowGraph (ASM_lineList l)
         assert (jl);
         assert (fol);
 
-        G_node dst = TAB_Look (ti, fol);
+        G_node dst = (G_node)TAB_Look (ti, fol);
         for (; jl; jl = jl->tail)
         {
-            G_node src = TAB_Look (ti, jl->head);
+            G_node src = (G_node)TAB_Look (ti, jl->head);
             G_AddEdge (src, dst);
         }
     }
 
     Flow_graph r = checked_malloc (sizeof (*r));
     r->graph = g;
-    r->temps = Temp_SortTempList(tl->tail);
+    r->temps = Temp_SortTempList (tl->tail);
     r->tempsNum = tlLen;
 
     return r;

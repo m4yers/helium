@@ -59,7 +59,7 @@ static void Liveness (Flow_graph flow, TAB_table nodes)
         for (G_nodeList l = list; l; l = l->tail)
         {
             G_node node = l->head;
-            Live_info li = TAB_Look (nodes, node);
+            Live_info li = (Live_info)TAB_Look (nodes, node);
 
             BitArray_Clone (li->in, in);
             BitArray_Clone (li->out, out);
@@ -73,7 +73,7 @@ static void Liveness (Flow_graph flow, TAB_table nodes)
             BitArray_UnSetAll (li->out); // TODO: check this
             for (G_nodeList sn = G_Succ (node); sn; sn = sn->tail)
             {
-                Live_info sni = TAB_Look (nodes, sn->head);
+                Live_info sni = (Live_info)TAB_Look (nodes, sn->head);
                 BitArray_Union (li->out, sni->in, li->out);
             }
 
@@ -124,17 +124,17 @@ static struct Live_graph Interference (Flow_graph flow, TAB_table nodes)
     int movesNum = 0;
     for (G_nodeList l = G_Nodes (flow->graph); l; l = l->tail)
     {
-        Live_info li = TAB_Look (nodes, l->head);
+        Live_info li = (Live_info)TAB_Look (nodes, l->head);
         Temp_tempList def = FG_Def (l->head);
         Temp_tempList use = FG_Use (l->head);
         Temp_tempList out = UnmapTempList (li->out, flow->temps);
 
         if (def && def->head)
         {
-            G_node dn = TAB_Look (nd, def->head);
+            G_node dn = (G_node)TAB_Look (nd, def->head);
             for (; out; out = out->tail)
             {
-                G_node on = TAB_Look (nd, out->head);
+                G_node on = (G_node)TAB_Look (nd, out->head);
                 /*
                  * no self-edging
                  */
@@ -154,7 +154,7 @@ static struct Live_graph Interference (Flow_graph flow, TAB_table nodes)
             if (line->kind == I_MOVE)
             {
                 movesNum++;
-                G_node un = TAB_Look (nd, use->head);
+                G_node un = (G_node)TAB_Look (nd, use->head);
                 /*
                  * no self-edging
                  */

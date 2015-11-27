@@ -68,8 +68,7 @@ Temp_map F_RegistersToMap (Temp_map map, F_registers regs)
         U_stringList s = regs->names;
         for (; l; l = l->tail, s = s->tail)
         {
-            // TODO: Artyom Goncharov remove cast and
-            Temp_Enter (map, l->head, (char *) s->head);
+            Temp_Enter (map, l->head, s->head);
         }
     }
 
