@@ -8,41 +8,47 @@
 #include "bool.h"
 #include "log.h"
 
-Vector Vector_Init (Vector r, size_t type_size, size_t n)
-{
-    assert (type_size != 0);
-
-    if (!r)
-    {
-        r = checked_malloc (sizeof * r);
-    }
-
-    r->allocated = type_size * n;
-    // HMM... should it be aligned by type_size
-    r->data = checked_malloc (r->allocated);
-    r->type_size = type_size;
-    r->capacity = n;
-    r->size = 0;
-    r->dest = NULL;
-
-    return r;
-}
-
-void Vector_SetDestructor (Vector v, VectorElementDestructor f)
+Vector _Vector_Init (Vector v, size_t type_size, size_t n)
 {
     assert (v);
-    v->dest = f;
+    assert (type_size != 0);
+
+    v->allocated = type_size * n;
+    // HMM... should it be aligned by type_size
+    v->data = checked_malloc (v->allocated);
+    v->type_size = type_size;
+    v->capacity = n;
+    v->size = 0;
+    v->dest = NULL;
+
+    return v;
 }
 
-void Vector_Delete (Vector v)
+void Vector_Fini (Vector v)
 {
     assert (v);
 
     Vector_Clear (v);
 
     free (v->data);
+}
+
+Vector Vector_New (size_t type_size, size_t n)
+{
+    Vector v = checked_malloc (sizeof (*v));
+    return _Vector_Init (v, type_size, n);
+}
+
+void Vector_Delete (Vector v)
+{
+    Vector_Fini (v);
     free (v);
-    /* memset (v, 0, sizeof (*v)); */
+}
+
+void Vector_SetDestructor (Vector v, VectorElementDestructor f)
+{
+    assert (v);
+    v->dest = f;
 }
 
 bool Vector_Empty (Vector v)

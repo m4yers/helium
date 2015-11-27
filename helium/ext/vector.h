@@ -47,18 +47,29 @@ struct Vector_t
  * For convenience you could use Vector_New macro to be able create Vector by providing type
  * directly without specifying its size
  */
-Vector Vector_Init (Vector v, size_t type_size, size_t n);
+Vector _Vector_Init (Vector v, size_t type_size, size_t n);
+
+#define Vector_Init(vector, type) _Vector_Init (vector, sizeof (type), 4);
+
+/*
+ * Frees all memory allocated for the vector.
+ */
+void Vector_Fini (Vector v);
+
+/*
+ * Same as Vector_Init but the instance is allocated on heap
+ */
+Vector Vector_New (size_t type_size, size_t n);
+
+/*
+ * Same as Vector_Fini plus the instance is freed and assigned to NULL.
+ */
+void Vector_Delete (Vector v);
 
 /*
  * Destructor used to destroy an element if it is about to be removed from vector, e.g. Vector_Clear.
  */
 void Vector_SetDestructor (Vector v, VectorElementDestructor f);
-
-/*
- * Frees all memory allocated for the vector.
- */
-void Vector_Delete (Vector v);
-void Vector_DeleteByPointer (Vector v);
 
 /*
  * Returns whether the vector is empty (i.e. whether its size is 0). This function does not
@@ -177,8 +188,6 @@ void * Vector_At (const Vector v, size_t pos);
  * any element in the array.
  */
 void * Vector_Data (const Vector v);
-
-#define Vector_New(type) Vector_Init (NULL, sizeof (type), 4);
 
 /*
  * Ternary operator used to break string literal(array) to char pointer
