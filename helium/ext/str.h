@@ -34,8 +34,8 @@ struct String_t
 /*
  * struct String_t initialization expression. Just a shortcut.
  */
-// #define String(s)\
-//     { .data = (char *) s, .is_static = TRUE, .capacity = strlen(s) + 1, .size = strlen(s) }
+#define String(s)\
+    { .data = (char *) s, .is_static = TRUE, .capacity = strlen(s) + 1, .size = strlen(s) }
 
 /*
  * Initializes the String instance with raw c-like string. By default the instance of String
@@ -119,12 +119,38 @@ void String_Resize (String s, size_t n, char c);
  * equal sequence of characters. If the two String instances are different the index of the first
  * unmatched character is returned.
  */
-int String_Diff (String a, String b);
+int String_Diff_s (String a, String b);
+
+/*
+ * Compares String and c char sequence including nul charactesrs and returns -1 if two String
+ * instances contain equal sequence of characters. If the two String instances are different the
+ * index of the first unmatched character is returned.
+ */
+int String_Diff_c (String a, const char * b);
+
+#define String_Diff(a,b)                                             \
+    _Generic ((0,b),                                                 \
+            char *: String_Diff_c,                                   \
+            const char *: String_Diff_c,                             \
+            struct String_t *: String_Diff_s                         \
+            )(a,b)
 
 /*
  * Returns True if Diff of two Strings returns -1.
  */
-bool String_Equal (String a, String b);
+bool String_Equal_s (String a, String b);
+
+/*
+ * Returns True if a c char sequance is equal to the one in the String instance
+ */
+bool String_Equal_c (String a, const char * b);
+
+#define String_Equal(a,b)                                            \
+    _Generic ((0,b),                                                 \
+            char *: String_Equal_c,                                  \
+            const char *: String_Equal_c,                            \
+            struct String_t *: String_Equal_s                        \
+            )(a,b)
 
 /*
  * Calls strcmp on Strings content

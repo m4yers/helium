@@ -47,7 +47,7 @@ void String_NoStatic (String s)
     assert (s);
     if (s->is_static)
     {
-        s->data = strdup(s->data);
+        s->data = strdup (s->data);
         s->is_static = FALSE;
     }
 }
@@ -113,7 +113,7 @@ void String_Resize (String s, size_t n, char c)
     (void) c;
 }
 
-int String_Diff (String a, String b)
+int String_Diff_s (String a, String b)
 {
     assert (a);
     assert (b);
@@ -135,9 +135,36 @@ int String_Diff (String a, String b)
     return -1;
 }
 
-bool String_Equal (String a, String b)
+int String_Diff_c (String a, const char * b)
+{
+    assert (a);
+    assert (b);
+
+    char * ad = a->data;
+    char * bd = (char *)b;
+    for (int c = 0;; c++, ad++, bd++)
+    {
+        if (*ad != *bd)
+        {
+            return c;
+        }
+        else if (*ad == '\0')
+        {
+            return -1;
+        }
+    }
+
+    return -1;
+}
+
+bool String_Equal_s (String a, String b)
 {
     return String_Diff (a, b) == -1;
+}
+
+bool String_Equal_c (String a, const char * b)
+{
+    return String_Diff_c (a, b) == -1;
 }
 
 int String_Cmp (String a, String b)

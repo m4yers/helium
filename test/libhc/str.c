@@ -148,6 +148,34 @@ static void string_diff_ok (void ** state)
     assert_true (String_Diff (String_New ("aaay"), String_New ("aa")) == 2);
     assert_true (String_Diff (String_New ("aaaa"), String_New ("aa")) == 2);
 
+    assert_true (String_Diff (String_New (""), "") == -1);
+    assert_true (String_Diff (String_New ("a"), "") == 0);
+    assert_true (String_Diff (String_New (""), "a") == 0);
+
+    assert_true (String_Diff (String_New ("aaaa"), "yyyy") == 0);
+    assert_true (String_Diff (String_New ("aaaa"), "ayyy") == 1);
+    assert_true (String_Diff (String_New ("aaaa"), "aayy") == 2);
+    assert_true (String_Diff (String_New ("aaaa"), "aaay") == 3);
+
+    assert_true (String_Diff (String_New ("aaaa"), "aaaa") == -1);
+
+    assert_true (String_Diff (String_New ("yyyy"), "aaaa") == 0);
+    assert_true (String_Diff (String_New ("ayyy"), "aaaa") == 1);
+    assert_true (String_Diff (String_New ("aayy"), "aaaa") == 2);
+    assert_true (String_Diff (String_New ("aaay"), "aaaa") == 3);
+
+    assert_true (String_Diff (String_New ("aa"), "yyyy") == 0);
+    assert_true (String_Diff (String_New ("aa"), "ayyy") == 1);
+    assert_true (String_Diff (String_New ("aa"), "aayy") == 2);
+    assert_true (String_Diff (String_New ("aa"), "aaay") == 2);
+    assert_true (String_Diff (String_New ("aa"), "aaaa") == 2);
+
+    assert_true (String_Diff (String_New ("yyyy"), "aa") == 0);
+    assert_true (String_Diff (String_New ("ayyy"), "aa") == 1);
+    assert_true (String_Diff (String_New ("aayy"), "aa") == 2);
+    assert_true (String_Diff (String_New ("aaay"), "aa") == 2);
+    assert_true (String_Diff (String_New ("aaaa"), "aa") == 2);
+
     String str = String_New (a_string);
     String_NoStatic (str);
     assert_true (String_Diff (str, String_New (a_string)) == -1);
