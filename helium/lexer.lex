@@ -34,9 +34,11 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "/*"             BEGIN(comment);
 <comment>
 {
-    [^*\n]*         /* eat anything that's not a '*' */
-    "*"+[^*/\n]*    /* eat up '*'s not followed by '/'s */
-    "*"+"/"         BEGIN(INITIAL);
+                 /** HMM does this preserve \n in the sval?*/
+    \n           { yycolumn = 1; continue; }
+    [^*]*        /** eat anything that's not a '*' */
+    "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
+    "*"+"/"      BEGIN(INITIAL);
 }
 \"               BEGIN(string);
 <string>
