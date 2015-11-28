@@ -1,3 +1,7 @@
+/**
+ *
+ * compile-flags: -Zparse-only
+ */
 fn main
 {
     let let = 0; //~ ERROR 2000

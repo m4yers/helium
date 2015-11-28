@@ -11,6 +11,7 @@ import re
 import os
 
 
+FLAG_LINE = re.compile(".*(//|/\*|/\*\*|\*)\s*compile-flags:\s*(?P<flags>.*)")
 TEST_LINE = re.compile(".*//~\s*(?P<type>\w*)\s*(?P<code>\d{4}).*")
 COMPILER_ERROR = re.compile(
     "\s*ERROR\s+(?P<line>\d+)\,(?P<column>\d+)\s+(?P<code>\d{4}).*")
@@ -22,7 +23,7 @@ class TestInfo():
         self.folder = folder
         self.filename = filename
         self.compiler = compiler
-        self.options = []
+        self.flags = []
         self.errors = []
 
     def add_error(self, line, code):
@@ -37,8 +38,15 @@ class TestInfo():
     def has_unmarked_erros(self):
         return bool(len([e for e in self.errors if not e['marked']]))
 
+    def add_flags(self, option):
+        self.flags.append(option)
+
     def get_run_command(self):
-        return "{} {}/{}".format(self.compiler, self.folder, self.filename)
+        return "{} {}/{} {}".format(
+            self.compiler,
+            self.folder,
+            self.filename,
+            " ".join(self.flags))
 
     def __str__(self):
         return "TestInfo {}/{} errors:\n{}".format(
@@ -50,9 +58,14 @@ def dig_file(info):
     with (open(os.path.join(info.folder, info.filename), 'r')) as f:
         for line in f:
             lc = lc + 1
-            m = TEST_LINE.match(line)
-            if m:
-                info.add_error(str(lc), m.group('code'))
+
+            f = FLAG_LINE.match(line)
+            if f:
+                info.add_flags(f.group('flags'))
+
+            t = TEST_LINE.match(line)
+            if t:
+                info.add_error(str(lc), t.group('code'))
 
 
 def test_parse(env):
@@ -63,7 +76,7 @@ def test_parse(env):
 
         output = None
         try:
-            print "Running {:.<80}".format(os.path.join(path,f)),
+            print "Running {:.<80}".format(os.path.join(path, f)),
             output = subprocess.check_output(
                 info.get_run_command(), shell=True)
         except subprocess.CalledProcessError as e:
@@ -83,6 +96,7 @@ def test_parse(env):
 
         if info.has_unmarked_erros():
             print 'Fail\n{}'.format(info)
+            print 'Run command:\n{}'.format(info.get_run_command())
             print 'Compiler output:\n{}'.format(output)
         else:
             print 'OK'

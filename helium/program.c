@@ -17,6 +17,7 @@ Program_Module Program_ModuleNew()
     Program_Module r = checked_malloc (sizeof * r);
 
     r->options.file = NULL;
+    Vector_Init (&r->options.debug, struct Program_Option_t);
 
     r->ast = NULL;
     r->fragments.strings = NULL;
@@ -78,7 +79,7 @@ static void ParseArguments (Vector /** struct Program_Option_t */ v, const char 
         {
         case ',':
         {
-            Vector_PushBack (v, opt);
+            Vector_Push (v, &opt);
             String_Init (&opt.key, "");
             String_Init (&opt.value, "");
             isKey = TRUE;
@@ -102,6 +103,11 @@ static void ParseArguments (Vector /** struct Program_Option_t */ v, const char 
             break;
         }
         }
+    }
+
+    if (!String_Empty (&opt.key) || !String_Empty (&opt.value))
+    {
+        Vector_Push (v, &opt);
     }
 }
 

@@ -144,10 +144,10 @@ static void assert_true_func (void * flag)
     asserts++;
 }
 
-static void del(void * blah)
+static void del (void * blah)
 {
     (void) blah;
-    Vector_Delete(*(Vector*)blah);
+    Vector_Delete (* (Vector *)blah);
 }
 
 static void vector_of_vectors_ok (void ** state)

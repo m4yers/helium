@@ -52,6 +52,17 @@ int main (int argc, char * argv[])
             Error_Print (stdout, error);
         }
 
+        VECTOR_FOREACH (struct Program_Option_t, o, &m->options.debug)
+        {
+            printf("option %s:%s\n", o->key.data, o->value.data);
+            if (String_Equal (&o->key, "parse-only"))
+            {
+                printf ("Exiting, because of '%s'.\n", o->key.data);
+                exit (0);
+            }
+        }
+
+        printf("Exiting, fix the errors and try again.");
         exit (1);
     }
 

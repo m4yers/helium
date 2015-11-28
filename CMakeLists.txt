@@ -9,7 +9,7 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 if (${CMAKE_C_COMPILER_ID} MATCHES "(GNU|Clang)")
 
     # add -Wconversion ?
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -pedantic -pedantic-errors")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -pedantic-errors")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wmissing-prototypes -Wdeclaration-after-statement")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat-security")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-format-attribute -Wundef")
