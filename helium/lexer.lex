@@ -23,7 +23,8 @@
 %option noyywrap
 %option yylineno
 
-%x comment
+%x block_comment
+%x line_comment
 %x string
 
 DIGIT    [0-9]
@@ -31,14 +32,20 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-"/*"             BEGIN(comment);
-<comment>
+"/*"             BEGIN(block_comment);
+<block_comment>
 {
                  /** HMM does this preserve \n in the sval?*/
     \n           { yycolumn = 1; continue; }
     [^*]*        /** eat anything that's not a '*' */
     "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
     "*"+"/"      BEGIN(INITIAL);
+}
+"//"             BEGIN(line_comment);
+<line_comment>
+{
+    ".*"           /** eat anything */
+    "\n"         { yycolumn = 1; BEGIN(INITIAL); }
 }
 \"               BEGIN(string);
 <string>
