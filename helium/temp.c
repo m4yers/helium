@@ -26,7 +26,6 @@ Temp_label Temp_NewLabel (void)
 {
     char buf[100];
     sprintf (buf, "L%d", labels++);
-    printf("Label: %s\n", buf);
     return Temp_NamedLabel (buf);
 }
 

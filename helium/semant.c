@@ -553,6 +553,20 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         return TransVar (context, exp->u.var);
     }
+    case A_asmExp:
+    {
+        const char * data = exp->u.assembly.data;
+        U_stringList dst = exp->u.assembly.dst;
+        U_stringList src = exp->u.assembly.src;
+
+        return Expression_New (
+                   Tr_Asm (
+                       exp->u.assembly.code,
+                       data == NULL ? NULL : Tr_String (context, data),
+                       dst,
+                       src),
+                   Ty_Void());
+    }
     case A_callExp:
     {
         Env_Entry fun = (Env_Entry)S_Look (context->venv, exp->u.call.func);

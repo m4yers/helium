@@ -296,8 +296,8 @@ static Temp_temp munchExp (T_exp e)
     {
         Temp_temp r = Temp_NewTemp();
         // FIXME drop the pseudo
-        sprintf(buffer, "%-5s `d0, %s", "la", e->u.NAME->name);
-        emit (ASM_Oper(buffer, L(r, NULL), NULL, NULL));
+        sprintf (buffer, "%-5s `d0, %s", "la", e->u.NAME->name);
+        emit (ASM_Oper (buffer, L (r, NULL), NULL, NULL));
         return r;
     }
     }
@@ -310,6 +310,20 @@ static void munchStm (T_stm s)
 
     switch (s->kind)
     {
+    case T_ASM:
+    {
+        T_exp data = s->u.ASSEMBLY.data;
+        Temp_tempList dl = s->u.ASSEMBLY.dst;
+        Temp_tempList sl = s->u.ASSEMBLY.src;
+
+        if (!sl && data)
+        {
+            sl = L (munchExp (data), NULL);
+        }
+
+        emit (ASM_Oper (s->u.ASSEMBLY.code, dl, sl, NULL));
+        return;
+    }
     case T_MOVE:
     {
         if (s->u.MOVE.dst->kind == T_MEM)
@@ -347,8 +361,8 @@ static void munchStm (T_stm s)
                           NULL));
             }
             else if (dst->kind == T_BINOP)
-                     /* && dst->u.BINOP.left->kind == T_TEMP */
-                     /* && dst->u.BINOP.right->kind == T_TEMP) */
+                /* && dst->u.BINOP.left->kind == T_TEMP */
+                /* && dst->u.BINOP.right->kind == T_TEMP) */
             {
                 Temp_temp d = munchExp (dst);
                 sprintf (buffer, "%-5s `s0, 0(`s1)", "sw");

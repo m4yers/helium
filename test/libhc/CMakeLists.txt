@@ -8,6 +8,8 @@ macro(add_helium_test name file)
         ${FLEX_Lexer_OUTPUTS})
 endmacro()
 
+add_helium_test(Test_Bench bench.c)
+
 # TODO make it separate
 # add_helium_test(Test_BitArray bitarray.c)
 # add_helium_test(Test_Vector vector.c)

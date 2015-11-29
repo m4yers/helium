@@ -36,6 +36,17 @@ T_stmList T_StmList (T_stm head, T_stmList tail)
     return p;
 }
 
+T_stm T_Asm (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src)
+{
+    T_stm p = (T_stm) checked_malloc (sizeof * p);
+    p->kind = T_ASM;
+    p->u.ASSEMBLY.code = code;
+    p->u.ASSEMBLY.data = data;
+    p->u.ASSEMBLY.dst = dst;
+    p->u.ASSEMBLY.src = src;
+    return p;
+}
+
 T_stm T_Seq (T_stm left, T_stm right)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);

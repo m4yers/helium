@@ -71,10 +71,10 @@
 %token
   COMMA COLON SEMICOLON LPAREN RPAREN LBRACK RBRACK
   LBRACE RBRACE DOT
-  PLUS MINUS TIMES DIVIDE EQ NEQ LT LE GT GE
+  EMARK PLUS MINUS TIMES DIVIDE EQ NEQ LT LE GT GE
   AND OR EQEQ
   IF THEN ELSE WHILE FOR TO DO IN END OF
-  FN LET DEF RET
+  FN MACRO LET DEF RET
   BREAK NIL
   AUTO TYPE NEW CLASS EXTENDS METHOD PRIMITIVE IMPORT
 
@@ -84,6 +84,7 @@
             literals
             creation
             call_function
+            call_macro
             operations
             assignment
             controls
@@ -172,6 +173,7 @@ expression:               literals
                         | creation
                         | lvalue %prec REDUCE { $$ = A_VarExp (&(@$), $1); }
                         | call_function
+                        | call_macro
                         | operations
                         | assignment
                         ;
@@ -219,6 +221,12 @@ call_function:            lvalue LPAREN exp_list_comma RPAREN
                           {
                               // TODO make it accept any lvalue
                               $$ = A_CallExp (&(@$), $1->u.simple, $3);
+                          }
+                        ;
+call_macro:               lvalue EMARK LPAREN exp_list_comma RPAREN
+                          {
+                              // TODO make it accept any lvalue
+                              $$ = A_MacroCallExp (&(@$), $1->u.simple, $4);
                           }
                         ;
 operations:               MINUS expression %prec UMINUS

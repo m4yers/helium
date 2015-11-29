@@ -41,20 +41,24 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
     "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
     "*"+"/"      BEGIN(INITIAL);
 }
+
 "//"             BEGIN(line_comment);
 <line_comment>
 {
-    ".*"           /** eat anything */
     "\n"         { yycolumn = 1; BEGIN(INITIAL); }
+    ".*"           /** eat anything */
 }
+
 \"               BEGIN(string);
 <string>
 {
     [^"]*        { yylval.sval = strdup (yytext); }
     \"           { BEGIN(INITIAL); return STRING; }
 }
+
 " "|\t           { continue; }
 \n               { yycolumn = 1; continue; }
+"!"              { return EMARK; }
 ","              { return COMMA; }
 ":"              { return COLON; }
 ";"              { return SEMICOLON; }
@@ -80,6 +84,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "|"              { return OR; }
 {DIGIT}+         { yylval.ival=atoi(yytext); return INT; }
 fn               { return FN; }
+macro            { return MACRO; }
 ret              { return RET; }
 let              { return LET; }
 def              { return DEF; }

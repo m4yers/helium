@@ -25,6 +25,7 @@ Program_Module Program_ModuleNew()
 
     Vector_Init (&r->errors.lexer, struct Error);
     Vector_Init (&r->errors.parser, struct Error);
+    Vector_Init (&r->errors.preproc, struct Error);
     Vector_Init (&r->errors.semant, struct Error);
 
     Vector_Init (&r->results, RA_Result);

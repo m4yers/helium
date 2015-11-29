@@ -36,6 +36,7 @@ typedef struct Program_Module_
     {
         struct Vector_t /* struct Error */ lexer;
         struct Vector_t /* struct Error */ parser;
+        struct Vector_t /* struct Error */ preproc;
         struct Vector_t /* struct Error */ semant;
     } errors;
 

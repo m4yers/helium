@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "ext/util.h"
+#include "ext/list.h"
 #include "ext/bool.h"
 
 #include "symbol.h"
@@ -78,8 +79,8 @@ struct A_exp_
 
     enum
     {
-        A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp,
-        A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
+        A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
+        A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
         A_whileExp, A_forExp, A_breakExp, A_arrayExp
     } kind;
 
@@ -93,11 +94,26 @@ struct A_exp_
 
         const char * stringg;
 
+        // TODO make it for real
+        struct
+        {
+            const char * code;
+            const char * data;
+            U_stringList dst;
+            U_stringList src;
+        } assembly;
+
         struct
         {
             S_symbol func;
             A_expList args;
         } call;
+
+        struct
+        {
+            S_symbol name;
+            A_expList args;
+        } macro;
 
         struct
         {
@@ -329,11 +345,15 @@ A_var A_SimpleVar (A_loc loc, S_symbol sym);
 A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym);
 A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp);
 
+// TODO parse it for real
+A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList src, U_stringList dst);
+
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);
 A_exp A_IntExp (A_loc loc, int i);
 A_exp A_StringExp (A_loc loc, const char * s);
 A_exp A_CallExp (A_loc loc, S_symbol func, A_expList args);
+A_exp A_MacroCallExp (A_loc loc, S_symbol name, A_expList args);
 A_exp A_OpExp (A_loc loc, A_oper oper, A_exp left, A_exp right);
 A_exp A_RecordExp (A_loc loc, S_symbol name, A_efieldList fields);
 A_exp A_SeqExp (A_loc loc, A_expList seq);

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 
 #include "ext/list.h"
 #include "ext/mem.h"
@@ -14,7 +15,7 @@ F_registers F_Registers (Temp_tempList temps, U_stringList names)
     return r;
 }
 
-Temp_temp F_RegistersGet(F_registers regs, int index)
+Temp_temp F_RegistersGet (F_registers regs, int index)
 {
     assert (index < regs->number);
 
@@ -26,15 +27,34 @@ Temp_temp F_RegistersGet(F_registers regs, int index)
         }
     }
 
-    assert(0);
+    assert (0);
     return NULL;
 }
 
-bool F_RegistersContains(F_registers regs, Temp_temp reg)
+Temp_temp F_RegistersGet_s (F_registers regs, const char * name)
+{
+    assert (name);
+
+    Temp_tempList t = regs->temps;
+    U_stringList l = regs->names;
+    for (; l; t = t->tail, l = l->tail)
+    {
+        const char * n = l->head;
+        if (strcmp (n, name) == 0)
+        {
+            return t->head;
+        }
+    }
+
+    assert (0);
+    return NULL;
+}
+
+bool F_RegistersContains (F_registers regs, Temp_temp reg)
 {
     assert (reg);
 
-    LIST_FOREACH(item, regs->temps)
+    LIST_FOREACH (item, regs->temps)
     {
         if (item == reg)
         {

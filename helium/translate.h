@@ -60,6 +60,7 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe);
 Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done);
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done);
 Tr_exp Tr_Break (Temp_label done);
+Tr_exp Tr_Asm (const char * code, Tr_exp data, U_stringList dst, U_stringList src);
 
 /**************
  *  Whatever  *

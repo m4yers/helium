@@ -11,9 +11,10 @@
     - [x] internals
     - [x] syntax
     - [x] semant
-    - [ ] codegen?
     - [ ] runtime
+    - [ ] codegen?
 - [ ] lang
+    - [ ] macro
     - [ ] pointers
     - [ ] strings
     - [ ] boolean

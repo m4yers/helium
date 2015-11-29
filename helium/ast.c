@@ -37,6 +37,17 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp)
     return p;
 }
 
+A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList dst, U_stringList src)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmExp;
+    p->loc = *loc;
+    p->u.assembly.code = code;
+    p->u.assembly.data = data;
+    p->u.assembly.dst = dst;
+    p->u.assembly.src = src;
+    return p;
+}
 
 A_exp A_VarExp (A_loc loc, A_var var)
 {
@@ -81,6 +92,17 @@ A_exp A_CallExp (A_loc loc, S_symbol func, A_expList args)
     p->u.call.func = func;
     p->u.call.args = args;
     return p;
+}
+
+A_exp A_MacroCallExp (A_loc loc, S_symbol name, A_expList args)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_macroCallExp;
+    p->loc = *loc;
+    p->u.macro.name = name;
+    p->u.macro.args = args;
+    return p;
+
 }
 
 A_exp A_OpExp (A_loc loc, A_oper oper, A_exp left, A_exp right)
@@ -564,6 +586,18 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     switch (v->kind)
     {
+    case A_asmExp:
+        fprintf (out, "AsmExp(\n%s,\n%s",
+                 v->u.assembly.code,
+                 v->u.assembly.data);
+        break;
+
+    case A_macroCallExp:
+        fprintf (out, "MacroCallExp(%s,\n", S_Name (v->u.call.func));
+        PrintExpList (out, v->u.call.args, d + 1);
+        fprintf (out, ")");
+        break;
+
     case A_varExp:
         fprintf (out, "VarExp(");
         PrintVar (out, v->u.var, 0);

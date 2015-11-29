@@ -64,6 +64,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/mipsmachine.c
     ${CMAKE_SOURCE_DIR}/helium/parse.c
     ${CMAKE_SOURCE_DIR}/helium/regalloc.c
+    ${CMAKE_SOURCE_DIR}/helium/preproc.c
     ${CMAKE_SOURCE_DIR}/helium/semant.c
     ${CMAKE_SOURCE_DIR}/helium/symbol.c
     ${CMAKE_SOURCE_DIR}/helium/temp.c
