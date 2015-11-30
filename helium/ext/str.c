@@ -212,6 +212,20 @@ const char * String_Back (const String s)
     return s->data + (s->size - 1);
 }
 
+void String_Append_cp (String s, const char * c)
+{
+    assert (s);
+    assert (c);
+
+    size_t size = strlen (c);
+    String_Reserve (s, s->size + size + 1);
+
+    memcpy (s->data + s->size, c, size);
+
+    s->size += size;
+    s->data[s->size] = '\0';
+}
+
 size_t String_Size (const String s)
 {
     assert (s);

@@ -42,10 +42,14 @@
 - [ ] functions' specifications -> tempesting
 - [ ] lexer/parser/semant error recovery
 
-- [ ] ...
+ ...
 
-- [ ] x86?
-- [ ] self-hoisting?
+- [ ] x86
+- [ ] ARM?
+
+ ...
+
+- [ ] self-hoisting
 
 # QUESTIONS
 - classes, to be or not to be?

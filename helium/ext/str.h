@@ -171,6 +171,23 @@ void String_PushBack (String s, char c);
 void String_PopBack (String s);
 
 /*
+ * Extends the String by appending char * sequance to the end
+ */
+void String_Append_cp (String s, const char * c);
+
+/*
+ * Extends the String by appending content of another String instance
+ */
+void String_Append_s (String s, String o);
+
+#define String_Append(a,b)                                           \
+    _Generic ((0,b),                                                 \
+            char *: String_Append_cp,                                \
+            const char *: String_Append_cp,                          \
+            struct String_t *: String_Append_s                       \
+            )(a,b)
+
+/*
  * Returns a reference to the first character in the string. Essentially the same as String_Data
  * but does additional check for size.
  */

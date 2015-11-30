@@ -238,6 +238,30 @@ static void string_pop_back_ok (void ** state)
     (void) state;
 }
 
+static void string_append_ok (void ** state)
+{
+    String str = String_New (a_string);
+    const char * append = "blah";
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Data (str) == a_string);
+
+    String_Append (str, append);
+
+    assert_false (String_IsStatic (str));
+    assert_false (String_Data (str) == a_string);
+
+    /*
+     * a_string: xxxxxxxxx0
+     *      str: xxxxxxxxxyyyy0
+     *                   ^
+     */
+    assert_true (String_Size (str) == (strlen (a_string) + strlen (append)));
+    assert_true (String_Diff (String_New (a_string), str) == (int)strlen (a_string));
+
+    (void) state;
+}
+
 static void string_front_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -302,6 +326,7 @@ int main (void)
         cmocka_unit_test (string_cmp_ok),
         cmocka_unit_test (string_push_back_ok),
         cmocka_unit_test (string_pop_back_ok),
+        cmocka_unit_test (string_append_ok),
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),
