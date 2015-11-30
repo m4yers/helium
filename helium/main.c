@@ -10,6 +10,7 @@
 #include "parse.h"
 #include "translate.h"
 #include "mipsmachine.h"
+#include "preproc.h"
 #include "semant.h"
 #include "canon.h"
 #include "codegen.h"
@@ -54,7 +55,6 @@ int main (int argc, char * argv[])
 
         VECTOR_FOREACH (struct Program_Option_t, o, &m->options.debug)
         {
-            printf("option %s:%s\n", o->key.data, o->value.data);
             if (String_Equal (&o->key, "parse-only"))
             {
                 printf ("Exiting, because of '%s'.\n", o->key.data);
@@ -62,13 +62,24 @@ int main (int argc, char * argv[])
             }
         }
 
-        printf("Exiting, fix the errors and try again.");
+        printf ("Exiting, fix the errors and try again.");
         exit (1);
     }
 
     MIPS_Init();
 
     F_Init();
+
+    if (PreProc_Translate (m) != 0)
+    {
+        printf ("Failed to pre process program\n");
+        printf ("Preprocessor  errors: %lu\n", Vector_Size (&m->errors.preproc));
+        VECTOR_FOREACH (struct Error, error, &m->errors.preproc)
+        {
+            Error_Print (stdout, error);
+        }
+        exit (1);
+    }
 
     if (Semant_Translate (m) != 0)
     {
@@ -97,10 +108,13 @@ int main (int argc, char * argv[])
 
     }
 
-    char * outfile = checked_malloc (strlen (filename) + 3);
-    sprintf (outfile, "%s.s", file_drop_extension (filename));
+    // TODO move it somewhere else
+    if (!m->options.output)
+    {
+        m->options.output = String_New (file_drop_extension (filename));
+    }
 
-    FILE * file = fopen (outfile, "w");
+    FILE * file = fopen (m->options.output->data, "w");
 
     Program_PrintAssembly (file, m);
 

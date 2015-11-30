@@ -123,7 +123,6 @@ static void macro__assert (void ** state)
         "fn main\n\
          {\n\
              assert!(1);\n\
-             1;\n\
          }",
     };
 
@@ -134,8 +133,8 @@ int main (void)
 {
     const struct CMUnitTest tests[] =
     {
-        /* cmocka_unit_test (macro__panic), */
-        cmocka_unit_test (macro__assert),
+        cmocka_unit_test (macro__panic),
+        /* cmocka_unit_test (macro__assert), */
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }

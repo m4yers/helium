@@ -62,11 +62,16 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
     // TODO i need to be able use data address directly
     case A_macroCallExp:
     {
+        // TODO Add 10000 code for runtime panic
         struct String_t name = String (exp->u.macro.name->name);
 
         if (String_Equal (&name, "panic"))
         {
-            const char * str = exp->u.macro.args->head->u.stringg;
+            char * msg = checked_malloc (1024);
+            sprintf (msg, "EXIT %d,%d 10000 %s",
+                     exp->loc.first_line,
+                     exp->loc.first_column,
+                     exp->u.macro.args->head->u.stringg);
 
             A_expList l = NULL;
 
@@ -74,8 +79,8 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             LIST_PUSH (l, A_AsmExp (&exp->loc, "li $v0, 4", NULL,
                                     U_StringList ("$v0", NULL), NULL));
 
-            LIST_PUSH (l, A_AsmExp (&exp->loc, "li $a0, `s0", str,
-                                    U_StringList ("$a0", NULL), NULL));
+            LIST_PUSH (l, A_AsmExp (&exp->loc, "add $a0, `s0, $zero", msg,
+                                    U_StringList ("$zero", NULL), NULL));
 
             LIST_PUSH (l, A_AsmExp (&exp->loc, "syscall", NULL, NULL,
                                     U_StringList ("$v0",
@@ -104,15 +109,15 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
                       NULL,
                       A_Scope (A_StmList (
                                    A_StmExp (
-                                       TransExp(context,
-                                       A_MacroCallExp (
-                                           &test->loc,
-                                           S_Symbol ("panic"),
-                                           A_ExpList (
-                                               A_StringExp (
-                                                   &test->loc,
-                                                   "Assert failed!"),
-                                               NULL)))),
+                                       TransExp (context,
+                                                 A_MacroCallExp (
+                                                         &test->loc,
+                                                         S_Symbol ("panic"),
+                                                         A_ExpList (
+                                                                 A_StringExp (
+                                                                         &test->loc,
+                                                                         "Assert failed!"),
+                                                                 NULL)))),
                                    NULL)));
         }
     }

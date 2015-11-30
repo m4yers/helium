@@ -17,6 +17,7 @@ struct Program_Option_t
 struct Program_Options_t
 {
     String file;
+    String output;
     struct Vector_t /** Program_Option_t */ debug;
 };
 

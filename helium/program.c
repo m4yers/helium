@@ -17,6 +17,7 @@ Program_Module Program_ModuleNew()
     Program_Module r = checked_malloc (sizeof * r);
 
     r->options.file = NULL;
+    r->options.output = NULL;
     Vector_Init (&r->options.debug, struct Program_Option_t);
 
     r->ast = NULL;
@@ -61,6 +62,14 @@ static struct argp_option options[] =
         .group = 0,
         .flags = OPTION_ARG_OPTIONAL,
         .doc = "Internal debug options Use -Z help to print available options."
+    },
+    {
+        .name = 0,
+        .key = 'o',
+        .arg = "FILENAME",
+        .group = 0,
+        .flags = OPTION_ARG_OPTIONAL,
+        .doc = "Write output to FILENAME"
     },
     {0, 0, 0, 0, 0, 0}
 };
@@ -121,6 +130,11 @@ static error_t parse_opt (int key, char * arg, struct argp_state * state)
     case 'Z':
     {
         ParseArguments (&m->options.debug, arg);
+        break;
+    }
+    case 'o':
+    {
+        m->options.output = String_New(arg);
         break;
     }
     case ARGP_KEY_ARG:

@@ -1,0 +1,4 @@
+fn main
+{
+    panic!("look mom, i am panicking"); //~ ERROR 10000
+}
