@@ -103,23 +103,6 @@ static void run_cases (void ** state, const char * cases[], size_t len)
     (void) state; /* unused */
 }
 
-static void stack__records_nested (void ** state)
-{
-    const char * cases[] =
-    {
-        "fn main\n\
-         {\n\
-             def Point = { x: int, y: int }\n\
-             def Rect  = { tl: Point, br: Point }\n\
-             let str = \"Blah\";\n\
-             let rect = Rect{};\n\
-             rect.tl.x;\
-         }",
-    };
-
-    run_cases (state, cases, TOTAL_ELEMENTS (cases));
-}
-
 static void macro__panic (void ** state)
 {
     const char * cases[] =
@@ -133,13 +116,26 @@ static void macro__panic (void ** state)
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
 }
 
+static void macro__assert (void ** state)
+{
+    const char * cases[] =
+    {
+        "fn main\n\
+         {\n\
+             assert!(1);\n\
+             1;\n\
+         }",
+    };
+
+    run_cases (state, cases, TOTAL_ELEMENTS (cases));
+}
 
 int main (void)
 {
     const struct CMUnitTest tests[] =
     {
-        /* cmocka_unit_test (stack__records_nested), */
-        cmocka_unit_test (macro__panic),
+        /* cmocka_unit_test (macro__panic), */
+        cmocka_unit_test (macro__assert),
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }

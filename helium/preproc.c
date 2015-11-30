@@ -59,6 +59,7 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
     }
     // TODO real asm parser is badly needed
     // TODO drop pseudo
+    // TODO i need to be able use data address directly
     case A_macroCallExp:
     {
         struct String_t name = String (exp->u.macro.name->name);
@@ -93,6 +94,26 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
 
             exp->kind  = A_seqExp;
             exp->u.seq = l;
+        }
+        else if (String_Equal (&name, "assert"))
+        {
+            A_exp test = exp->u.macro.args->head;
+            exp = A_IfExp (
+                      &test->loc,
+                      test,
+                      NULL,
+                      A_Scope (A_StmList (
+                                   A_StmExp (
+                                       TransExp(context,
+                                       A_MacroCallExp (
+                                           &test->loc,
+                                           S_Symbol ("panic"),
+                                           A_ExpList (
+                                               A_StringExp (
+                                                   &test->loc,
+                                                   "Assert failed!"),
+                                               NULL)))),
+                                   NULL)));
         }
     }
     default:

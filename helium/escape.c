@@ -161,7 +161,10 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
     case A_ifExp:
     {
         TraverseExp (env, depth, exp->u.iff.test);
-        TraverseScope (env, depth, exp->u.iff.tr);
+        if (exp->u.iff.tr)
+        {
+            TraverseScope (env, depth, exp->u.iff.tr);
+        }
         if (exp->u.iff.fl)
         {
             TraverseScope (env, depth, exp->u.iff.fl);

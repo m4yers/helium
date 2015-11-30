@@ -900,35 +900,38 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             ERROR_WRONG_TYPE (Ty_Int(), test.ty, exp->u.iff.test->loc);
         }
 
-        Semant_Exp pos = TransScope (context, exp->u.iff.tr);
-        if (!is_truetype (pos.ty))
+        Semant_Exp pos = e_void;
+        if (exp->u.iff.tr)
         {
-            // TODO proper error handling here
-            return e_void;
+            pos = TransScope (context, exp->u.iff.tr);
+            if (!is_truetype (pos.ty))
+            {
+                // TODO proper error handling here
+                printf("fuck top\n");
+                return e_void;
+            }
         }
 
+        Semant_Exp neg = e_void;
         if (exp->u.iff.fl)
         {
-            Semant_Exp neg = TransScope (context, exp->u.iff.fl);
+            neg = TransScope (context, exp->u.iff.fl);
 
             if (!is_truetype (neg.ty))
             {
+                printf("fuck\n");
                 // TODO proper error handling here
                 return e_void;
             }
-
-            if (pos.ty != neg.ty)
-            {
-                // TODO proper error handling here
-                return e_void;
-            }
-
-            return Expression_New (Tr_If (test.exp, pos.exp, neg.exp), pos.ty);
         }
-        else
-        {
-            return Expression_New (Tr_If (test.exp, pos.exp, NULL), Ty_Void());
-        }
+
+        /* if (pos.ty != neg.ty) */
+        /* { */
+        /*     // TODO proper error handling here */
+        /*     return e_void; */
+        /* } */
+
+        return Expression_New (Tr_If (test.exp, pos.exp, neg.exp), Ty_Void());
     }
     case A_whileExp:
     {
