@@ -157,6 +157,19 @@ void String_Assign_cp (String s, const char * c);
             struct String_t *: String_Assign_s                       \
             )(a,b)
 
+void String_Insert_s (String s, size_t pos, String o);
+void String_Insert_cp (String s, size_t pos, const char * c);
+
+/*
+ * Inserts additional characters into the string right before the character indicated by position.
+ */
+#define String_Insert(s,pos,o)                                       \
+    _Generic ((0,o),                                                 \
+            char *: String_Insert_cp,                                \
+            const char *: String_Insert_cp,                          \
+            struct String_t *: String_Insert_s                       \
+            )(s,pos,o)
+
 /*
  * Calls strcmp on Strings content
  */

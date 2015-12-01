@@ -341,6 +341,54 @@ static void string_assign_uninitialized_ok (void ** state)
     (void) state;
 }
 
+static void string_insert_front_ok (void ** state)
+{
+    const char * first = "axxxxxxb";
+    const char * second = "yyy";
+    const char * combined = "yyyaxxxxxxb";
+
+    String str = String_New (first);
+
+    String_Insert (str, 0, second);
+
+    assert_true (String_Size (str) == strlen (combined));
+    assert_true (String_Equal (String_New (combined), str));
+
+    (void) state;
+}
+
+static void string_insert_middle_ok (void ** state)
+{
+    const char * first = "axxxxxxb";
+    const char * second = "yyy";
+    const char * combined = "axxyyyxxxxb";
+
+    String str = String_New (first);
+
+    String_Insert (str, 3, second);
+
+    assert_true (String_Size (str) == strlen (combined));
+    assert_true (String_Equal (String_New (combined), str));
+
+    (void) state;
+}
+
+static void string_insert_back_ok (void ** state)
+{
+    const char * first = "axxxxxxb";
+    const char * second = "yyy";
+    const char * combined = "axxxxxxbyyy";
+
+    String str = String_New (first);
+
+    String_Insert (str, strlen (first), second);
+
+    assert_true (String_Size (str) == strlen (combined));
+    assert_true (String_Equal (String_New (combined), str));
+
+    (void) state;
+}
+
 static void string_front_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -410,6 +458,9 @@ int main (void)
         cmocka_unit_test (string_assign_ok),
         cmocka_unit_test (string_assign_empty_ok),
         cmocka_unit_test (string_assign_uninitialized_ok),
+        cmocka_unit_test (string_insert_front_ok),
+        cmocka_unit_test (string_insert_middle_ok),
+        cmocka_unit_test (string_insert_back_ok),
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),

@@ -261,6 +261,26 @@ void String_Assign_cp (String s, const char * c)
     s->is_static = FALSE;
 }
 
+void String_Insert_cp (String s, size_t pos, const char * c)
+{
+    assert (s);
+    assert (c);
+    assert (pos <= s->size);
+
+    size_t size = strlen (c);
+
+    if (size == 0)
+    {
+        return;
+    }
+
+    String_Reserve (s, s->size + size + 1);
+
+    memmove (s->data + pos + size, s->data + pos, s->size - pos + 1);
+    memcpy (s->data + pos, c, size);
+    s->size += size;
+}
+
 size_t String_Size (const String s)
 {
     assert (s);
