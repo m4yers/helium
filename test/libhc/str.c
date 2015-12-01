@@ -284,6 +284,63 @@ static void string_append_zero_len_ok (void ** state)
     (void) state;
 }
 
+static void string_assign_ok (void ** state)
+{
+    String str = String_New (a_string);
+    const char * assign = "blah";
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Data (str) == a_string);
+
+    String_Assign (str, assign);
+
+    assert_false (String_IsStatic (str));
+    assert_false (String_Data (str) == a_string);
+    assert_false (String_Data (str) == assign);
+
+    assert_true (String_Size (str) == (strlen (assign)));
+    assert_true (String_Diff (String_New (assign), str) == -1);
+
+    (void) state;
+}
+
+static void string_assign_empty_ok (void ** state)
+{
+    String str = String_New (a_string);
+    const char * assign = "";
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Data (str) == a_string);
+
+    String_Assign (str, assign);
+
+    assert_false (String_IsStatic (str));
+    assert_false (String_Data (str) == a_string);
+    assert_false (String_Data (str) == assign);
+
+    assert_true (String_Size (str) == (strlen (assign)));
+    assert_true (String_Diff (String_New (assign), str) == -1);
+
+    (void) state;
+}
+
+static void string_assign_uninitialized_ok (void ** state)
+{
+    struct String_t str;
+    const char * assign = "blah";
+
+    String_Assign (&str, assign);
+
+    assert_false (String_IsStatic (&str));
+    assert_false (String_Data (&str) == a_string);
+    assert_false (String_Data (&str) == assign);
+
+    assert_true (String_Size (&str) == (strlen (assign)));
+    assert_true (String_Diff (String_New (assign), &str) == -1);
+
+    (void) state;
+}
+
 static void string_front_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -350,6 +407,9 @@ int main (void)
         cmocka_unit_test (string_pop_back_ok),
         cmocka_unit_test (string_append_ok),
         cmocka_unit_test (string_append_zero_len_ok),
+        cmocka_unit_test (string_assign_ok),
+        cmocka_unit_test (string_assign_empty_ok),
+        cmocka_unit_test (string_assign_uninitialized_ok),
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),

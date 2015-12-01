@@ -239,6 +239,28 @@ void String_Append_s (String s, String o)
     String_Append_cp (s, o->data);
 }
 
+void String_Assign_s (String s, String o)
+{
+    assert (s);
+    assert (o);
+
+    s->data = strdup (o->data);
+    s->size = o->size;
+    s->capacity = o->capacity;
+    s->is_static = FALSE;
+}
+
+void String_Assign_cp (String s, const char * c)
+{
+    assert (s);
+    assert (c);
+
+    s->data = strdup (c);
+    s->size = strlen (c);
+    s->capacity = s->size + 1;
+    s->is_static = FALSE;
+}
+
 size_t String_Size (const String s)
 {
     assert (s);

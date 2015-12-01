@@ -115,42 +115,46 @@ void String_Reserve (String s, size_t n);
  */
 void String_Resize (String s, size_t n, char c);
 
-/*
- * Compares two string including nul charactesrs and returns -1 if two String instances contain
- * equal sequence of characters. If the two String instances are different the index of the first
- * unmatched character is returned.
- */
 int String_Diff_s (String a, String b);
+int String_Diff_cp (String a, const char * b);
 
 /*
- * Compares String and c char sequence including nul charactesrs and returns -1 if two String
+ * Compares String and the second operand including nul charactesrs and returns -1 if two String
  * instances contain equal sequence of characters. If the two String instances are different the
  * index of the first unmatched character is returned.
  */
-int String_Diff_cp (String a, const char * b);
-
 #define String_Diff(a,b)                                             \
     _Generic ((0,b),                                                 \
-            char *: String_Diff_cp,                                   \
-            const char *: String_Diff_cp,                             \
+            char *: String_Diff_cp,                                  \
+            const char *: String_Diff_cp,                            \
             struct String_t *: String_Diff_s                         \
             )(a,b)
 
-/*
- * Returns True if Diff of two Strings returns -1.
- */
 bool String_Equal_s (String a, String b);
+bool String_Equal_c (String a, const char * b);
 
 /*
  * Returns True if a c char sequance is equal to the one in the String instance
  */
-bool String_Equal_c (String a, const char * b);
-
 #define String_Equal(a,b)                                            \
     _Generic ((0,b),                                                 \
             char *: String_Equal_c,                                  \
             const char *: String_Equal_c,                            \
             struct String_t *: String_Equal_s                        \
+            )(a,b)
+
+void String_Assign_s (String s, String o);
+void String_Assign_cp (String s, const char * c);
+
+/*
+ * Assigns a new value to the string, replacing its current contents. The resulting String is not
+ * static.
+ */
+#define String_Assign(a,b)                                           \
+    _Generic ((0,b),                                                 \
+            char *: String_Assign_cp,                                \
+            const char *: String_Assign_cp,                          \
+            struct String_t *: String_Assign_s                       \
             )(a,b)
 
 /*
