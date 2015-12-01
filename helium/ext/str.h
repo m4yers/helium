@@ -127,12 +127,12 @@ int String_Diff_s (String a, String b);
  * instances contain equal sequence of characters. If the two String instances are different the
  * index of the first unmatched character is returned.
  */
-int String_Diff_c (String a, const char * b);
+int String_Diff_cp (String a, const char * b);
 
 #define String_Diff(a,b)                                             \
     _Generic ((0,b),                                                 \
-            char *: String_Diff_c,                                   \
-            const char *: String_Diff_c,                             \
+            char *: String_Diff_cp,                                   \
+            const char *: String_Diff_cp,                             \
             struct String_t *: String_Diff_s                         \
             )(a,b)
 

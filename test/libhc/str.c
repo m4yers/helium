@@ -262,6 +262,28 @@ static void string_append_ok (void ** state)
     (void) state;
 }
 
+/**
+ * appending a zero length string basically does nothing
+ */
+static void string_append_zero_len_ok (void ** state)
+{
+    String str = String_New (a_string);
+    const char * append = "";
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Data (str) == a_string);
+
+    String_Append (str, append);
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Data (str) == a_string);
+
+    assert_true (String_Size (str) == (strlen (a_string)));
+    assert_true (String_Diff (String_New (a_string), str) == -1);
+
+    (void) state;
+}
+
 static void string_front_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -327,6 +349,7 @@ int main (void)
         cmocka_unit_test (string_push_back_ok),
         cmocka_unit_test (string_pop_back_ok),
         cmocka_unit_test (string_append_ok),
+        cmocka_unit_test (string_append_zero_len_ok),
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),

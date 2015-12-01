@@ -135,7 +135,7 @@ int String_Diff_s (String a, String b)
     return -1;
 }
 
-int String_Diff_c (String a, const char * b)
+int String_Diff_cp (String a, const char * b)
 {
     assert (a);
     assert (b);
@@ -164,7 +164,7 @@ bool String_Equal_s (String a, String b)
 
 bool String_Equal_c (String a, const char * b)
 {
-    return String_Diff_c (a, b) == -1;
+    return String_Diff_cp (a, b) == -1;
 }
 
 int String_Cmp (String a, String b)
@@ -218,12 +218,25 @@ void String_Append_cp (String s, const char * c)
     assert (c);
 
     size_t size = strlen (c);
+    if (size == 0)
+    {
+        return;
+    }
+
     String_Reserve (s, s->size + size + 1);
 
     memcpy (s->data + s->size, c, size);
 
     s->size += size;
     s->data[s->size] = '\0';
+}
+
+void String_Append_s (String s, String o)
+{
+    assert (s);
+    assert (o);
+
+    String_Append_cp (s, o->data);
 }
 
 size_t String_Size (const String s)
