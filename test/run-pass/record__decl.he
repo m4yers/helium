@@ -2,7 +2,7 @@ fn main()
 {
     let point: { x: int, y: int };
     point.x = 3;
-    point.y = 5;
-    point.x;
+    point.y = 0;
+    point.y;
 }
 

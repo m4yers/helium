@@ -1,4 +1,4 @@
 fn main
 {
-    panic!("look mom, i am panicking"); //~ ERROR 10000
+    panic!("look mom, i am panicking"); //~ EXIT 10000
 }
