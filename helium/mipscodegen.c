@@ -811,6 +811,36 @@ static void munchStm (T_stm s)
         munchExp (s->u.EXP);
         return;
     }
+    /*
+     * li $a0, RESULT
+     * li $v0, 17
+     * syscall
+     */
+    case T_EXIT:
+    {
+        R_INST (buffer, "add");
+        emit(ASM_Move (
+                 buffer,
+                 L (a0, NULL),
+                 L(munchExp(s->u.EXIT), L(zero, NULL))));
+
+        buffer = checked_malloc (50);
+        // TODO move out syscall constants
+        I_INST (buffer, "addi", 17);
+        emit(ASM_Oper (
+                 buffer,
+                 L (v0, NULL),
+                 L(zero, NULL),
+                 NULL));
+
+        emit (ASM_Oper (
+                  "syscall",
+                  NULL,
+                  L (a0, L (v0, NULL)),
+                  NULL));
+
+        return;
+    }
     case T_COMMENT:
     {
         emit (ASM_MetaCallComment (s->u.COMMENT));

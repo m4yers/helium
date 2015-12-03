@@ -72,6 +72,22 @@ T_stm T_Label (Temp_label label)
     return p;
 }
 
+T_stm T_Ret (T_exp exp)
+{
+    T_stm p = (T_stm) checked_malloc (sizeof * p);
+    p->kind = T_RET;
+    p->u.RET = exp;
+    return p;
+}
+
+T_stm T_Exit (T_exp exp)
+{
+    T_stm p = (T_stm) checked_malloc (sizeof * p);
+    p->kind = T_EXIT;
+    p->u.EXIT = exp;
+    return p;
+}
+
 T_stm T_Jump (T_exp exp, Temp_labelList labels)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);

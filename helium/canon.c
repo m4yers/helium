@@ -226,6 +226,7 @@ static T_stm DoStm (T_stm stm)
         assert (0);
     }
     case T_EXP:
+    case T_EXIT:
     {
         if (stm->u.EXP->kind == T_CALL)
         {

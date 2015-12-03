@@ -2,6 +2,7 @@
 #include <assert.h>
 
 #include "ext/list.h"
+#include "ext/str.h"
 #include "ext/mem.h"
 
 #include "semant.h"
@@ -120,20 +121,20 @@ static T_exp Tr_UnEx (Tr_exp exp)
         // initialize the result with one which makes it TRUE
         return T_Eseq (T_Move (T_Temp (r), T_Const (1)),
 
-                    // execute the logical statements
-                    T_Eseq (exp->u.cx.stm,
+               // execute the logical statements
+               T_Eseq (exp->u.cx.stm,
 
-                    // if the stm decides jump to FALSE it will arrive here
-                    T_Eseq (T_Label (f),
+               // if the stm decides jump to FALSE it will arrive here
+               T_Eseq (T_Label (f),
 
-                    // here we clear the initial value so the actual result is FALSE
-                    T_Eseq (T_Move (T_Temp (r), T_Const (0)),
+               // here we clear the initial value so the actual result is FALSE
+               T_Eseq (T_Move (T_Temp (r), T_Const (0)),
 
-                    // if the stm decides jump to TRUE we do not clear the result and it stays TRUE
-                    T_Eseq (T_Label (t),
+               // if the stm decides jump to TRUE we do not clear the result and it stays TRUE
+               T_Eseq (T_Label (t),
 
-                    // the result fo this logical evaluation returned here as an expression
-                    T_Temp (r))))));
+               // the result fo this logical evaluation returned here as an expression
+               T_Temp (r))))));
     }
     }
 }
@@ -736,13 +737,13 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
          * the 'true' branch. In the end we return the result in 'r' register
          */
         return Tr_Ex (T_Eseq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), f, t),
-                    T_Eseq (T_Label (t),
-                    T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
-                    T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
-                    T_Eseq (T_Label (f),
-                    T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
-                    T_Eseq (T_Label (e),
-                    T_Temp (r)))))))));
+                              T_Eseq (T_Label (t),
+                                      T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
+                                              T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
+                                                      T_Eseq (T_Label (f),
+                                                              T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
+                                                                      T_Eseq (T_Label (e),
+                                                                              T_Temp (r)))))))));
     }
     else
     {
@@ -755,16 +756,16 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
         return Tr_Sx (
 
                    // campare whatever Tr_UnEx(test) temp containts with zero
-                  T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), e, f),
+                   T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), e, f),
 
-                    // we always campare to zero so the FALSE is actually TRUE
-                    T_Seq (T_Label (f),
+                          // we always campare to zero so the FALSE is actually TRUE
+                          T_Seq (T_Label (f),
 
-                    // if not zero execute the TRUE branch
-                    T_Seq (Tr_UnSx (te),
+                                 // if not zero execute the TRUE branch
+                                 T_Seq (Tr_UnSx (te),
 
-                    // if equals to zero go to the end
-                    T_Label (e)))));
+                                        // if equals to zero go to the end
+                                        T_Label (e)))));
     }
 }
 
@@ -787,11 +788,11 @@ Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done)
      * statements.
      */
     return Tr_Sx (T_Seq (T_Label (t),
-                    T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
-                    T_Seq (T_Label (b),
-                    T_Seq (Tr_UnSx (body),
-                    T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
-                    T_Label (done)))))));
+                         T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
+                                T_Seq (T_Label (b),
+                                       T_Seq (Tr_UnSx (body),
+                                               T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
+                                                       T_Label (done)))))));
 }
 
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
@@ -814,21 +815,31 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (T_Temp (l), Tr_UnEx (lo)),
-                    T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-                    T_Seq (T_Label (c),
-                    T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
-                    T_Seq (T_Label (t),
-                    T_Seq (Tr_UnSx (body),
-                    T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
-                    T_Seq (T_Label (n),
-                    T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
-                    T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-                    T_Label (done))))))))))));
+                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+                                T_Seq (T_Label (c),
+                                       T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
+                                               T_Seq (T_Label (t),
+                                                       T_Seq (Tr_UnSx (body),
+                                                               T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
+                                                                       T_Seq (T_Label (n),
+                                                                               T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
+                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+                                                                                               T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)
 {
     return Tr_Sx (T_Jump (T_Name (done), Temp_LabelList (done, NULL)));
+}
+
+Tr_exp Tr_Ret (Tr_exp exp)
+{
+    return Tr_Sx(T_Ret(Tr_UnEx(exp)));
+}
+
+Tr_exp Tr_Exit (Tr_exp exp)
+{
+    return Tr_Sx(T_Exit(Tr_UnEx(exp)));
 }
 
 Tr_exp Tr_Asm (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
@@ -868,7 +879,19 @@ void Tr_Init (Semant_Context c)
 
 void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
 {
-    T_stm stm = T_Move (T_Temp (F_RV()), Tr_UnEx (body));
+    T_stm stm = NULL;
+
+    struct String_t name = String(F_Name(c->level->frame)->name);
+    if (String_Equal(&name, "main"))
+    {
+        stm = T_Exit(Tr_UnEx(body));
+    }
+    else
+    {
+        stm = T_Move (T_Temp (F_RV()), Tr_UnEx (body));
+    }
+
     stm = F_ProcEntryExit1 (level->frame, stm);
+
     Program_AddFragment (c->module, F_ProcFrag (stm, level->frame));
 }

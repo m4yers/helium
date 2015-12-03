@@ -28,6 +28,7 @@ class Runner():
 
     def run(self):
         self.code = 0
+        self.output = ""
         try:
             output = subprocess.check_output(
                 self.command, stderr=subprocess.STDOUT, shell=True)

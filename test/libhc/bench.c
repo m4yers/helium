@@ -129,12 +129,26 @@ static void macro__assert (void ** state)
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
 }
 
+static void main__return (void ** state)
+{
+    const char * cases[] =
+    {
+        "fn main\n\
+         {\n\
+             0;\n\
+         }",
+    };
+
+    run_cases (state, cases, TOTAL_ELEMENTS (cases));
+}
+
 int main (void)
 {
     const struct CMUnitTest tests[] =
     {
         cmocka_unit_test (macro__panic),
         /* cmocka_unit_test (macro__assert), */
+        /* cmocka_unit_test (main__return), */
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }

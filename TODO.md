@@ -11,9 +11,10 @@
     - [x] internals
     - [x] syntax
     - [x] semant
-    - [ ] runtime
-    - [ ] codegen?
-- [ ] lang
+    - [x] runtime
+    - [ ] codegen? -> postponed till optimization
+- [ ] tests for existing functionality
+- [ ] language features
     - [ ] macro
     - [ ] pointers
     - [ ] strings

@@ -34,7 +34,7 @@ struct T_stm_
 {
     enum
     {
-        T_COMMENT, T_ASM,
+        T_COMMENT, T_ASM, T_RET, T_EXIT,
         T_SEQ, T_LABEL, T_JUMP, T_RJUMP, T_CJUMP, T_MOVE,
         T_EXP
     } kind;
@@ -73,6 +73,8 @@ struct T_stm_
             T_exp dst, src;
         } MOVE;
         T_exp EXP;
+        T_exp RET;
+        T_exp EXIT;
     } u;
 };
 
@@ -115,6 +117,8 @@ T_stm T_Asm (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src
 T_stm T_Seq (T_stm left, T_stm right);
 T_stm T_Comment (const char * comment);
 T_stm T_Label (Temp_label);
+T_stm T_Ret (T_exp exp);
+T_stm T_Exit (T_exp exp);
 T_stm T_Jump (T_exp exp, Temp_labelList labels);
 T_stm T_Rjump (T_exp src);
 T_stm T_Cjump (T_relOp op, T_exp left, T_exp right,

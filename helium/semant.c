@@ -16,8 +16,8 @@
 
 #define ERROR_PUSH(line, loc, code, format, ...)                         \
     {                                                                    \
-        Vector_PushBack(&context->module->errors.semant,                  \
-                Error_New(&loc, code, format, __VA_ARGS__));              \
+        Vector_PushBack(&context->module->errors.semant,                 \
+                Error_New(&loc, code, format, __VA_ARGS__));             \
     }                                                                    \
 
 #define ERROR_WRONG_TYPE(expected, actual, loc)                          \
@@ -379,7 +379,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             ERROR_WRONG_TYPE (rty, ety.ty, dec->loc);
         }
-
+        
         S_EndScope (context->venv);
         S_EndScope (context->tenv);
 
