@@ -314,6 +314,7 @@ controls:                 IF LPAREN expression RPAREN scope
                               $$ = A_ForExp (&(@$), S_Symbol ($3), $5, $7, $9);
                           }
                         | BREAK { $$ = A_BreakExp (&(@$)); }
+                        | RET expression SEMICOLON %prec REDUCE { $$ = A_RetExp (&(@$), $2); }
                         ;
 scope:                    LBRACE stm_list RBRACE
                           {

@@ -29,6 +29,11 @@ struct F_frame_
      */
     Temp_label name;
 
+    /*
+     * Return label used to jump from the middle of the function bock.
+     */
+    Temp_label ret;
+
     /**
      *
      * The formal parameters used to call this function. The space for these is reserved by the
@@ -266,6 +271,7 @@ F_frame F_NewFrame (Temp_label name, U_boolList formals)
 {
     F_frame r = checked_malloc (sizeof (*r));
     r->name = name;
+    r->ret = Temp_NewLabel();
     r->wordsNum = 0;
     r->words = NULL;
     r->formalsNum = 0;
@@ -304,6 +310,11 @@ F_frame F_NewFrame (Temp_label name, U_boolList formals)
 Temp_label F_Name (F_frame frame)
 {
     return frame->name;
+}
+
+Temp_label F_Ret (F_frame frame)
+{
+    return frame->ret;
 }
 
 F_accessList F_Formals (F_frame frame)
@@ -476,16 +487,19 @@ void F_ProcFunctionCall (F_frame frame, F_frame encolosing, T_expList args)
 T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
 {
     DBG ("F_ProcEntryExit1 for <%s>\n", frame->name->name)
-    (void) frame;
-    stm = T_Seq (T_Comment ("view-shift-start-"), stm);
+
+    stm = T_Seq (T_Comment ("view-shift-end-"), stm);
+
     int count = 0;
-    for (F_accessList l = frame->formals; l; l = l->tail)
+    LIST_FOREACH(a, frame->formals)
     {
-        F_access access = l->head;
-        if (access->kind == FA_stackWord)
+        if (a->kind == FA_stackWord)
         {
             stm = T_Seq (T_Move (
-                             T_Mem (T_Binop (T_plus, T_Temp (F_FP()), T_Const (access->u.stackWord.offset))),
+                             T_Mem (T_Binop (
+                                        T_plus,
+                                        T_Temp (F_FP()),
+                                        T_Const (a->u.stackWord.offset))),
                              T_Temp (F_RegistersGet (regs_arguments, count))),
                          stm);
         }
@@ -495,8 +509,10 @@ T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
             break;
         }
     }
-    stm = T_Seq (T_Comment ("view-shift-end-"), stm);
+
+    stm = T_Seq (T_Comment ("view-shift-start-"), stm);
     stm = T_Seq (T_Label (frame->name), stm);
+
     return stm;
 }
 
@@ -793,6 +809,9 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
 
     LIST_PUSH (stms, T_Comment ("prologue-"));
 
+    // all ret leads here
+    LIST_PUSH (stms, T_Label(frame->ret));
+
     // Restore RA
     LIST_PUSH (stms, T_Move (
                    T_Temp (ra),
@@ -826,6 +845,10 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
 
     LIST_INJECT (body, prologue, 1);
     LIST_JOIN (body, epilogue);
+
+    /* LIST_JOIN(epilogue, body); */
+    /* LIST_JOIN(epilogue, prologue); */
+    /* body = epilogue; */
 
     if (frame->tUsed != 0)
     {

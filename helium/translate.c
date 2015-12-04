@@ -815,16 +815,16 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (T_Temp (l), Tr_UnEx (lo)),
-                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-                                T_Seq (T_Label (c),
-                                       T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
-                                               T_Seq (T_Label (t),
-                                                       T_Seq (Tr_UnSx (body),
-                                                               T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
-                                                                       T_Seq (T_Label (n),
-                                                                               T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
-                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-                                                                                               T_Label (done))))))))))));
+              T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+              T_Seq (T_Label (c),
+              T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
+              T_Seq (T_Label (t),
+              T_Seq (Tr_UnSx (body),
+              T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
+              T_Seq (T_Label (n),
+              T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
+              T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+              T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)
@@ -832,9 +832,12 @@ Tr_exp Tr_Break (Temp_label done)
     return Tr_Sx (T_Jump (T_Name (done), Temp_LabelList (done, NULL)));
 }
 
-Tr_exp Tr_Ret (Tr_exp exp)
+Tr_exp Tr_Ret (Tr_level level, Tr_exp exp)
 {
-    return Tr_Sx(T_Ret(Tr_UnEx(exp)));
+    Temp_label ret = F_Ret(level->frame);
+    return Tr_Sx(T_Seq(
+                T_Move (T_Temp (F_RV()), Tr_UnEx (exp)),
+                T_Jump(T_Name(ret), Temp_LabelList(ret, NULL))));
 }
 
 Tr_exp Tr_Exit (Tr_exp exp)
@@ -881,17 +884,17 @@ void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
 {
     T_stm stm = NULL;
 
-    struct String_t name = String(F_Name(c->level->frame)->name);
-    if (String_Equal(&name, "main"))
-    {
-        stm = T_Exit(Tr_UnEx(body));
-    }
-    else
-    {
-        stm = T_Move (T_Temp (F_RV()), Tr_UnEx (body));
-    }
+    /* struct String_t name = String(F_Name(c->level->frame)->name); */
+    /* if (String_Equal(&name, "main")) */
+    /* { */
+    /*     stm = T_Exit(Tr_UnEx(body)); */
+    /* } */
+    /* else */
+    /* { */
+    /*     stm = T_Move (T_Temp (F_RV()), Tr_UnEx (body)); */
+    /* } */
 
-    stm = F_ProcEntryExit1 (level->frame, stm);
+    stm = F_ProcEntryExit1 (level->frame, Tr_UnSx(body));
 
     Program_AddFragment (c->module, F_ProcFrag (stm, level->frame));
 }

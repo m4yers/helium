@@ -184,7 +184,7 @@ static T_stm DoStm (T_stm stm)
     }
     case T_RJUMP:
     {
-        // it is already canonical
+        // HMM currently it has T_Temp node
         return stm;
     }
     case T_CJUMP:
@@ -419,6 +419,7 @@ static T_stmList GetNext()
 {
     if (!global_block.stmLists)
     {
+        // FIXME this creates unneeded label
         return T_StmList (T_Label (global_block.label), NULL);
     }
     else

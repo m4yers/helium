@@ -341,9 +341,8 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
 
         Temp_label label = Tr_ScopedLabel (context->level, dec->u.function.name->name);
-        Env_Entry entry = Env_FunEntryNew (
-                              Tr_NewLevel (context->level, label, escapes),
-                              label, formals, rty);
+        Tr_level level = Tr_NewLevel (context->level, label, escapes);
+        Env_Entry entry = Env_FunEntryNew ( level, label, formals, rty);
 
         S_Enter (context->venv, dec->u.function.name, entry);
 
@@ -366,6 +365,15 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
 
         context->level = entry->u.fun.level;
+
+        A_stm last;
+        LIST_BACK(dec->u.function.scope->list, last);
+        if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
+        {
+            A_exp e = last->u.exp;
+            last->u.exp = A_RetExp(&e->loc, e);
+        }
+
         Semant_Exp ety = TransScope (context, dec->u.function.scope);
 
         Tr_ProcEntryExit (context, context->level, ety.exp);
@@ -379,7 +387,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             ERROR_WRONG_TYPE (rty, ety.ty, dec->loc);
         }
-        
+
         S_EndScope (context->venv);
         S_EndScope (context->tenv);
 
@@ -566,6 +574,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                        dst,
                        src),
                    Ty_Void());
+    }
+    case A_retExp:
+    {
+        Semant_Exp sexp = TransExp(context, exp->u.ret);
+        return Expression_New( Tr_Ret(context->level, sexp.exp), sexp.ty);
     }
     case A_callExp:
     {

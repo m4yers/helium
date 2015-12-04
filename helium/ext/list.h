@@ -17,6 +17,23 @@
         }                                                                           \
     }                                                                               \
 
+#define LIST_BACK(list, var_name)                                                   \
+    {                                                                               \
+        if (list)                                                                   \
+        {                                                                           \
+            __typeof__(list) __current = list;                                      \
+            while(__current && __current->tail)                                     \
+            {                                                                       \
+                __current = __current->tail;                                        \
+            }                                                                       \
+            var_name = __current->head;                                             \
+        }                                                                           \
+        else                                                                        \
+        {                                                                           \
+            var_name = NULL;                                                        \
+        }                                                                           \
+    }                                                                               \
+
 #define LIST_PUSH(list, item)                                                       \
     {                                                                               \
         __typeof__(list) node = checked_malloc(sizeof(*node));                      \

@@ -137,6 +137,10 @@ static void main__return (void ** state)
          {\n\
              0;\n\
          }",
+        "fn main\n\
+         {\n\
+             ret 0;\n\
+         }",
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));
@@ -146,9 +150,9 @@ int main (void)
 {
     const struct CMUnitTest tests[] =
     {
-        cmocka_unit_test (macro__panic),
+        /* cmocka_unit_test (macro__panic), */
         /* cmocka_unit_test (macro__assert), */
-        /* cmocka_unit_test (main__return), */
+        cmocka_unit_test (main__return),
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }

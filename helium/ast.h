@@ -79,6 +79,7 @@ struct A_exp_
 
     enum
     {
+        A_retExp,
         A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
         A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
         A_whileExp, A_forExp, A_breakExp, A_arrayExp
@@ -87,6 +88,8 @@ struct A_exp_
     union
     {
         A_var var;
+
+        A_exp ret;
 
         /* nil; - needs only the pos */
 
@@ -362,6 +365,7 @@ A_exp A_IfExp (A_loc loc, A_exp test, A_scope tr, A_scope fl);
 A_exp A_WhileExp (A_loc loc, A_exp test, A_scope body);
 A_exp A_ForExp (A_loc loc, S_symbol var, A_exp lo, A_exp hi, A_scope body);
 A_exp A_BreakExp (A_loc loc);
+A_exp A_RetExp (A_loc loc, A_exp exp);
 A_exp A_ArrayExp (A_loc loc, A_expList list);
 A_expList A_ExpList (A_exp head, A_expList tail);
 

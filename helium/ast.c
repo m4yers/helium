@@ -187,6 +187,15 @@ A_exp A_BreakExp (A_loc loc)
     return p;
 }
 
+A_exp A_RetExp (A_loc loc, A_exp exp)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_retExp;
+    p->u.ret = exp;
+    p->loc = *loc;
+    return p;
+}
+
 A_exp A_ArrayExp (A_loc loc, A_expList list)
 {
     A_exp p = checked_malloc (sizeof (*p));

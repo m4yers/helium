@@ -20,6 +20,7 @@ LIST_DEFINE (F_accessList, F_access)
 F_frame F_NewFrame (Temp_label name, U_boolList formals);
 F_accessList F_Formals (F_frame frame);
 Temp_label F_Name (F_frame frame);
+Temp_label F_Ret (F_frame frame);
 
 /**
  * Allocates word size variable
