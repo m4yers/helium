@@ -140,10 +140,18 @@ def test(options):
             test.dig()
 
             if target == 'parse-fail':
+                test.add_compile_flag("-Zparse-only")
                 test.add_runner(Runner("{} {}".format(
                     options.compiler,
                     test.get_compile_flags()),
                     False))
+
+            elif target == 'compile-fail':
+                test.add_runner(
+                    Runner("{} {}".format(
+                        options.compiler,
+                        test.get_compile_flags()),
+                        False))
 
             elif target == 'run-fail':
                 test.add_runner(
