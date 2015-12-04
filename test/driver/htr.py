@@ -13,6 +13,7 @@ import os
 
 
 FLAG_LINE = re.compile(".*(//|/\*|/\*\*|\*)\s*compile-flags:\s*(?P<flags>.*)")
+CODE_LINE = re.compile(".*(//|/\*|/\*\*|\*)\s*return-code:\s*(?P<code>\d+).*")
 TEST_LINE = re.compile(".*//~\s*(?P<type>\w*)\s*(?P<code>\d{4,}).*")
 COMPILER_ERROR = re.compile(
     "\s*ERROR\s+(?P<line>\d+)\,(?P<column>\d+)\s+(?P<code>\d{4,}).*")
@@ -30,7 +31,7 @@ class Runner():
         self.code = 0
         self.output = ""
         try:
-            output = subprocess.check_output(
+            self.output = subprocess.check_output(
                 self.command, stderr=subprocess.STDOUT, shell=True)
         except subprocess.CalledProcessError as e:
             self.code = e.returncode
@@ -48,6 +49,9 @@ class Runner():
 
 class Test():
 
+    is_fail = False
+    expected_code = None
+
     def __init__(self, test_folder, temp_folder, filename):
         self.temp_folder = temp_folder
         self.test_folder = test_folder
@@ -63,6 +67,10 @@ class Test():
         with (open(self.fullname, 'r')) as f:
             for line in f:
                 lc = lc + 1
+
+                t = CODE_LINE.match(line)
+                if t:
+                    self.expected_code = int(t.group('code'))
 
                 f = FLAG_LINE.match(line)
                 if f:
@@ -99,6 +107,12 @@ class Test():
     def run(self):
         print "Running {:.<80}".format(self.fullname),
 
+        if (self.is_fail
+            and len(self.expectations) == 0
+            and self.expected_code == None):
+            print 'Mal'
+            return
+
         for r in self.runners:
             r.run()
             if not r.is_ok():
@@ -106,6 +120,16 @@ class Test():
                     self,
                     r.output)
                 return
+
+        if self.expected_code != None and self.expected_code != r.code:
+            print 'Fail\n{}\nReason: {}\nOutput:\n{}'.format(
+                self,
+                "wrong exit code; expected {}, got {}".format(
+                    self.expected_code,
+                    r.code),
+                r.output)
+            return
+
 
         print "OK"
 
@@ -140,6 +164,7 @@ def test(options):
             test.dig()
 
             if target == 'parse-fail':
+                test.is_fail = True
                 test.add_compile_flag("-Zparse-only")
                 test.add_runner(Runner("{} {}".format(
                     options.compiler,
@@ -147,6 +172,7 @@ def test(options):
                     False))
 
             elif target == 'compile-fail':
+                test.is_fail = True
                 test.add_runner(
                     Runner("{} {}".format(
                         options.compiler,
@@ -154,6 +180,7 @@ def test(options):
                         False))
 
             elif target == 'run-fail':
+                test.is_fail = True
                 test.add_runner(
                     Runner("{} {}".format(
                         options.compiler,
