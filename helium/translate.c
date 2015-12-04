@@ -834,10 +834,18 @@ Tr_exp Tr_Break (Temp_label done)
 
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp)
 {
+    struct String_t name = String(F_Name(level->frame)->name);
+    if (String_Equal(&name, "main"))
+    {
+        return Tr_Sx(T_Exit(Tr_UnEx(exp)));
+    }
+    else
+    {
     Temp_label ret = F_Ret(level->frame);
     return Tr_Sx(T_Seq(
                 T_Move (T_Temp (F_RV()), Tr_UnEx (exp)),
                 T_Jump(T_Name(ret), Temp_LabelList(ret, NULL))));
+    }
 }
 
 Tr_exp Tr_Exit (Tr_exp exp)
@@ -883,16 +891,6 @@ void Tr_Init (Semant_Context c)
 void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
 {
     T_stm stm = NULL;
-
-    /* struct String_t name = String(F_Name(c->level->frame)->name); */
-    /* if (String_Equal(&name, "main")) */
-    /* { */
-    /*     stm = T_Exit(Tr_UnEx(body)); */
-    /* } */
-    /* else */
-    /* { */
-    /*     stm = T_Move (T_Temp (F_RV()), Tr_UnEx (body)); */
-    /* } */
 
     stm = F_ProcEntryExit1 (level->frame, Tr_UnSx(body));
 
