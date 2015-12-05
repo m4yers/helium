@@ -195,15 +195,6 @@ static struct Cx Tr_UnCx (Tr_exp exp)
     }
 }
 
-struct Tr_level_
-{
-    Temp_label name;
-    Tr_level parent;
-    Tr_accessList formals;
-    Tr_accessList locals;
-    F_frame frame;
-};
-
 struct Tr_access_
 {
     Tr_level level;

@@ -12,10 +12,20 @@
 struct Semant_ContextType;
 
 typedef struct Tr_exp_ * Tr_exp;
-typedef struct Tr_level_ * Tr_level;
 typedef struct Tr_access_ * Tr_access;
 
 typedef struct Tr_accessList_ * Tr_accessList;
+typedef struct Tr_level_ * Tr_level;
+
+struct Tr_level_
+{
+    Temp_label name;
+    Tr_level parent;
+    Tr_accessList formals;
+    Tr_accessList locals;
+    F_frame frame;
+};
+
 struct Tr_accessList_
 {
     Tr_access head;

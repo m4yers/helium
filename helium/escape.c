@@ -124,6 +124,10 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
         TraverseVar (env, depth, exp->u.var);
         break;
     }
+    case A_retExp:
+    {
+        TraverseExp (env, depth, exp->u.ret);
+    }
     case A_callExp:
     {
         for (A_expList l = exp->u.call.args; l; l = l->tail)

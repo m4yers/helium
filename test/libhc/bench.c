@@ -68,7 +68,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
             fail();
         }
 
-        /* AST_Print (stdout, m->ast, 0); */
+        AST_Print (stdout, m->ast, 0);
         /* exit (0); */
 
         if (Semant_Translate (m) != 0)
@@ -141,10 +141,25 @@ static void main__return (void ** state)
         /*  {\n\ */
         /*      ret \"a string\";\n\ */
         /*  }", */
-        "fn main : a_type //~ ERROR 3004\n\
-         {\n\
-             ret 0;\n\
-         }",
+        "fn main\n\
+        {\n\
+            fn plus (a: int, b: int)\n\
+            {\n\
+                fn get_a { a; }\n\
+                fn get_b { ret b; }\n\
+                ret 0;\n\
+            }\n\
+            ret 0;\n\
+        }",
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     fn plus (a: int, b: int)\n\ */
+        /*     {\n\ */
+        /*         fn get_a() { ret a; }\n\ */
+        /*         fn get_b() { ret b; }\n\ */
+        /*     }\n\ */
+        /*     ret 0; \n\ */
+        /* }" */
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

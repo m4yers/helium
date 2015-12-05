@@ -103,22 +103,13 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
         else if (String_Equal (&name, "assert"))
         {
             A_exp test = exp->u.macro.args->head;
-            exp = A_IfExp (
-                      &test->loc,
-                      test,
-                      NULL,
-                      A_Scope (A_StmList (
-                                   A_StmExp (
-                                       TransExp (context,
-                                                 A_MacroCallExp (
-                                                         &test->loc,
-                                                         S_Symbol ("panic"),
-                                                         A_ExpList (
-                                                                 A_StringExp (
-                                                                         &test->loc,
-                                                                         "Assert failed!"),
-                                                                 NULL)))),
-                                   NULL)));
+            A_exp panic = A_MacroCallExp (
+                              &test->loc,
+                              S_Symbol ("panic"),
+                              A_ExpList (A_StringExp (&test->loc, "Assert failed!"), NULL));
+
+            A_scope fl = A_Scope (A_StmList (A_StmExp (TransExp (context, panic)), NULL));
+            exp = A_IfExp (&test->loc, test, NULL, fl);
         }
     }
     default:

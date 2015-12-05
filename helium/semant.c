@@ -17,7 +17,7 @@
 #define ERROR_PUSH(line, loc, code, format, ...)                         \
     {                                                                    \
         Vector_PushBack(&context->module->errors.semant,                 \
-                Error_New(&loc, code, format, __VA_ARGS__));             \
+                Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
 #define ERROR_WRONG_TYPE(expected, actual, loc)                          \
@@ -56,7 +56,7 @@
 #define ERROR_UNKNOWN_VAR(var)                                           \
     ERROR_PUSH(                                                          \
         __LINE__,                                                        \
-        var->loc,                                                        \
+        &var->loc,                                                        \
         3005,                                                            \
         "Unknown var '%s'",                                              \
         S_Name(var->u.simple));                                          \
@@ -173,9 +173,8 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
         type = (Ty_ty)S_Look (context->tenv, ty->u.name);
         if (!type)
         {
-            ERROR_UNKNOWN_TYPE (ty->loc, ty->u.name);
+            ERROR_UNKNOWN_TYPE (&ty->loc, ty->u.name);
             return Ty_Unknown (S_Name (ty->u.name));
-
         }
 
         return type;
@@ -222,6 +221,8 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 // TODO you need to do it in two passes: 1 - names, 2 - definitions
 static Tr_exp TransDec (Semant_Context context, A_dec dec)
 {
+    A_loc loc = &dec->loc;
+
     switch (dec->kind)
     {
     case A_typeDec:
@@ -268,7 +269,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
             if (ty && ty != sexp.ty)
             {
-                ERROR_WRONG_TYPE (ty, sexp.ty, dec->loc);
+                ERROR_WRONG_TYPE (ty, sexp.ty, loc);
                 return Tr_Void();
             }
             else
@@ -299,84 +300,76 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     }
     case A_functionDec:
     {
-        Ty_ty rty = NULL;
-        if (dec->u.function.type)
-        {
-            rty = TransTyp (context, dec->u.function.type);
-            if (!rty)
-            {
-                // expects symbols
-                /* ERROR_UNKNOWN_TYPE (dec->loc, dec->u.function.type); */
-                /* rty = Ty_Unknown (dec->u.function.type); */
-            }
-        }
-        else
-        {
-            rty = Ty_Auto();
-        }
+        struct A_decFn_t decFn = dec->u.function;
 
+        // translate name
+        Temp_label label = Tr_ScopedLabel (context->level, decFn.name->name);
+
+        // translate return type
+        Ty_ty rty = decFn.type
+                    ? TransTyp (context, decFn.type)
+                    : Ty_Auto();
+
+        // translate formal parameters
         Ty_tyList formals = NULL;
         U_boolList escapes = NULL;
-        LIST_FOREACH (field, dec->u.function.params)
+        LIST_FOREACH (f, decFn.params)
         {
-            Ty_ty fty;
-            if (field->type->kind == A_nameTy)
-            {
-                fty = (Ty_ty)S_Look (context->tenv, field->type->u.name);
-            }
-            else
-            {
-                fty = TransTyp (context, field->type);
-            }
-
-            // FIXME fix tests here
-            /* if (!fty) */
-            /* { */
-            /*     ERROR_UNKNOWN_TYPE (dec->loc, field->type); */
-            /*     fty = Ty_Unknown (S_Name (field->typ)); */
-            /* } */
+            Ty_ty fty = TransTyp (context, f->type);
 
             LIST_PUSH (formals, fty);
-            LIST_PUSH (escapes, field->escape);
+            LIST_PUSH (escapes, f->escape);
         }
 
-        Temp_label label = Tr_ScopedLabel (context->level, dec->u.function.name->name);
+        // create new frame
         Tr_level level = Tr_NewLevel (context->level, label, escapes);
-        Env_Entry entry = Env_FunEntryNew ( level, label, formals, rty);
 
-        S_Enter (context->venv, dec->u.function.name, entry);
+        // create environment function entry
+        Env_Entry entry = Env_FunEntryNew (level, label, formals, rty);
+        S_Enter (context->venv, decFn.name, entry);
 
-        Tr_level current = context->level;
-
+        // create new scope for the body
         S_BeginScope (context->venv);
         S_BeginScope (context->tenv);
 
+        // add each formal parameter binding to the newly entered scope
         {
-            A_fieldList f = dec->u.function.params;
+            A_fieldList f = decFn.params;
             Tr_accessList al = Tr_Formals (entry->u.fun.level);
             Ty_tyList t = entry->u.fun.formals;
             for (; f; f = f->tail, t = t->tail, al = al->tail)
             {
-                S_Enter (context->venv, f->head->name,
-                         Env_VarEntryNew (
-                             al->head,
-                             t->head));
+                S_Enter (
+                    context->venv,
+                    f->head->name,
+                    Env_VarEntryNew (al->head, t->head));
             }
         }
 
-        context->level = entry->u.fun.level;
-
+        // add implicit return
         A_stm last;
-        LIST_BACK(dec->u.function.scope->list, last);
+        LIST_BACK (decFn.scope->list, last);
         if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
         {
             A_exp e = last->u.exp;
-            last->u.exp = A_RetExp(&e->loc, e);
+            last->u.exp = A_RetExp (loc, e);
+            printf ("REPLACED:\n");
         }
 
-        Semant_Exp ety = TransScope (context, dec->u.function.scope);
+        AST_Print (stdout, A_DecList (dec, NULL), 0);
 
+        // save current frame before processing the body
+        Tr_level current = context->level;
+
+        // set the new frame as current so the body can use it
+        context->level = level;
+
+        // translate body
+        Semant_Exp ety = TransScope (context, decFn.scope);
         Tr_ProcEntryExit (context, context->level, ety.exp);
+
+        // restore frame
+        context->level = current;
 
         if (is_auto (rty))
         {
@@ -385,13 +378,12 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         // FIXME wtf is this?
         else if (!is_unknown (rty) && !is_invalid (rty) && rty != ety.ty)
         {
-            ERROR_WRONG_TYPE (rty, ety.ty, dec->loc);
+            ERROR_WRONG_TYPE (rty, ety.ty, loc);
         }
 
+        // restore scope
         S_EndScope (context->venv);
         S_EndScope (context->tenv);
-
-        context->level = current;
 
         return Tr_Void();
     }
@@ -577,8 +569,8 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_retExp:
     {
-        Semant_Exp sexp = TransExp(context, exp->u.ret);
-        return Expression_New( Tr_Ret(context->level, sexp.exp), sexp.ty);
+        Semant_Exp sexp = TransExp (context, exp->u.ret);
+        return Expression_New (Tr_Ret (context->level, sexp.exp), sexp.ty);
     }
     case A_callExp:
     {
@@ -657,11 +649,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             {
                 if (!is_int (left))
                 {
-                    ERROR_WRONG_TYPE (Ty_Int(), left.ty, exp->u.op.left->loc);
+                    ERROR_WRONG_TYPE (Ty_Int(), left.ty, &exp->u.op.left->loc);
                 }
                 if (!is_int (right))
                 {
-                    ERROR_WRONG_TYPE (Ty_String(), right.ty, exp->u.op.right->loc);
+                    ERROR_WRONG_TYPE (Ty_String(), right.ty, &exp->u.op.right->loc);
                 }
 
                 return e_invalid;
@@ -674,12 +666,12 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             if (is_int (left) && !is_int (right))
             {
-                ERROR_WRONG_TYPE (Ty_Int(), right.ty, exp->u.op.right->loc);
+                ERROR_WRONG_TYPE (Ty_Int(), right.ty, &exp->u.op.right->loc);
                 return e_invalid;
             }
             else if (is_string (left) && !is_string (right))
             {
-                ERROR_WRONG_TYPE (Ty_String(), right.ty, exp->u.op.right->loc);
+                ERROR_WRONG_TYPE (Ty_String(), right.ty, &exp->u.op.right->loc);
                 return e_invalid;
             }
             else if (same_type (left, right) && (is_int (left) || is_string (left)))
@@ -717,7 +709,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             if (exp->u.array == NULL)
             {
-                ERROR_MALFORMED_EXP (exp->loc, "Array expression cannot be empty");
+                ERROR_MALFORMED_EXP (&exp->loc, "Array expression cannot be empty");
                 return e_invalid;
             }
 
@@ -757,7 +749,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 else if (type != ty)
                 {
                     ERROR_MALFORMED_EXP (
-                        exp->loc,
+                        &exp->loc,
                         "Array expression expects values of the same type");
                     return e_invalid;
                 }
@@ -774,12 +766,12 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
                 if (!ty)
                 {
-                    ERROR_UNKNOWN_TYPE (exp->loc, exp->u.record.name);
+                    ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
                 }
                 if (is_invalid (ty))
                 {
-                    ERROR_INVALID_TYPE (exp->loc, exp->u.record.name);
+                    ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
                 }
             }
@@ -910,7 +902,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp test = TransExp (context, exp->u.iff.test);
         if (test.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (Ty_Int(), test.ty, exp->u.iff.test->loc);
+            ERROR_WRONG_TYPE (Ty_Int(), test.ty, &exp->u.iff.test->loc);
         }
 
         Semant_Exp pos = e_void;
@@ -920,7 +912,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             if (!is_truetype (pos.ty))
             {
                 // TODO proper error handling here
-                printf("fuck top\n");
+                printf ("fuck top\n");
                 return e_void;
             }
         }
@@ -932,7 +924,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
             if (!is_truetype (neg.ty))
             {
-                printf("fuck\n");
+                printf ("fuck\n");
                 // TODO proper error handling here
                 return e_void;
             }
@@ -951,7 +943,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp test = TransExp (context, exp->u.whilee.test);
         if (test.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (Ty_Int(), test.ty, exp->u.whilee.test->loc);
+            ERROR_WRONG_TYPE (Ty_Int(), test.ty, &exp->u.whilee.test->loc);
         }
 
         Temp_label label = context->breaker;
@@ -1009,6 +1001,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             // TODO:  proper error here
         }
         return Expression_New (Tr_Break (context->breaker), Ty_Void());
+    }
+    default:
+    {
+        assert (0);
     }
     }
 

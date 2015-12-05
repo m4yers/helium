@@ -455,7 +455,17 @@ static void PrintScope (FILE * out, A_scope scope, int d)
 {
     PrintIndent (out, d);
 
-    fprintf (out, "Scope(\n");
+    fprintf (out, "Scope(");
+
+    if (!scope)
+    {
+        fprintf (out, ")");
+        return;
+    }
+    else
+    {
+        fprintf (out, "\n");
+    }
 
     int size;
     LIST_LEN (scope->list, size);
@@ -596,9 +606,15 @@ static void PrintExp (FILE * out, A_exp v, int d)
     switch (v->kind)
     {
     case A_asmExp:
-        fprintf (out, "AsmExp(\n%s,\n%s",
+        fprintf (out, "AsmExp(%s, %s",
                  v->u.assembly.code,
                  v->u.assembly.data);
+        break;
+
+    case A_retExp:
+        fprintf (out, "RetExp(\n");
+        PrintExp (out, v->u.ret, d + 1);
+        fprintf (out, ")");
         break;
 
     case A_macroCallExp:

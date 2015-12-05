@@ -491,7 +491,7 @@ T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
     stm = T_Seq (T_Comment ("view-shift-end-"), stm);
 
     int count = 0;
-    LIST_FOREACH(a, frame->formals)
+    LIST_FOREACH (a, frame->formals)
     {
         if (a->kind == FA_stackWord)
         {
@@ -810,7 +810,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     LIST_PUSH (stms, T_Comment ("prologue-"));
 
     // all ret leads here
-    LIST_PUSH (stms, T_Label(frame->ret));
+    LIST_PUSH (stms, T_Label (frame->ret));
 
     // Restore RA
     LIST_PUSH (stms, T_Move (
@@ -956,6 +956,16 @@ T_exp F_GetVar (F_access access, T_exp framePtr)
     }
     else if (access->kind == FA_reg)
     {
+        /* 
+         * FIXME this is a bit tricky, when translation asks for the actual access location
+         * inside the frame it might give the function not frame pointer but some offset from it
+         * if the access belongs to a different scope, but if something went wrong with escape
+         * analysis the access type can be a reg which is ALWAYS a single T_Temp instance then all
+         * scope resolving done by translation will be LOST.
+         */
+        assert (framePtr->kind == T_TEMP
+                && framePtr->u.TEMP == fp
+                && "The access point is a reg but the base is not $fp");
         return T_Temp (access->u.reg);
     }
     else if (access->kind == FA_virtual)

@@ -165,6 +165,14 @@ struct A_exp_
     } u;
 };
 
+struct A_decFn_t
+{
+    S_symbol name;
+    A_fieldList params;
+    A_ty type;
+    A_scope scope;
+};
+
 struct A_dec_
 {
     struct A_loc_ loc;
@@ -178,13 +186,7 @@ struct A_dec_
 
     union
     {
-        struct
-        {
-            S_symbol name;
-            A_fieldList params;
-            A_ty type;
-            A_scope scope;
-        } function;
+        struct A_decFn_t function;
 
         struct
         {

@@ -1,0 +1,4 @@
+fn func( a: blah ) //~ ERROR 3004
+{
+    ret 0;
+}
