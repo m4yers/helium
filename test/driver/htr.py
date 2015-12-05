@@ -23,8 +23,9 @@ RUNTIME_ERROR = re.compile(
 
 class Runner():
 
-    def __init__(self, command, is_reversed):
+    def __init__(self, command, re, is_reversed):
         self.command = command
+        self.re = re
         self.is_reversed = is_reversed
 
     def run(self):
@@ -79,19 +80,21 @@ class Test():
 
                 t = TEST_LINE.match(line)
                 if t:
-                    self.add_expectation(str(lc), t.group('code'))
+                    self.add_expectation(lc, t.group('code'))
 
     def add_expectation(self, line, code):
-        self.expectations.append({'line': line, 'code': code, 'marked': False})
+        self.expectations.append(
+            {'line': int(line), 'code': int(code), 'marked': False})
 
     def mark_expectation(self, line, code):
         for e in self.expectations:
-            if e['line'] == line and e['code'] == code:
-                e['fulfilled'] = True
-                return
+            if e['line'] == int(line) and e['code'] == int(code):
+                e['marked'] = True
+                return True
+        return False
 
     def has_unfulfilled(self):
-        return bool(len([e for e in self.expectations if not e['fulfilled']]))
+        return bool(len([e for e in self.expectations if not e['marked']]))
 
     def add_compile_flag(self, option):
         self.compile_flags.append(option)
@@ -108,8 +111,8 @@ class Test():
         print "Running {:.<80}".format(self.fullname),
 
         if (self.is_fail
-            and len(self.expectations) == 0
-            and self.expected_code == None):
+                and len(self.expectations) == 0
+                and self.expected_code == None):
             print 'Mal'
             return
 
@@ -121,6 +124,25 @@ class Test():
                     r.output)
                 return
 
+            # Check the output for errors
+            for line in r.output.splitlines():
+                m = r.re.match(line)
+                if not m:
+                    continue
+                line = m.group('line')
+                code = m.group('code')
+                if not self.mark_expectation(line, code):
+                    print "Fail"
+                    print "Unexpected error: {}\n".format(line)
+                    print self
+
+        if self.has_unfulfilled():
+            print 'Fail\n'
+            print 'Unfulfilled expectations\n'
+            print self
+            return
+
+        # Check the return code
         if self.expected_code != None and self.expected_code != r.code:
             print 'Fail\n{}\nReason: {}\nOutput:\n{}'.format(
                 self,
@@ -129,7 +151,6 @@ class Test():
                     r.code),
                 r.output)
             return
-
 
         print "OK"
 
@@ -142,7 +163,6 @@ class Test():
 
 #
 # Actions
-#
 
 
 def test(options):
@@ -169,6 +189,7 @@ def test(options):
                 test.add_runner(Runner("{} {}".format(
                     options.compiler,
                     test.get_compile_flags()),
+                    COMPILER_ERROR,
                     False))
 
             elif target == 'compile-fail':
@@ -177,6 +198,7 @@ def test(options):
                     Runner("{} {}".format(
                         options.compiler,
                         test.get_compile_flags()),
+                        COMPILER_ERROR,
                         False))
 
             elif target == 'run-fail':
@@ -185,18 +207,24 @@ def test(options):
                     Runner("{} {}".format(
                         options.compiler,
                         test.get_compile_flags()),
+                        COMPILER_ERROR,
                         False))
                 test.add_runner(
-                    Runner("spim -f {}".format(output_fullname), True))
+                    Runner("spim -f {}".format(output_fullname),
+                           RUNTIME_ERROR,
+                           True))
 
             elif target == 'run-pass':
                 test.add_runner(
                     Runner("{} {}".format(
                         options.compiler,
                         test.get_compile_flags()),
+                        COMPILER_ERROR,
                         False))
                 test.add_runner(
-                    Runner("spim -f {}".format(output_fullname), False))
+                    Runner("spim -f {}".format(output_fullname),
+                           RUNTIME_ERROR,
+                           False))
 
             test.run()
 

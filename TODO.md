@@ -15,7 +15,7 @@
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
 - [ ] language features
-    - [ ] macro
+    - [ ] asm
     - [ ] pointers
     - [ ] strings
     - [ ] boolean
@@ -23,6 +23,7 @@
     - [ ] tuples
     - [ ] unions
     - [ ] packages
+    - [ ] macro
 - [ ] minimal stdlib
     - [ ] io
     - [ ] mem
