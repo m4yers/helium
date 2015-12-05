@@ -119,9 +119,10 @@ class Test():
         for r in self.runners:
             r.run()
             if not r.is_ok():
-                print 'Fail\n{}\nOutput:\n{}'.format(
-                    self,
-                    r.output)
+                print 'Fail'
+                print 'Not OK'
+                print 'Output:\n{}'.format(r.output)
+                print self
                 return
 
             # Check the output for errors
@@ -133,11 +134,11 @@ class Test():
                 code = m.group('code')
                 if not self.mark_expectation(line, code):
                     print "Fail"
-                    print "Unexpected error: {}\n".format(line)
+                    print "Unexpected error: {}".format(line)
                     print self
 
         if self.has_unfulfilled():
-            print 'Fail\n'
+            print 'Fail'
             print 'Unfulfilled expectations\n'
             print self
             return

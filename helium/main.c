@@ -63,7 +63,7 @@ int main (int argc, char * argv[])
         }
 
         printf ("Exiting, fix the errors and try again.");
-        exit (1);
+        exit (0);
     }
 
     MIPS_Init();
@@ -78,7 +78,7 @@ int main (int argc, char * argv[])
         {
             Error_Print (stdout, error);
         }
-        exit (1);
+        exit (0);
     }
 
     if (Semant_Translate (m) != 0)
@@ -90,7 +90,7 @@ int main (int argc, char * argv[])
             Error_Print (stdout, error);
         }
 
-        exit (1);
+        exit (0);
     }
 
     LIST_FOREACH (fragment, m->fragments.functions)

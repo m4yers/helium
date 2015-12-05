@@ -133,11 +133,15 @@ static void main__return (void ** state)
 {
     const char * cases[] =
     {
-        "fn main\n\
-         {\n\
-             0;\n\
-         }",
-        "fn main\n\
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      0;\n\ */
+        /*  }", */
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      ret \"a string\";\n\ */
+        /*  }", */
+        "fn main : a_type //~ ERROR 3004\n\
          {\n\
              ret 0;\n\
          }",
