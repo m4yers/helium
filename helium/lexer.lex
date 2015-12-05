@@ -45,8 +45,8 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "//"             BEGIN(line_comment);
 <line_comment>
 {
+    .*           /** eat up all characters */
     "\n"         { yycolumn = 1; BEGIN(INITIAL); }
-    ".*"           /** eat anything */
 }
 
 \"               BEGIN(string);
