@@ -14,15 +14,14 @@
 #include "error.h"
 #include "env.h"
 
-#define ERROR_PUSH(line, loc, code, format, ...)                         \
+#define ERROR_PUSH(loc, code, format, ...)                               \
     {                                                                    \
         Vector_PushBack(&context->module->errors.semant,                 \
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
-#define ERROR_WRONG_TYPE(expected, actual, loc)                          \
+#define ERROR_WRONG_TYPE(loc, expected, actual)                          \
     ERROR_PUSH(                                                          \
-        __LINE__,                                                        \
         loc,                                                             \
         3001,                                                            \
         "Expected '%s', got '%s'",                                       \
@@ -31,7 +30,6 @@
 
 #define ERROR_MALFORMED_EXP(loc, text)                                   \
     ERROR_PUSH(                                                          \
-        __LINE__,                                                        \
         loc,                                                             \
         3002,                                                            \
         "Malformed exprassion: %s",                                      \
@@ -39,7 +37,6 @@
 
 #define ERROR_INVALID_TYPE(loc, name)                                    \
     ERROR_PUSH(                                                          \
-        __LINE__,                                                        \
         loc,                                                             \
         3003,                                                            \
         "Invalid type '%s'",                                             \
@@ -47,19 +44,17 @@
 
 #define ERROR_UNKNOWN_TYPE(loc, name)                                    \
     ERROR_PUSH(                                                          \
-        __LINE__,                                                        \
         loc,                                                             \
         3004,                                                            \
         "Unknown type '%s'",                                             \
         S_Name(name));                                                   \
 
-#define ERROR_UNKNOWN_VAR(var)                                           \
+#define ERROR_UNKNOWN_SYMBOL(loc, sym)                                   \
     ERROR_PUSH(                                                          \
-        __LINE__,                                                        \
-        &var->loc,                                                        \
+        loc,                                                             \
         3005,                                                            \
-        "Unknown var '%s'",                                              \
-        S_Name(var->u.simple));                                          \
+        "Unknown symbol '%s'",                                           \
+        S_Name(sym));                                                    \
 
 typedef struct Semant_ExpType
 {
@@ -274,7 +269,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
             if (ty && ty != sexp.ty)
             {
-                ERROR_WRONG_TYPE (ty, sexp.ty, loc);
+                ERROR_WRONG_TYPE (loc, ty, sexp.ty);
                 return Tr_Void();
             }
             else
@@ -318,7 +313,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             rty =  TransTyp (context, decFn.type);
             if (is_main && !is_int_type (rty))
             {
-                ERROR_WRONG_TYPE (Ty_Int(), rty, loc);
+                ERROR_WRONG_TYPE (loc, Ty_Int(), rty);
                 // change to int and try parse the rest
                 rty = Ty_Int();
             }
@@ -405,13 +400,13 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             entry->u.fun.result = sexp.ty;
         }
-        else if (is_main && !is_int(sexp))
+        else if (is_main && !is_int (sexp))
         {
-            ERROR_WRONG_TYPE (Ty_Int(), sexp.ty, &last->u.exp->loc);
+            ERROR_WRONG_TYPE (&last->u.exp->loc, Ty_Int(), sexp.ty);
         }
         else if (!is_unknown (rty) && !is_invalid (rty) && rty != sexp.ty)
         {
-            ERROR_WRONG_TYPE (rty, sexp.ty, &last->u.exp->loc);
+            ERROR_WRONG_TYPE (&last->u.exp->loc, rty, sexp.ty);
         }
 
         // restore scope
@@ -425,6 +420,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
 static Semant_Exp TransVar (Semant_Context context, A_var var)
 {
+    A_loc loc = &var->loc;
     Semant_Exp e_invalid = {NULL, Ty_Invalid()};
 
     /*
@@ -457,7 +453,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
         }
         else
         {
-            ERROR_UNKNOWN_VAR (var);
+            ERROR_UNKNOWN_SYMBOL (loc, var->u.simple);
             return e_invalid;
         }
     }
@@ -561,6 +557,7 @@ static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
 
 static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 {
+    A_loc loc = &exp->loc;
     Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
     Semant_Exp e_void = {Tr_Void(), Ty_Void()};
 
@@ -575,7 +572,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         Semant_Exp r;
         Tr_exp seq = NULL;
-        LIST_FOREACH(e, l)
+        LIST_FOREACH (e, l)
         {
             r = TransExp (context, e);
             seq = Tr_Seq (seq, r.exp);
@@ -607,39 +604,61 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_callExp:
     {
-        Env_Entry fun = (Env_Entry)S_Look (context->venv, exp->u.call.func);
-        if (!fun || fun->kind != Env_funEntry)
+        struct A_callExp_t callExp = exp->u.call;
+
+        // query environment for the function name
+        Env_Entry entry = (Env_Entry)S_Look (context->venv, callExp.func);
+        if (!entry)
         {
-            // TODO add proper error here
-            // TODO Should it be void?
-            // TODO How to make it clear that the object is not callable?
+            ERROR_UNKNOWN_SYMBOL (loc, callExp.func);
+            return e_void;
+        }
+        else if (entry->kind != Env_funEntry)
+        {
+            ERROR_PUSH (loc, 3006, "Symbol '%s' is not callable", S_Name (callExp.func));
             return e_void;
         }
 
-        Tr_expList el = NULL;
+        struct Env_funEntry_t fnEntry = entry->u.fun;
+
+        // check arguments types with formal type list and if everything is ok translate
+        Tr_expList tral = NULL;
+        A_expList al = callExp.args;
+        LIST_FOREACH (t, fnEntry.formals)
         {
-            A_expList l = exp->u.call.args;
-            Ty_tyList f = fun->u.fun.formals;
-            for (; l || f; l = l->tail, f = f->tail)
+            if (!al)
             {
-                if (!l || !f)
-                {
-                    // TODO spawn a proper error here
-                    break;
-                }
-
-                if (TransExp (context, l->head).ty != f->head)
-                {
-                    // TODO spawn a proper error here
-                }
-
-                LIST_PUSH (el, TransExp (context, l->head).exp);
+                ERROR_PUSH (loc, 3007, "Missed a call argument '%s' of type '%s'",
+                            "todo",
+                            t->meta.name);
             }
+            else
+            {
+                Semant_Exp sexp = TransExp (context, al->head);
+
+                if (sexp.ty != t)
+                {
+                    ERROR_WRONG_TYPE (&al->head->loc, t, sexp.ty);
+                }
+
+                LIST_PUSH (tral, sexp.exp);
+            }
+
+            al = LIST_NEXT (al);
         }
 
-        return Expression_New (
-                   Tr_Call (fun->u.fun.label, context->level, fun->u.fun.level, el),
-                   fun->u.fun.result);
+        // check for superfluous arguments
+        LIST_FOREACH (a, al)
+        {
+            ERROR_PUSH (&a->loc, 3008, "Unexpected argument", "");
+        }
+
+        return Expression_New (Tr_Call (
+                                   fnEntry.label,
+                                   context->level,
+                                   fnEntry.level,
+                                   tral),
+                               fnEntry.result);
     }
     case A_nilExp:
     {
@@ -682,11 +701,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             {
                 if (!is_int (left))
                 {
-                    ERROR_WRONG_TYPE (Ty_Int(), left.ty, &exp->u.op.left->loc);
+                    ERROR_WRONG_TYPE (&exp->u.op.left->loc, Ty_Int(), left.ty);
                 }
                 if (!is_int (right))
                 {
-                    ERROR_WRONG_TYPE (Ty_String(), right.ty, &exp->u.op.right->loc);
+                    ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_String(), right.ty);
                 }
 
                 return e_invalid;
@@ -699,12 +718,12 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             if (is_int (left) && !is_int (right))
             {
-                ERROR_WRONG_TYPE (Ty_Int(), right.ty, &exp->u.op.right->loc);
+                ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_Int(), right.ty);
                 return e_invalid;
             }
             else if (is_string (left) && !is_string (right))
             {
-                ERROR_WRONG_TYPE (Ty_String(), right.ty, &exp->u.op.right->loc);
+                ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_String(), right.ty);
                 return e_invalid;
             }
             else if (same_type (left, right) && (is_int (left) || is_string (left)))
@@ -935,7 +954,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp test = TransExp (context, exp->u.iff.test);
         if (test.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (Ty_Int(), test.ty, &exp->u.iff.test->loc);
+            ERROR_WRONG_TYPE (&exp->u.iff.test->loc, Ty_Int(), test.ty);
         }
 
         Semant_Exp pos = e_void;
@@ -976,7 +995,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp test = TransExp (context, exp->u.whilee.test);
         if (test.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (Ty_Int(), test.ty, &exp->u.whilee.test->loc);
+            ERROR_WRONG_TYPE (&exp->u.whilee.test->loc, Ty_Int(), test.ty);
         }
 
         Temp_label label = context->breaker;

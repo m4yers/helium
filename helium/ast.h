@@ -73,6 +73,12 @@ struct A_var_
     } u;
 };
 
+struct A_callExp_t
+{
+    S_symbol func;
+    A_expList args;
+};
+
 struct A_exp_
 {
     struct A_loc_ loc;
@@ -106,11 +112,7 @@ struct A_exp_
             U_stringList src;
         } assembly;
 
-        struct
-        {
-            S_symbol func;
-            A_expList args;
-        } call;
+        struct A_callExp_t call;
 
         struct
         {

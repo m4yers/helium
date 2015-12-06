@@ -1,0 +1,5 @@
+fn main
+{
+    blah(); //~ ERROR 3005
+    ret 0;
+}

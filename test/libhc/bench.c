@@ -170,7 +170,8 @@ static void main__return (void ** state)
         /*  }", */
         "fn main\n\
          {\n\
-             assert! (1 <> 1);\n\
+             fn blah (a: int) { a; }\n\
+             blah (1,1);\n\
          }",
     };
 

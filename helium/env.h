@@ -8,26 +8,28 @@
 // forward declaration
 struct Semant_ContextType;
 
-typedef struct Env_EnventryType
+struct Env_funEntry_t
+{
+    Tr_level level;
+    Temp_label label;
+    Ty_tyList formals;
+    Ty_ty result;
+};
+
+struct Env_varEntry_t
+{
+    Tr_access access;
+    Ty_ty ty;
+};
+
+typedef struct Env_Entry_t
 {
     enum { Env_varEntry, Env_funEntry } kind;
 
     union
     {
-        struct
-        {
-            Tr_access access;
-            Ty_ty ty;
-        } var;
-
-        struct
-        {
-            Tr_level level;
-            Temp_label label;
-            Ty_tyList formals;
-            Ty_ty result;
-        } fun;
-
+        struct Env_varEntry_t var;
+        struct Env_funEntry_t fun;
     } u;
 
 } * Env_Entry;

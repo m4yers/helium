@@ -17,6 +17,9 @@
         }                                                                           \
     }                                                                               \
 
+#define LIST_NEXT(list)                                                             \
+    list ? list->tail : NULL                                                        \
+
 #define LIST_BACK(list, var_name)                                                   \
     {                                                                               \
         if (list)                                                                   \

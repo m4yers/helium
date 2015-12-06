@@ -14,6 +14,7 @@
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
+- [ ] tests for list.h/.c
 - [ ] ir printer
 - [ ] language features
     - [ ] asm

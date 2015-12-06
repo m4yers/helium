@@ -1,0 +1,7 @@
+fn main
+{
+    let blah = 42;
+
+    blah(); //~ ERROR 3006
+    ret 0;
+}
