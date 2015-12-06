@@ -10,5 +10,4 @@ fn main
     }
     let a = plus(3, 4);
     assert!(a == 1337);
-    ret 0;
 }
