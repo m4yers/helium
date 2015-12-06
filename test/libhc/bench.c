@@ -133,10 +133,10 @@ static void main__return (void ** state)
 {
     const char * cases[] =
     {
-        "fn main\n\
-         {\n\
-             assert!(2 == 2);\n\
-         }",
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      fn blah { 1; }\n\ */
+        /*  }", */
         /* "fn main\n\ */
         /*  {\n\ */
         /*      ret \"a string\";\n\ */
@@ -160,6 +160,18 @@ static void main__return (void ** state)
         /*     }\n\ */
         /*     ret 0; \n\ */
         /* }" */
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      fn blah { 1; }\n\ */
+        /*  }", */
+        /* "fn main : string\n\ */
+        /*  {\n\ */
+        /*      ret 0;\n\ */
+        /*  }", */
+        "fn main\n\
+         {\n\
+             assert! (1 <> 1);\n\
+         }",
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

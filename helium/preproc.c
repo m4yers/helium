@@ -102,6 +102,8 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
 
             exp->kind  = A_seqExp;
             exp->u.seq = l;
+
+            return exp;
         }
         else if (String_Equal (&name, "assert"))
         {
@@ -113,10 +115,17 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
 
             A_scope fl = A_Scope (A_StmList (A_StmExp (TransExp (context, panic)), NULL));
 
-            // making sure the if statements evaluates to 0
-            A_scope tr = A_Scope (A_StmList (A_StmExp (A_IntExp (&test->loc, 0)), NULL));
-            exp = A_IfExp (&test->loc, test, tr, fl);
+            exp = A_IfExp (&test->loc, test, NULL, fl);
+
+            // this makes the whole assert macro evaluate to 0(OK)
+            A_exp zero = A_IntExp (&test->loc, 0);
+            return A_SeqExp (&test->loc, A_ExpList (exp, A_ExpList (zero, NULL)));
         }
+        else
+        {
+            assert (0);
+        }
+        break;
     }
     default:
     {

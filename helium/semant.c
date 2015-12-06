@@ -92,6 +92,11 @@ static bool is_truetype (Ty_ty ty)
 //{
 //    return ty->kind == Ty_unknown;
 //}
+//
+static bool is_int_type (Ty_ty ty)
+{
+    return ty == Ty_Int();
+}
 
 static bool is_int (Semant_Exp exp)
 {
@@ -304,11 +309,28 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
         // translate name
         Temp_label label = Tr_ScopedLabel (context->level, decFn.name->name);
+        bool is_main = strcmp (label->name, "main") == 0;
 
         // translate return type
-        Ty_ty rty = decFn.type
-                    ? TransTyp (context, decFn.type)
-                    : Ty_Auto();
+        Ty_ty rty = NULL;
+        if (decFn.type)
+        {
+            rty =  TransTyp (context, decFn.type);
+            if (is_main && !is_int_type (rty))
+            {
+                ERROR_WRONG_TYPE (Ty_Int(), rty, loc);
+                // change to int and try parse the rest
+                rty = Ty_Int();
+            }
+        }
+        else if (is_main)
+        {
+            rty = Ty_Int();
+        }
+        else
+        {
+            rty = Ty_Auto();
+        }
 
         // translate formal parameters
         Ty_tyList formals = NULL;
@@ -352,15 +374,18 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
         {
             A_exp e = last->u.exp;
-            last->u.exp = A_RetExp (loc, e);
-            printf ("REPLACED:\n");
+            last->u.exp = A_RetExp (&e->loc, e);
         }
-        else if (strcmp (label->name, "main") == 0)
+        /*
+         * main function is treated specially because its job is to return program's execution
+         * status, where 0 means success and any positive value is treated as an error. Thus if
+         * the last statement in the main function is some sort of declaration we add implicit
+         * ret 0 statement to the main's body end.
+         */
+        else if (last->kind == A_stmDec && is_main)
         {
             LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_IntExp (loc, 0))));
         }
-
-        AST_Print (stdout, A_DecList (dec, NULL), 0);
 
         // save current frame before processing the body
         Tr_level current = context->level;
@@ -369,20 +394,24 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         context->level = level;
 
         // translate body
-        Semant_Exp ety = TransScope (context, decFn.scope);
-        Tr_ProcEntryExit (context, context->level, ety.exp);
+        Semant_Exp sexp = TransScope (context, decFn.scope);
+        Tr_ProcEntryExit (context, context->level, sexp.exp);
 
         // restore frame
         context->level = current;
 
+        // final type checks
         if (is_auto (rty))
         {
-            entry->u.fun.result = ety.ty;
+            entry->u.fun.result = sexp.ty;
         }
-        // FIXME wtf is this?
-        else if (!is_unknown (rty) && !is_invalid (rty) && rty != ety.ty)
+        else if (is_main && !is_int(sexp))
         {
-            ERROR_WRONG_TYPE (rty, ety.ty, loc);
+            ERROR_WRONG_TYPE (Ty_Int(), sexp.ty, &last->u.exp->loc);
+        }
+        else if (!is_unknown (rty) && !is_invalid (rty) && rty != sexp.ty)
+        {
+            ERROR_WRONG_TYPE (rty, sexp.ty, &last->u.exp->loc);
         }
 
         // restore scope
@@ -546,9 +575,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         Semant_Exp r;
         Tr_exp seq = NULL;
-        for (; l; l = l->tail)
+        LIST_FOREACH(e, l)
         {
-            r = TransExp (context, l->head);
+            r = TransExp (context, e);
             seq = Tr_Seq (seq, r.exp);
         }
         return Expression_New (seq, r.ty);

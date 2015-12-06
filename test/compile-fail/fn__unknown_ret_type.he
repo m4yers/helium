@@ -1,4 +1,0 @@
-fn main : a_type //~ ERROR 3004
-{
-    ret 0;
-}

@@ -1,0 +1,4 @@
+fn main
+{
+    ret "a string"; //~ ERROR 3001
+}
