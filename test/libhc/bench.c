@@ -170,8 +170,8 @@ static void main__return (void ** state)
         /*  }", */
         "fn main\n\
          {\n\
-             fn blah (a: int) { a; }\n\
-             blah (1,1);\n\
+             fn blah (a: int, b: int) { a; }\n\
+             blah (1);\n\
          }",
     };
 

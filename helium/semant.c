@@ -328,13 +328,15 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
 
         // translate formal parameters
-        Ty_tyList formals = NULL;
+        S_symbolList names = NULL;
+        Ty_tyList types = NULL;
         U_boolList escapes = NULL;
         LIST_FOREACH (f, decFn.params)
         {
             Ty_ty fty = TransTyp (context, f->type);
 
-            LIST_PUSH (formals, fty);
+            LIST_PUSH (names, f->name);
+            LIST_PUSH (types, fty);
             LIST_PUSH (escapes, f->escape);
         }
 
@@ -342,7 +344,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_level level = Tr_NewLevel (context->level, label, escapes);
 
         // create environment function entry
-        Env_Entry entry = Env_FunEntryNew (level, label, formals, rty);
+        Env_Entry entry = Env_FunEntryNew (level, label, names, types, rty);
         S_Enter (context->venv, decFn.name, entry);
 
         // create new scope for the body
@@ -353,7 +355,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             A_fieldList f = decFn.params;
             Tr_accessList al = Tr_Formals (entry->u.fun.level);
-            Ty_tyList t = entry->u.fun.formals;
+            Ty_tyList t = types;
             for (; f; f = f->tail, t = t->tail, al = al->tail)
             {
                 S_Enter (
@@ -624,12 +626,13 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // check arguments types with formal type list and if everything is ok translate
         Tr_expList tral = NULL;
         A_expList al = callExp.args;
-        LIST_FOREACH (t, fnEntry.formals)
+        S_symbolList names = fnEntry.names;
+        LIST_FOREACH (t, fnEntry.types)
         {
             if (!al)
             {
-                ERROR_PUSH (loc, 3007, "Missed a call argument '%s' of type '%s'",
-                            "todo",
+                ERROR_PUSH (loc, 3007, "Missed a call argument '%s' of '%s'",
+                            names->head->name,
                             t->meta.name);
             }
             else
@@ -644,6 +647,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 LIST_PUSH (tral, sexp.exp);
             }
 
+            names = LIST_NEXT (names);
             al = LIST_NEXT (al);
         }
 

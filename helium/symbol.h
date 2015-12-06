@@ -1,12 +1,16 @@
 #ifndef SYMBOL_H_A9CT48M3
 #define SYMBOL_H_A9CT48M3
 
+#include "ext/list.h"
+
 typedef struct S_symbol_ * S_symbol;
 struct S_symbol_
 {
     const char * name;
     S_symbol next;
 };
+
+LIST_DEFINE (S_symbolList, S_symbol)
 
 /* Make a unique symbol from a given string.
  *  Different calls to S_Symbol("foo") will yield the same S_symbol
