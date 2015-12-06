@@ -12,7 +12,7 @@
 // 16 bit
 #define HEX_NOOP            0x081A
 #define HEX_VOID            0x701D
-#define HEX_NULL            0x0011
+#define HEX_NULL            0XABCD
 #define HEX_DEAD            0xDEAD
 
 #define IS_HEX_SPEAK(number)\

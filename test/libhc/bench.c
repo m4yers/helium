@@ -68,7 +68,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
             fail();
         }
 
-        AST_Print (stdout, m->ast, 0);
+        /* AST_Print (stdout, m->ast, 0); */
         /* exit (0); */
 
         if (Semant_Translate (m) != 0)
@@ -133,24 +133,24 @@ static void main__return (void ** state)
 {
     const char * cases[] =
     {
-        /* "fn main\n\ */
-        /*  {\n\ */
-        /*      0;\n\ */
-        /*  }", */
+        "fn main\n\
+         {\n\
+             assert!(2 == 2);\n\
+         }",
         /* "fn main\n\ */
         /*  {\n\ */
         /*      ret \"a string\";\n\ */
         /*  }", */
-        "fn main\n\
-        {\n\
-            fn plus (a: int, b: int)\n\
-            {\n\
-                fn get_a { a; }\n\
-                fn get_b { ret b; }\n\
-                ret 0;\n\
-            }\n\
-            ret 0;\n\
-        }",
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     fn plus (a: int, b: int)\n\ */
+        /*     {\n\ */
+        /*         fn get_a { a; }\n\ */
+        /*         fn get_b { ret b; }\n\ */
+        /*         ret 0;\n\ */
+        /*     }\n\ */
+        /*     ret 0;\n\ */
+        /* }", */
         /* "fn main\n\ */
         /* {\n\ */
         /*     fn plus (a: int, b: int)\n\ */

@@ -355,6 +355,10 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             last->u.exp = A_RetExp (loc, e);
             printf ("REPLACED:\n");
         }
+        else if (strcmp (label->name, "main") == 0)
+        {
+            LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_IntExp (loc, 0))));
+        }
 
         AST_Print (stdout, A_DecList (dec, NULL), 0);
 

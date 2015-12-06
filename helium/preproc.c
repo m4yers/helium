@@ -97,6 +97,9 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
                                     U_StringList ("$v0",
                                                   U_StringList ("$a0", NULL))));
 
+            // this makes the whole panic macro evaluate to 0(OK)
+            LIST_PUSH (l, A_IntExp (&exp->loc, 0));
+
             exp->kind  = A_seqExp;
             exp->u.seq = l;
         }
@@ -109,7 +112,10 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
                               A_ExpList (A_StringExp (&test->loc, "Assert failed!"), NULL));
 
             A_scope fl = A_Scope (A_StmList (A_StmExp (TransExp (context, panic)), NULL));
-            exp = A_IfExp (&test->loc, test, NULL, fl);
+
+            // making sure the if statements evaluates to 0
+            A_scope tr = A_Scope (A_StmList (A_StmExp (A_IntExp (&test->loc, 0)), NULL));
+            exp = A_IfExp (&test->loc, test, tr, fl);
         }
     }
     default:
