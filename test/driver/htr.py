@@ -15,6 +15,7 @@ import os
 FLAG_LINE = re.compile(".*(//|/\*|/\*\*|\*)\s*compile-flags:\s*(?P<flags>.*)")
 CODE_LINE = re.compile(".*(//|/\*|/\*\*|\*)\s*return-code:\s*(?P<code>\d+).*")
 TEST_LINE = re.compile(".*//~\s*(?P<type>\w*)\s*(?P<code>\d{4,}).*")
+TEST_PREV_LINE = re.compile(".*//(?P<prev>\^+)\s*(?P<type>\w*)\s*(?P<code>\d{4,}).*")
 COMPILER_ERROR = re.compile(
     "\s*ERROR\s+(?P<line>\d+)\,(?P<column>\d+)\s+(?P<code>\d{4,}).*")
 RUNTIME_ERROR = re.compile(
@@ -82,6 +83,10 @@ class Test():
                 if t:
                     self.add_expectation(lc, t.group('code'))
 
+                t = TEST_PREV_LINE.match(line)
+                if t:
+                    self.add_expectation(lc - len(t.group('prev')), t.group('code'))
+
     def add_expectation(self, line, code):
         self.expectations.append(
             {'line': int(line), 'code': int(code), 'marked': False})
@@ -130,9 +135,9 @@ class Test():
                 m = r.re.match(line)
                 if not m:
                     continue
-                line = m.group('line')
+                lnum = m.group('line')
                 code = m.group('code')
-                if not self.mark_expectation(line, code):
+                if not self.mark_expectation(lnum, code):
                     print "Fail"
                     print "Unexpected error: {}".format(line)
                     print self
