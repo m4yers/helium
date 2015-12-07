@@ -56,6 +56,12 @@
         "Unknown symbol '%s'",                                           \
         S_Name(sym));                                                    \
 
+#define ERROR_INVALID_EXPRESSION(loc)                                    \
+    ERROR(                                                               \
+        loc,                                                             \
+        3009,                                                            \
+        "Invalid expression", "");
+
 typedef struct Semant_ExpType
 {
     Tr_exp exp;
@@ -423,7 +429,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 static Semant_Exp TransVar (Semant_Context context, A_var var)
 {
     A_loc loc = &var->loc;
-    Semant_Exp e_invalid = {NULL, Ty_Invalid()};
+    Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
 
     /*
      * indicates nesting level, if level > 0 we just calculate correct offset, once we got back
@@ -447,7 +453,12 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
     case A_simpleVar:
     {
         Env_Entry e = (Env_Entry)S_Look (context->venv, var->u.simple);
-        if (e && e->kind == Env_varEntry)
+        if (!e)
+        {
+            ERROR_UNKNOWN_SYMBOL(&var->loc, var->u.simple)
+            return e_invalid;
+        }
+        else if (e->kind == Env_varEntry)
         {
             return Expression_New (
                        Tr_SimpleVar (e->u.var.access, context->level),
@@ -913,24 +924,38 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_assignExp:
     {
-        Semant_Exp vty = TransVar (context, exp->u.assign.var);
-        if (!is_truetype (vty.ty))
+        struct A_assignExp_t assignExp = exp->u.assign;
+
+        Semant_Exp lexp = TransVar (context, assignExp.var);
+        Semant_Exp rexp = TransExp (context, assignExp.exp);
+
+        // no way to recover from this
+        if (is_invalid (lexp.ty) && is_invalid (rexp.ty))
         {
-            // TODO:  proper error here
+            ERROR_INVALID_EXPRESSION (&exp->loc)
+            return e_invalid;
+        }
+        /*
+         * partially valid expression, here we try to recover by mutually assigning correct
+         * types in hope it won't break further analysis. We do not push any errors because they
+         * were already fired by the lexp and rexp translations calls.
+         */
+        else if (is_invalid (lexp.ty))
+        {
+            lexp.ty = rexp.ty;
+        }
+        else if (is_invalid (rexp.ty))
+        {
+            rexp.ty = lexp.ty;
+        }
+        // correct but unmatched types, fix the type of the right expression
+        else if (lexp.ty != rexp.ty)
+        {
+            ERROR_WRONG_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
+            rexp.ty = lexp.ty;
         }
 
-        Semant_Exp ety = TransExp (context, exp->u.assign.exp);
-        if (!is_truetype (ety.ty))
-        {
-            // TODO:  proper error here
-        }
-
-        if (ety.ty != vty.ty)
-        {
-            // TODO:  proper error here
-        }
-
-        return Expression_New (Tr_Assign (vty.exp, ety.exp), Ty_Void());
+        return Expression_New (Tr_Assign (lexp.exp, rexp.exp), rexp.ty);
     }
     case A_ifExp:
     {

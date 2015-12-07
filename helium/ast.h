@@ -86,6 +86,13 @@ struct A_opExp_t
     A_exp right;
 };
 
+// TODO rename to left and right
+struct A_assignExp_t
+{
+    A_var var;
+    A_exp exp;
+};
+
 struct A_exp_
 {
     struct A_loc_ loc;
@@ -137,11 +144,7 @@ struct A_exp_
 
         A_expList seq;
 
-        struct
-        {
-            A_var var;
-            A_exp exp;
-        } assign;
+        struct A_assignExp_t assign;
 
         struct
         {

@@ -1,0 +1,8 @@
+fn main
+{
+    let a:int;
+    let b:int;
+
+    a = "blah"; //~ ERROR 3001
+    a = b = "blah"; //~ ERROR 3001
+}

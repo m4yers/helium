@@ -14,6 +14,7 @@
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
+- [ ] clean-up error codes
 - [ ] tests for list.h/.c
 - [ ] ir printer
 - [ ] language features
@@ -26,6 +27,7 @@
     - [ ] unions
     - [ ] packages
     - [ ] macro
+    - [ ] floats?
 - [ ] minimal stdlib
     - [ ] io
     - [ ] mem

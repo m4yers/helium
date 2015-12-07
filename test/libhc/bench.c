@@ -173,10 +173,14 @@ static void main__return (void ** state)
         /*      fn blah (a: int, b: int) { a; }\n\ */
         /*      blah (1, 2);\n\ */
         /*  }", */
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      \"jfdkfj\" + \"fksjdfks\";\n\ */
+        /*     ret 0;\n\ */
+        /*  }", */
         "fn main\n\
          {\n\
-             \"jfdkfj\" + \"fksjdfks\";\n\
-            ret 0;\n\
+             a = 5;\n\
          }",
     };
 

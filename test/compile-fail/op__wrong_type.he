@@ -5,5 +5,8 @@ fn main
     "blah" + "blah"; //~ ERROR 3001
            //^ ERROR 3001
 
+    // only one error because the paren exp recovers to int type
+    1 + ( 1 + "blah" );      //~ ERROR 3001
+
     ret 0;
 }

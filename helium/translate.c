@@ -688,9 +688,9 @@ Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 /*     } */
 /* } */
 
-Tr_exp Tr_Assign (Tr_exp var, Tr_exp value)
+Tr_exp Tr_Assign (Tr_exp left, Tr_exp right)
 {
-    return Tr_Sx (T_Move (Tr_UnEx (var), Tr_UnEx (value)));
+    return Tr_Ex(T_Eseq(T_Move (Tr_UnEx (left), Tr_UnEx (right)), Tr_UnEx(left)));
 }
 
 Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
@@ -711,13 +711,13 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
          * the 'true' branch. In the end we return the result in 'r' register
          */
         return Tr_Ex (T_Eseq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), f, t),
-                              T_Eseq (T_Label (t),
-                                      T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
-                                              T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
-                                                      T_Eseq (T_Label (f),
-                                                              T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
-                                                                      T_Eseq (T_Label (e),
-                                                                              T_Temp (r)))))))));
+                   T_Eseq (T_Label (t),
+                   T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
+                   T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
+                   T_Eseq (T_Label (f),
+                   T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
+                   T_Eseq (T_Label (e),
+                   T_Temp (r)))))))));
     }
     else
     {
@@ -732,14 +732,14 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
                    // campare whatever Tr_UnEx(test) temp containts with zero
                    T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), e, f),
 
-                          // we always campare to zero so the FALSE is actually TRUE
-                          T_Seq (T_Label (f),
+                   // we always campare to zero so the FALSE is actually TRUE
+                   T_Seq (T_Label (f),
 
-                                 // if not zero execute the TRUE branch
-                                 T_Seq (Tr_UnSx (te),
+                   // if not zero execute the TRUE branch
+                   T_Seq (Tr_UnSx (te),
 
-                                        // if equals to zero go to the end
-                                        T_Label (e)))));
+                   // if equals to zero go to the end
+                   T_Label (e)))));
     }
 }
 
