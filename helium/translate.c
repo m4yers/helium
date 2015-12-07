@@ -710,14 +710,13 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
          * if so, execute the 'false' branch, if something else, execute
          * the 'true' branch. In the end we return the result in 'r' register
          */
-        return Tr_Ex (T_Eseq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), f, t),
-                   T_Eseq (T_Label (t),
-                   T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
-                   T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
-                   T_Eseq (T_Label (f),
-                   T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
-                   T_Eseq (T_Label (e),
-                   T_Temp (r)))))))));
+        return Tr_Sx (T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), f, t),
+                   T_Seq (T_Label (t),
+                   T_Seq (T_Move (T_Temp (r), Tr_UnEx (te)),
+                   T_Seq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
+                   T_Seq (T_Label (f),
+                   T_Seq (T_Move (T_Temp (r), Tr_UnEx (fe)),
+                          T_Label (e))))))));
     }
     else
     {

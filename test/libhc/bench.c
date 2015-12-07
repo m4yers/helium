@@ -178,10 +178,19 @@ static void main__return (void ** state)
         /*      \"jfdkfj\" + \"fksjdfks\";\n\ */
         /*     ret 0;\n\ */
         /*  }", */
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      a = 5;\n\ */
+        /*  }", */
         "fn main\n\
          {\n\
-             a = 5;\n\
+             assert!(1 == 1);\n\
          }",
+        /* "fn main\n\ */
+        /*  {\n\ */
+        /*      if (1) { 1; } else { 2; }\n\ */
+        /*      ret 0;\n\ */
+        /*  }", */
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

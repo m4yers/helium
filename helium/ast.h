@@ -36,6 +36,7 @@ typedef struct A_typeDef_ * A_typeDef;
 typedef struct A_efield_ * A_efield;
 typedef struct A_efieldList_ * A_efieldList;
 
+// TODO rename to A_block
 typedef struct A_scope_ * A_scope;
 
 typedef enum
@@ -93,6 +94,12 @@ struct A_assignExp_t
     A_exp exp;
 };
 
+struct A_ifExp_t
+{
+    A_exp test;
+    A_scope tr, fl;
+};
+
 struct A_exp_
 {
     struct A_loc_ loc;
@@ -146,11 +153,7 @@ struct A_exp_
 
         struct A_assignExp_t assign;
 
-        struct
-        {
-            A_exp test;
-            A_scope tr, fl;
-        } iff; /* elsee is optional */
+        struct A_ifExp_t iff;
 
         struct
         {

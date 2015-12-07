@@ -959,44 +959,29 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_ifExp:
     {
-        Semant_Exp test = TransExp (context, exp->u.iff.test);
-        if (test.ty != Ty_Int())
+        struct A_ifExp_t ifExp = exp->u.iff;
+
+        Semant_Exp texp = TransExp (context, ifExp.test);
+
+        // currenlty Helium does not support bool
+        if (texp.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (&exp->u.iff.test->loc, Ty_Int(), test.ty);
+            ERROR_WRONG_TYPE (&ifExp.test->loc, Ty_Int(), texp.ty);
         }
 
-        Semant_Exp pos = e_void;
-        if (exp->u.iff.tr)
+        Semant_Exp pexp = e_void;
+        if (ifExp.tr)
         {
-            pos = TransScope (context, exp->u.iff.tr);
-            if (!is_truetype (pos.ty))
-            {
-                // TODO proper error handling here
-                printf ("fuck top\n");
-                return e_void;
-            }
+            pexp = TransScope (context, ifExp.tr);
         }
 
-        Semant_Exp neg = e_void;
-        if (exp->u.iff.fl)
+        Semant_Exp nexp = e_void;
+        if (ifExp.fl)
         {
-            neg = TransScope (context, exp->u.iff.fl);
-
-            if (!is_truetype (neg.ty))
-            {
-                printf ("fuck\n");
-                // TODO proper error handling here
-                return e_void;
-            }
+            nexp = TransScope (context, ifExp.fl);
         }
 
-        /* if (pos.ty != neg.ty) */
-        /* { */
-        /*     // TODO proper error handling here */
-        /*     return e_void; */
-        /* } */
-
-        return Expression_New (Tr_If (test.exp, pos.exp, neg.exp), Ty_Void());
+        return Expression_New (Tr_If (texp.exp, pexp.exp, nexp.exp), Ty_Void());
     }
     case A_whileExp:
     {

@@ -62,3 +62,18 @@
 
 # THOUGTS
 - $fp set to $sp - wordsize? Now it points to $a0
+- make blocks yield a valid result, e.g:
+
+  let c = {
+      let a = 100;
+      let b = 500;
+      ret a + b;
+  }
+
+- make if as expression that yields a valid result, e.g:
+
+  let f = if (blah) { true; } else { false; };
+
+
+
+
