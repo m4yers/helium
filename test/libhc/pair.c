@@ -29,17 +29,17 @@ static void pair_on_stack_ok (void ** state)
 
 static void pair_on_heap_ok (void ** state)
 {
-    Pair pair = Pair_New (1337, "blah");
-
-    Pair_Init (pair, 1337, "blah");
-
-    assert_true (* (int *)pair->first == 1337);
-    assert_true (strcmp (* (char **)pair->second, "blah") == 0);
-
-    assert_true (* (int *)Pair_First (pair) == 1337);
-    assert_true (strcmp (* (char **)Pair_Second (pair), "blah") == 0);
-
-    (void) state;
+    /* Pair pair = Pair_New (1337, "blah"); */
+    /*  */
+    /* Pair_Init (pair, 1337, "blah"); */
+    /*  */
+    /* assert_true (* (int *)pair->first == 1337); */
+    /* assert_true (strcmp (* (char **)pair->second, "blah") == 0); */
+    /*  */
+    /* assert_true (* (int *)Pair_First (pair) == 1337); */
+    /* assert_true (strcmp (* (char **)Pair_Second (pair), "blah") == 0); */
+    /*  */
+    /* (void) state; */
 }
 int main (void)
 {

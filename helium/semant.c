@@ -14,14 +14,14 @@
 #include "error.h"
 #include "env.h"
 
-#define ERROR_PUSH(loc, code, format, ...)                               \
+#define ERROR(loc, code, format, ...)                                    \
     {                                                                    \
         Vector_PushBack(&context->module->errors.semant,                 \
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
 #define ERROR_WRONG_TYPE(loc, expected, actual)                          \
-    ERROR_PUSH(                                                          \
+    ERROR(                                                               \
         loc,                                                             \
         3001,                                                            \
         "Expected '%s', got '%s'",                                       \
@@ -29,28 +29,28 @@
         actual->meta.name);                                              \
 
 #define ERROR_MALFORMED_EXP(loc, text)                                   \
-    ERROR_PUSH(                                                          \
+    ERROR(                                                               \
         loc,                                                             \
         3002,                                                            \
         "Malformed exprassion: %s",                                      \
         text);                                                           \
 
 #define ERROR_INVALID_TYPE(loc, name)                                    \
-    ERROR_PUSH(                                                          \
+    ERROR(                                                               \
         loc,                                                             \
         3003,                                                            \
         "Invalid type '%s'",                                             \
         S_Name(name));                                                   \
 
 #define ERROR_UNKNOWN_TYPE(loc, name)                                    \
-    ERROR_PUSH(                                                          \
+    ERROR(                                                               \
         loc,                                                             \
         3004,                                                            \
         "Unknown type '%s'",                                             \
         S_Name(name));                                                   \
 
 #define ERROR_UNKNOWN_SYMBOL(loc, sym)                                   \
-    ERROR_PUSH(                                                          \
+    ERROR(                                                               \
         loc,                                                             \
         3005,                                                            \
         "Unknown symbol '%s'",                                           \
@@ -617,7 +617,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         else if (entry->kind != Env_funEntry)
         {
-            ERROR_PUSH (loc, 3006, "Symbol '%s' is not callable", S_Name (callExp.func));
+            ERROR (loc, 3006, "Symbol '%s' is not callable", S_Name (callExp.func));
             return e_void;
         }
 
@@ -631,9 +631,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             if (!al)
             {
-                ERROR_PUSH (loc, 3007, "Missed a call argument '%s' of '%s'",
-                            names->head->name,
-                            t->meta.name);
+                ERROR (loc, 3007, "Missed a call argument '%s' of '%s'",
+                       names->head->name,
+                       t->meta.name);
             }
             else
             {
@@ -654,7 +654,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // check for superfluous arguments
         LIST_FOREACH (a, al)
         {
-            ERROR_PUSH (&a->loc, 3008, "Unexpected argument", "");
+            ERROR (&a->loc, 3008, "Unexpected argument", "");
         }
 
         return Expression_New (Tr_Call (
@@ -678,20 +678,14 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_opExp:
     {
-        A_oper oper = exp->u.op.oper;
+        struct A_opExp_t opExp = exp->u.op;
 
-        Semant_Exp left = TransExp (context, exp->u.op.left);
-        if (is_invalid (left.ty))
-        {
-            return left;
-        }
+        A_oper oper = opExp.oper;
 
-        Semant_Exp right = TransExp (context, exp->u.op.right);
-        if (is_invalid (right.ty))
-        {
-            return right;
-        }
+        Semant_Exp left = TransExp (context, opExp.left);
+        Semant_Exp right = TransExp (context, opExp.right);
 
+        // do type checks
         if (oper == A_plusOp
                 || oper == A_minusOp
                 || oper == A_timesOp
@@ -699,45 +693,30 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 || oper == A_gtOp
                 || oper == A_ltOp
                 || oper == A_geOp
-                || oper == A_leOp)
+                || oper == A_leOp
+                || oper == A_eqOp
+                || oper == A_neqOp)
         {
+            /*
+             * We do type recovery here to parse the unit further assuming these operations are
+             * applicable for int only.
+             */
             if (!is_int (left) || !is_int (right))
             {
                 if (!is_int (left))
                 {
-                    ERROR_WRONG_TYPE (&exp->u.op.left->loc, Ty_Int(), left.ty);
+                    ERROR_WRONG_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                    left.ty = Ty_Int();
                 }
                 if (!is_int (right))
                 {
-                    ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_String(), right.ty);
+                    ERROR_WRONG_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                    right.ty = Ty_Int();
                 }
-
-                return e_invalid;
             }
-
-            return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), Ty_Int());
-        }
-        else if (oper == A_eqOp
-                 || oper == A_neqOp)
-        {
-            if (is_int (left) && !is_int (right))
-            {
-                ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_Int(), right.ty);
-                return e_invalid;
-            }
-            else if (is_string (left) && !is_string (right))
-            {
-                ERROR_WRONG_TYPE (&exp->u.op.right->loc, Ty_String(), right.ty);
-                return e_invalid;
-            }
-            else if (same_type (left, right) && (is_int (left) || is_string (left)))
-            {
-                return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), Ty_Int());
-            }
-
-            return e_invalid;
 
         }
+        return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), left.ty);
     }
     case A_arrayExp:
     case A_recordExp:

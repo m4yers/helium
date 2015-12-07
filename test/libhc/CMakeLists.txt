@@ -14,6 +14,7 @@ add_helium_test(Test_Bench bench.c)
 # add_helium_test(Test_BitArray bitarray.c)
 # add_helium_test(Test_Vector vector.c)
 # add_helium_test(Test_String str.c)
+# add_helium_test(Test_Pair pair.c)
 # add_helium_test(Test_Table table.c)
 # add_helium_test(Test_Stack stack.c)
 

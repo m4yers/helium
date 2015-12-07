@@ -41,6 +41,14 @@ struct Vector_t
     VectorElementDestructor dest;
 };
 
+#define Vector(t) {\
+    .data = checked_malloc(sizeof(t) * 4),\
+    .allocated = sizeof(t) * 4,\
+    .type_size = sizeof(t),\
+    .capacity = 4,\
+    .size = 0,\
+    .dest = NULL}
+
 /*
  * Initializes existing or creates a new vector.
  *

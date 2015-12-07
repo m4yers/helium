@@ -93,7 +93,7 @@ class Test():
 
     def mark_expectation(self, line, code):
         for e in self.expectations:
-            if e['line'] == int(line) and e['code'] == int(code):
+            if e['line'] == int(line) and e['code'] == int(code) and not e['marked']:
                 e['marked'] = True
                 return True
         return False

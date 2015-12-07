@@ -79,6 +79,13 @@ struct A_callExp_t
     A_expList args;
 };
 
+struct A_opExp_t
+{
+    A_oper oper;
+    A_exp left;
+    A_exp right;
+};
+
 struct A_exp_
 {
     struct A_loc_ loc;
@@ -120,12 +127,7 @@ struct A_exp_
             A_expList args;
         } macro;
 
-        struct
-        {
-            A_oper oper;
-            A_exp left;
-            A_exp right;
-        } op;
+        struct A_opExp_t op;
 
         struct
         {

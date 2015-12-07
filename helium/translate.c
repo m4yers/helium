@@ -121,20 +121,20 @@ static T_exp Tr_UnEx (Tr_exp exp)
         // initialize the result with one which makes it TRUE
         return T_Eseq (T_Move (T_Temp (r), T_Const (1)),
 
-               // execute the logical statements
-               T_Eseq (exp->u.cx.stm,
+                       // execute the logical statements
+                       T_Eseq (exp->u.cx.stm,
 
-               // if the stm decides jump to FALSE it will arrive here
-               T_Eseq (T_Label (f),
+                               // if the stm decides jump to FALSE it will arrive here
+                               T_Eseq (T_Label (f),
 
-               // here we clear the initial value so the actual result is FALSE
-               T_Eseq (T_Move (T_Temp (r), T_Const (0)),
+                                       // here we clear the initial value so the actual result is FALSE
+                                       T_Eseq (T_Move (T_Temp (r), T_Const (0)),
 
-               // if the stm decides jump to TRUE we do not clear the result and it stays TRUE
-               T_Eseq (T_Label (t),
+                                               // if the stm decides jump to TRUE we do not clear the result and it stays TRUE
+                                               T_Eseq (T_Label (t),
 
-               // the result fo this logical evaluation returned here as an expression
-               T_Temp (r))))));
+                                                       // the result fo this logical evaluation returned here as an expression
+                                                       T_Temp (r))))));
     }
     }
 }
@@ -432,23 +432,6 @@ Tr_exp Tr_String (Semant_Context c, const char * value)
 
 Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty)
 {
-    if (ty->kind == Ty_string)
-    {
-        // TODO: move syscall labels into a separate module
-        T_exp exp = T_Call (T_Name (
-                                Temp_NamedLabel ("strcmp")),
-                            T_ExpList (Tr_UnEx (left),
-                                       T_ExpList (Tr_UnEx (right),
-                                               NULL)));
-        if (op == A_neqOp)
-        {
-            // negating the result
-            exp = T_Binop (T_xor, exp, T_Const (1));
-        }
-
-        return Tr_Ex (exp);
-    }
-
     switch (op)
     {
     case A_plusOp:
@@ -806,16 +789,16 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (T_Temp (l), Tr_UnEx (lo)),
-              T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-              T_Seq (T_Label (c),
-              T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
-              T_Seq (T_Label (t),
-              T_Seq (Tr_UnSx (body),
-              T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
-              T_Seq (T_Label (n),
-              T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
-              T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-              T_Label (done))))))))))));
+                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+                                T_Seq (T_Label (c),
+                                       T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
+                                               T_Seq (T_Label (t),
+                                                       T_Seq (Tr_UnSx (body),
+                                                               T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
+                                                                       T_Seq (T_Label (n),
+                                                                               T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
+                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+                                                                                               T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)
@@ -825,50 +808,50 @@ Tr_exp Tr_Break (Temp_label done)
 
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp)
 {
-    struct String_t name = String(F_Name(level->frame)->name);
-    if (String_Equal(&name, "main"))
+    struct String_t name = String (F_Name (level->frame)->name);
+    if (String_Equal (&name, "main"))
     {
-        return Tr_Sx(T_Exit(Tr_UnEx(exp)));
+        return Tr_Sx (T_Exit (Tr_UnEx (exp)));
     }
     else
     {
-    Temp_label ret = F_Ret(level->frame);
-    return Tr_Sx(T_Seq(
-                T_Move (T_Temp (F_RV()), Tr_UnEx (exp)),
-                T_Jump(T_Name(ret), Temp_LabelList(ret, NULL))));
+        Temp_label ret = F_Ret (level->frame);
+        return Tr_Sx (T_Seq (
+                          T_Move (T_Temp (F_RV()), Tr_UnEx (exp)),
+                          T_Jump (T_Name (ret), Temp_LabelList (ret, NULL))));
     }
 }
 
 Tr_exp Tr_Exit (Tr_exp exp)
 {
-    return Tr_Sx(T_Exit(Tr_UnEx(exp)));
+    return Tr_Sx (T_Exit (Tr_UnEx (exp)));
 }
 
 Tr_exp Tr_Asm (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
 {
     // HMM... is it the right place?
     Temp_tempList dl = NULL;
-    LIST_FOREACH(d, dst)
+    LIST_FOREACH (d, dst)
     {
-        Temp_temp t = F_RegistersGet_s(regs_all, d);
+        Temp_temp t = F_RegistersGet_s (regs_all, d);
         if (!t)
         {
-            assert(0);
+            assert (0);
         }
 
-        LIST_PUSH(dl, t);
+        LIST_PUSH (dl, t);
     }
 
     Temp_tempList sl = NULL;
-    LIST_FOREACH(d, src)
+    LIST_FOREACH (d, src)
     {
-        Temp_temp t = F_RegistersGet_s(regs_all, d);
+        Temp_temp t = F_RegistersGet_s (regs_all, d);
         if (!t)
         {
-            assert(0);
+            assert (0);
         }
 
-        LIST_PUSH(sl, t);
+        LIST_PUSH (sl, t);
     }
 
     return Tr_Sx (T_Asm (code, data ? Tr_UnEx (data) : NULL, dl, sl));
@@ -883,7 +866,7 @@ void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
 {
     T_stm stm = NULL;
 
-    stm = F_ProcEntryExit1 (level->frame, Tr_UnSx(body));
+    stm = F_ProcEntryExit1 (level->frame, Tr_UnSx (body));
 
     Program_AddFragment (c->module, F_ProcFrag (stm, level->frame));
 }

@@ -48,6 +48,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/ext/table.c
     ${CMAKE_SOURCE_DIR}/helium/ext/util.c
     ${CMAKE_SOURCE_DIR}/helium/ext/str.c
+    ${CMAKE_SOURCE_DIR}/helium/ext/pair.c
     ${CMAKE_SOURCE_DIR}/helium/ext/vector.c
     ${CMAKE_SOURCE_DIR}/helium/asm.c
     ${CMAKE_SOURCE_DIR}/helium/ast.c

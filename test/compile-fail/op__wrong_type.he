@@ -1,0 +1,9 @@
+fn main
+{
+    1 + "blah";      //~ ERROR 3001
+    "blah" + 1;      //~ ERROR 3001
+    "blah" + "blah"; //~ ERROR 3001
+           //^ ERROR 3001
+
+    ret 0;
+}

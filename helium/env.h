@@ -14,6 +14,7 @@ struct Env_funEntry_t
     Temp_label label;
     S_symbolList names;
     Ty_tyList types;
+    struct Vector_t /** of struct Pair_t */ formals;
     Ty_ty result;
 };
 

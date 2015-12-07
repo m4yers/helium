@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "mem.h"
 
@@ -35,4 +36,11 @@ void * checked_malloc (int len)
     }
 
     return p;
+}
+
+void * checked_dup (const char * s, size_t n)
+{
+    void * r = checked_malloc (n);
+    memcpy (r, s, n);
+    return r;
 }
