@@ -1,0 +1,5 @@
+fn main
+{
+    break //~ ERROR 3010
+    ret 0;
+}

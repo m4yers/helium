@@ -1073,11 +1073,17 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_breakExp:
     {
+        assert (context->loopNesting >= 0);
+
         if (!context->loopNesting)
         {
-            // TODO:  proper error here
+            ERROR(&exp->loc, 3010, "Unexpected break", "");
+            return e_void;
         }
-        return Expression_New (Tr_Break (context->breaker), Ty_Void());
+        else
+        {
+            return Expression_New (Tr_Break (context->breaker), Ty_Void());
+        }
     }
     default:
     {
@@ -1092,8 +1098,6 @@ int Semant_Translate (Program_Module m)
 {
     assert (m);
 
-    //HMM shouldn't be done after semant analysis? what if there are errors?
-    // e.g. it will SEGFLT if undefined var is used
     Escape_Find (m->ast);
 
     struct Semant_ContextType context;
