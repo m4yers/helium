@@ -57,6 +57,39 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
         exp->u.seq = l;
         return exp;
     }
+    case A_ifExp:
+    {
+        if (exp->u.iff.test)
+        {
+            TransExp (context, exp->u.iff.test);
+        }
+
+        if (exp->u.iff.tr)
+        {
+            TransScope (context, exp->u.iff.tr);
+        }
+
+        if (exp->u.iff.fl)
+        {
+            TransScope (context, exp->u.iff.fl);
+        }
+
+        return exp;
+    }
+    case A_whileExp:
+    {
+        if (exp->u.whilee.test)
+        {
+            TransExp (context, exp->u.whilee.test);
+        }
+
+        if (exp->u.whilee.body)
+        {
+            TransScope (context, exp->u.whilee.body);
+        }
+
+        return exp;
+    }
     // TODO real asm parser is badly needed
     // TODO drop pseudo
     // TODO i need to be able use data address directly

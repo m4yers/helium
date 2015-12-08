@@ -9,4 +9,8 @@ fn main
     if (a == 1337) { a = 15; } else { a = 16; }
 
     assert !(a == 16);
+
+    if (1) { let a = 12345; assert!(a <> 16); }
+
+    assert!(a == 16);
 }

@@ -74,6 +74,10 @@ struct A_var_
     } u;
 };
 
+/*****************
+ *  Expressions  *
+ *****************/
+
 struct A_callExp_t
 {
     S_symbol func;
@@ -98,6 +102,12 @@ struct A_ifExp_t
 {
     A_exp test;
     A_scope tr, fl;
+};
+
+struct A_whileExp_t
+{
+    A_exp test;
+    A_scope body;
 };
 
 struct A_exp_
@@ -155,11 +165,7 @@ struct A_exp_
 
         struct A_ifExp_t iff;
 
-        struct
-        {
-            A_exp test;
-            A_scope body;
-        } whilee;
+        struct A_whileExp_t whilee;
 
         struct
         {

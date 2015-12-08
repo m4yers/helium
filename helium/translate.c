@@ -432,6 +432,7 @@ Tr_exp Tr_String (Semant_Context c, const char * value)
 
 Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty)
 {
+    (void) ty;
     switch (op)
     {
     case A_plusOp:
@@ -761,11 +762,11 @@ Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done)
      * statements.
      */
     return Tr_Sx (T_Seq (T_Label (t),
-                         T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
-                                T_Seq (T_Label (b),
-                                       T_Seq (Tr_UnSx (body),
-                                               T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
-                                                       T_Label (done)))))));
+                  T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
+                  T_Seq (T_Label (b),
+                  T_Seq (Tr_UnSx (body),
+                  T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
+                  T_Label (done)))))));
 }
 
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
@@ -788,16 +789,16 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (T_Temp (l), Tr_UnEx (lo)),
-                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-                                T_Seq (T_Label (c),
-                                       T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
-                                               T_Seq (T_Label (t),
-                                                       T_Seq (Tr_UnSx (body),
-                                                               T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
-                                                                       T_Seq (T_Label (n),
-                                                                               T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
-                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-                                                                                               T_Label (done))))))))))));
+                  T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+                  T_Seq (T_Label (c),
+                  T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
+                  T_Seq (T_Label (t),
+                  T_Seq (Tr_UnSx (body),
+                  T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
+                  T_Seq (T_Label (n),
+                  T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
+                  T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+                  T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)

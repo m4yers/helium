@@ -20,7 +20,7 @@
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
-#define ERROR_WRONG_TYPE(loc, expected, actual)                          \
+#define ERROR_UNEXPECTED_TYPE(loc, expected, actual)                          \
     ERROR(                                                               \
         loc,                                                             \
         3001,                                                            \
@@ -275,7 +275,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
             if (ty && ty != sexp.ty)
             {
-                ERROR_WRONG_TYPE (loc, ty, sexp.ty);
+                ERROR_UNEXPECTED_TYPE (loc, ty, sexp.ty);
                 return Tr_Void();
             }
             else
@@ -319,7 +319,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             rty =  TransTyp (context, decFn.type);
             if (is_main && !is_int_type (rty))
             {
-                ERROR_WRONG_TYPE (loc, Ty_Int(), rty);
+                ERROR_UNEXPECTED_TYPE (loc, Ty_Int(), rty);
                 // change to int and try parse the rest
                 rty = Ty_Int();
             }
@@ -410,11 +410,11 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
         else if (is_main && !is_int (sexp))
         {
-            ERROR_WRONG_TYPE (&last->u.exp->loc, Ty_Int(), sexp.ty);
+            ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, Ty_Int(), sexp.ty);
         }
         else if (!is_unknown (rty) && !is_invalid (rty) && rty != sexp.ty)
         {
-            ERROR_WRONG_TYPE (&last->u.exp->loc, rty, sexp.ty);
+            ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, rty, sexp.ty);
         }
 
         // restore scope
@@ -455,7 +455,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
         Env_Entry e = (Env_Entry)S_Look (context->venv, var->u.simple);
         if (!e)
         {
-            ERROR_UNKNOWN_SYMBOL(&var->loc, var->u.simple)
+            ERROR_UNKNOWN_SYMBOL (&var->loc, var->u.simple)
             return e_invalid;
         }
         else if (e->kind == Env_varEntry)
@@ -652,7 +652,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
                 if (sexp.ty != t)
                 {
-                    ERROR_WRONG_TYPE (&al->head->loc, t, sexp.ty);
+                    ERROR_UNEXPECTED_TYPE (&al->head->loc, t, sexp.ty);
                 }
 
                 LIST_PUSH (tral, sexp.exp);
@@ -716,12 +716,12 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             {
                 if (!is_int (left))
                 {
-                    ERROR_WRONG_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                    ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
                     left.ty = Ty_Int();
                 }
                 if (!is_int (right))
                 {
-                    ERROR_WRONG_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                    ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
                     right.ty = Ty_Int();
                 }
             }
@@ -951,7 +951,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // correct but unmatched types, fix the type of the right expression
         else if (lexp.ty != rexp.ty)
         {
-            ERROR_WRONG_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
+            ERROR_UNEXPECTED_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
             rexp.ty = lexp.ty;
         }
 
@@ -966,42 +966,64 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // currenlty Helium does not support bool
         if (texp.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (&ifExp.test->loc, Ty_Int(), texp.ty);
+            ERROR_UNEXPECTED_TYPE (&ifExp.test->loc, Ty_Int(), texp.ty);
         }
 
         Semant_Exp pexp = e_void;
         if (ifExp.tr)
         {
+            S_BeginScope (context->venv);
+            S_BeginScope (context->tenv);
+
             pexp = TransScope (context, ifExp.tr);
+
+            S_EndScope (context->venv);
+            S_EndScope (context->tenv);
         }
 
         Semant_Exp nexp = e_void;
         if (ifExp.fl)
         {
+            S_BeginScope (context->venv);
+            S_BeginScope (context->tenv);
+
             nexp = TransScope (context, ifExp.fl);
+
+            S_EndScope (context->venv);
+            S_EndScope (context->tenv);
         }
 
         return Expression_New (Tr_If (texp.exp, pexp.exp, nexp.exp), Ty_Void());
     }
     case A_whileExp:
     {
-        Semant_Exp test = TransExp (context, exp->u.whilee.test);
-        if (test.ty != Ty_Int())
+        struct A_whileExp_t whileExp = exp->u.whilee;
+
+        Semant_Exp texp = TransExp (context, whileExp.test);
+
+        // currenlty Helium does not support bool
+        if (texp.ty != Ty_Int())
         {
-            ERROR_WRONG_TYPE (&exp->u.whilee.test->loc, Ty_Int(), test.ty);
+            ERROR_UNEXPECTED_TYPE (&whileExp.test->loc, Ty_Int(), texp.ty);
         }
 
-        Temp_label label = context->breaker;
+        Temp_label outter_breaker = context->breaker;
         Temp_label breaker = Temp_NewLabel();
         context->breaker = breaker;
         context->loopNesting++;
 
-        Semant_Exp body = TransScope (context, exp->u.whilee.body);
+        S_BeginScope (context->venv);
+        S_BeginScope (context->tenv);
+
+        Semant_Exp body = TransScope (context, whileExp.body);
+
+        S_EndScope (context->venv);
+        S_EndScope (context->tenv);
 
         context->loopNesting--;
-        context->breaker = label;
+        context->breaker = outter_breaker;
 
-        return Expression_New (Tr_While (test.exp, body.exp, breaker), Ty_Void());
+        return Expression_New (Tr_While (texp.exp, body.exp, breaker), Ty_Void());
     }
     case A_forExp:
     {
