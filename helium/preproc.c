@@ -51,7 +51,7 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
         A_expList l = NULL;
         LIST_FOREACH (e, exp->u.seq)
         {
-            LIST_PUSH (l, TransExp (context, l->head));
+            LIST_PUSH (l, TransExp (context, e));
         }
 
         exp->u.seq = l;
@@ -86,6 +86,25 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
         if (exp->u.whilee.body)
         {
             TransScope (context, exp->u.whilee.body);
+        }
+
+        return exp;
+    }
+    case A_forExp:
+    {
+        if (exp->u.forr.hi)
+        {
+            TransExp(context, exp->u.forr.hi);
+        }
+
+        if (exp->u.forr.lo)
+        {
+            TransExp(context, exp->u.forr.lo);
+        }
+
+        if (exp->u.forr.body)
+        {
+            TransScope(context, exp->u.forr.body);
         }
 
         return exp;

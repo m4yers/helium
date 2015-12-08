@@ -1027,39 +1027,49 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_forExp:
     {
-        Semant_Exp expty_1 = TransExp (context, exp->u.forr.lo);
-        if (!is_int (expty_1))
+        struct A_forExp_t forExp = exp->u.forr;
+
+        Semant_Exp lexp = TransExp (context, forExp.lo);
+        if (!is_int (lexp))
         {
-            // TODO proper error handling here
+            ERROR_UNEXPECTED_TYPE (&forExp.lo->loc, Ty_Int(), lexp.ty)
         }
 
-        Semant_Exp expty_2 = TransExp (context, exp->u.forr.hi);
-        if (!is_int (expty_2))
+        Semant_Exp hexp = TransExp (context, forExp.hi);
+        if (!is_int (hexp))
         {
-            // TODO proper error handling here
+            ERROR_UNEXPECTED_TYPE (&forExp.hi->loc, Ty_Int(), hexp.ty)
         }
 
         S_BeginScope (context->venv);
-        S_Enter (
-            context->venv,
-            exp->u.forr.var,
-            Env_VarEntryNew (
-                Tr_Alloc (context->level, Ty_Int(), exp->u.forr.escape),
-                Ty_Int()));
+        S_BeginScope (context->tenv);
+
+        // store the iterator within the new scope
+        Env_Entry entry = Env_VarEntryNew (
+                              Tr_Alloc (context->level, Ty_Int(), forExp.escape),
+                              Ty_Int());
+        S_Enter (context->venv, forExp.var, entry);
 
         Temp_label label = context->breaker;
         Temp_label breaker = Temp_NewLabel();
         context->breaker = breaker;
         context->loopNesting++;
 
-        Semant_Exp body = TransScope (context, exp->u.forr.body);
+        Semant_Exp body = TransScope (context, forExp.body);
 
         context->loopNesting--;
         context->breaker = label;
 
         S_EndScope (context->venv);
+        S_EndScope (context->tenv);
 
-        return Expression_New (Tr_For (expty_1.exp, expty_2.exp, body.exp, breaker), Ty_Void());
+        return Expression_New (Tr_For (
+                                   lexp.exp,
+                                   hexp.exp,
+                                   body.exp,
+                                   entry->u.var.access,
+                                   breaker),
+                               Ty_Void());
     }
     case A_breakExp:
     {

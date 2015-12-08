@@ -769,9 +769,9 @@ Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done)
                   T_Label (done)))))));
 }
 
-Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
+Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label done)
 {
-    Temp_temp l = Temp_NewTemp();
+    T_exp l = F_GetVar(iter->access, T_Temp(F_FP()));
     Temp_temp h = Temp_NewTemp();
     Temp_label c = Temp_NewLabel();
     Temp_label t = Temp_NewLabel();
@@ -788,15 +788,15 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done)
      * expression we need to check again wheter we reached the upper limit,
      * thus we escape possible overflow increment of the left bound.
      */
-    return Tr_Sx (T_Seq (T_Move (T_Temp (l), Tr_UnEx (lo)),
+    return Tr_Sx (T_Seq (T_Move (l, Tr_UnEx (lo)),
                   T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
                   T_Seq (T_Label (c),
-                  T_Seq (T_Cjump (T_le, T_Temp (l), T_Temp (h), t, done),
+                  T_Seq (T_Cjump (T_le, l, T_Temp (h), t, done),
                   T_Seq (T_Label (t),
                   T_Seq (Tr_UnSx (body),
-                  T_Seq (T_Cjump (T_eq, T_Temp (l), T_Temp (h), done, n),
+                  T_Seq (T_Cjump (T_eq, l, T_Temp (h), done, n),
                   T_Seq (T_Label (n),
-                  T_Seq (T_Move (T_Temp (l), T_Binop (T_plus, T_Temp (l), T_Const (1))),
+                  T_Seq (T_Move (l, T_Binop (T_plus, l, T_Const (1))),
                   T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
                   T_Label (done))))))))))));
 }

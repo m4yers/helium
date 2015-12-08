@@ -199,35 +199,7 @@ static void main__return (void ** state)
         /*  }", */
         "fn test_break_deep\n\
         {\n\
-            let a = 5;\n\
-            let b = 0;\n\
-            let c = 0;\n\
-        \n\
-            while (1)\n\
-            {\n\
-                while (1)\n\
-                {\n\
-                    while (1)\n\
-                    {\n\
-                        a = a - 1;\n\
-        \n\
-                        if (a == 3)\n\
-                        {\n\
-                            break\n\
-                        }\n\
-                    }\n\
-        \n\
-                    b = 1;\n\
-                    break\n\
-                }\n\
-        \n\
-                c = 1;\n\
-                break\n\
-            }\n\
-        \n\
-            assert! (a == 3);\n\
-            assert! (b == 1);\n\
-            assert! (c == 1);\n\
+            for (i = (1 + 1) to (10 * 10)) { 1; }\n\
         }"
     };
 

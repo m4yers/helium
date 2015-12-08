@@ -110,6 +110,14 @@ struct A_whileExp_t
     A_scope body;
 };
 
+struct A_forExp_t
+{
+    S_symbol var;
+    A_exp lo, hi;
+    A_scope body;
+    bool escape;
+};
+
 struct A_exp_
 {
     struct A_loc_ loc;
@@ -167,15 +175,9 @@ struct A_exp_
 
         struct A_whileExp_t whilee;
 
-        struct
-        {
-            S_symbol var;
-            A_exp lo, hi;
-            A_scope body;
-            bool escape;
-        } forr;
+        struct A_forExp_t forr;
 
-        /* breakk; - need only the pos */
+        /* break - need only the pos */
 
         A_expList array;
     } u;

@@ -68,7 +68,7 @@ Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset);
 Tr_exp Tr_Assign (Tr_exp left, Tr_exp right);
 Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe);
 Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done);
-Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Temp_label done);
+Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label done);
 Tr_exp Tr_Break (Temp_label done);
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp);
 Tr_exp Tr_Exit (Tr_exp exp);
