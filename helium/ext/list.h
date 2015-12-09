@@ -238,10 +238,10 @@
     LIST_FOREACH(i, list) if (i == item)                                            \
 
 #define LIST_DEFINE(name,type)                                                      \
-    typedef struct name##_                                                          \
+    typedef struct name##_t                                                         \
     {                                                                               \
         type head;                                                                  \
-        struct name##_ * tail;                                                      \
+        struct name##_t * tail;                                                     \
     } * name;                                                                       \
 
 LIST_DEFINE (U_boolList, bool)

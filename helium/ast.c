@@ -8,6 +8,48 @@
 #include "symbol.h"
 #include "ast.h"
 
+/************
+ *  Fields  *
+ ************/
+
+A_field A_Field (A_loc loc, S_symbol name, A_ty type)
+{
+    A_field p = checked_malloc (sizeof (*p));
+    p->loc = *loc;
+    p->name = name;
+    p->type = type;
+    p->escape = TRUE;
+    return p;
+}
+
+A_fieldList A_FieldList (A_field head, A_fieldList tail)
+{
+    A_fieldList p = checked_malloc (sizeof (*p));
+    p->head = head;
+    p->tail = tail;
+    return p;
+}
+
+A_efield A_Efield (S_symbol name, A_exp exp)
+{
+    A_efield p = checked_malloc (sizeof (*p));
+    p->name = name;
+    p->exp = exp;
+    return p;
+}
+
+A_efieldList A_EfieldList (A_efield head, A_efieldList tail)
+{
+    A_efieldList p = checked_malloc (sizeof (*p));
+    p->head = head;
+    p->tail = tail;
+    return p;
+}
+
+/*********
+ *  LHS  *
+ *********/
+
 A_var A_SimpleVar (A_loc loc, S_symbol sym)
 {
     A_var p = checked_malloc (sizeof (*p));
@@ -36,6 +78,10 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp)
     p->u.subscript.exp = exp;
     return p;
 }
+
+/*****************
+ *  Expressions  *
+ *****************/
 
 A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList dst, U_stringList src)
 {
@@ -205,6 +251,18 @@ A_exp A_ArrayExp (A_loc loc, A_expList list)
     return p;
 }
 
+A_expList A_ExpList (A_exp head, A_expList tail)
+{
+    A_expList p = checked_malloc (sizeof (*p));
+    p->head = head;
+    p->tail = tail;
+    return p;
+}
+
+/******************
+ *  Declarations  *
+ ******************/
+
 A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope)
 {
     A_dec p = checked_malloc (sizeof (*p));
@@ -244,8 +302,11 @@ A_decList A_DecList (A_dec head, A_decList tail)
     p->head = head;
     p->tail = tail;
     return p;
-
 }
+
+/***********
+ *  Types  *
+ ***********/
 
 A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs)
 {
@@ -275,78 +336,9 @@ A_ty A_RecordTy (A_loc loc, A_fieldList record)
     return p;
 }
 
-A_field A_Field (A_loc loc, S_symbol name, A_ty type)
-{
-    A_field p = checked_malloc (sizeof (*p));
-    p->loc = *loc;
-    p->name = name;
-    p->type = type;
-    p->escape = TRUE;
-    return p;
-}
-
-A_fieldList A_FieldList (A_field head, A_fieldList tail)
-{
-    A_fieldList p = checked_malloc (sizeof (*p));
-    p->head = head;
-    p->tail = tail;
-    return p;
-}
-
-A_expList A_ExpList (A_exp head, A_expList tail)
-{
-    A_expList p = checked_malloc (sizeof (*p));
-    p->head = head;
-    p->tail = tail;
-    return p;
-}
-
-A_efield A_Efield (S_symbol name, A_exp exp)
-{
-    A_efield p = checked_malloc (sizeof (*p));
-    p->name = name;
-    p->exp = exp;
-    return p;
-}
-
-A_efieldList A_EfieldList (A_efield head, A_efieldList tail)
-{
-    A_efieldList p = checked_malloc (sizeof (*p));
-    p->head = head;
-    p->tail = tail;
-    return p;
-}
-
-A_stm A_StmExp (A_exp exp)
-{
-    A_stm p = checked_malloc (sizeof (*p));
-    p->kind = A_stmExp;
-    p->u.exp = exp;
-    return p;
-}
-
-A_stm A_StmDec (A_dec dec)
-{
-    A_stm p = checked_malloc (sizeof (*p));
-    p->kind = A_stmDec;
-    p->u.dec = dec;
-    return p;
-}
-
-A_stmList A_StmList (A_stm head, A_stmList tail)
-{
-    A_stmList p = checked_malloc (sizeof (*p));
-    p->head = head;
-    p->tail = tail;
-    return p;
-}
-
-A_scope A_Scope (A_stmList list)
-{
-    A_scope p = checked_malloc (sizeof (*p));
-    p->list = list;
-    return p;
-}
+/**************
+ *  Literals  *
+ **************/
 
 A_literal A_LiteralBool (A_loc loc, bool value)
 {
@@ -384,6 +376,49 @@ A_literal A_LiteralString (A_loc loc, const char * value)
     return p;
 }
 
+/****************
+ *  Statements  *
+ ****************/
+
+A_stm A_StmExp (A_exp exp)
+{
+    A_stm p = checked_malloc (sizeof (*p));
+    p->kind = A_stmExp;
+    p->u.exp = exp;
+    return p;
+}
+
+A_stm A_StmDec (A_dec dec)
+{
+    A_stm p = checked_malloc (sizeof (*p));
+    p->kind = A_stmDec;
+    p->u.dec = dec;
+    return p;
+}
+
+A_stmList A_StmList (A_stm head, A_stmList tail)
+{
+    A_stmList p = checked_malloc (sizeof (*p));
+    p->head = head;
+    p->tail = tail;
+    return p;
+}
+
+/***********
+ *  Scope  *
+ ***********/
+
+A_scope A_Scope (A_stmList list)
+{
+    A_scope p = checked_malloc (sizeof (*p));
+    p->list = list;
+    return p;
+}
+
+/***********
+ *  Specs  *
+ ***********/
+
 A_spec A_SpecType (A_loc loc, A_ty type)
 {
     A_spec p = checked_malloc (sizeof (*p));
@@ -410,9 +445,9 @@ A_specList A_SpecList (A_spec head, A_specList tail)
     return p;
 }
 
-/*********************************************************************
- *                             Printer                               *
- *********************************************************************/
+/*************
+ *  Printer  *
+ *************/
 
 static char str_oper[][12] =
 {

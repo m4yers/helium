@@ -12,7 +12,7 @@
     #include "error.h"
     #include "ast.h"
 
-    #define YYLTYPE struct A_loc_
+    #define YYLTYPE struct A_loc_t
 
     extern Program_Module module;
 

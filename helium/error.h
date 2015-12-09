@@ -5,7 +5,7 @@
 
 struct Error
 {
-    struct A_loc_ loc;
+    struct A_loc_t loc;
     int code;
     const char * text;
 };
