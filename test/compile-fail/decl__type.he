@@ -1,0 +1,8 @@
+fn main
+{
+    def Point = { x: Type, y: int}  //~ ERROR 3004
+    let a: Point;                   // no error because of fallback type
+
+    def IP = [Type;4]               //~ ERROR 3004
+    let b: IP;                      // same
+}

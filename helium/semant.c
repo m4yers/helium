@@ -254,11 +254,18 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
     switch (dec->kind)
     {
+    // TODO when forward declaration will be available check for cycle defines
     case A_typeDec:
     {
-        S_symbol name = dec->u.type.name;
-        A_ty type = dec->u.type.type;
-        S_Enter (context->tenv, name, Ty_Name (name, TransTyp (context, type)));
+        struct A_decType_t decType = dec->u.type;
+        Ty_ty type = TransTyp (context, decType.type);
+        // fallback to int if type is invalid
+        if (is_invalid(type))
+        {
+            type = Ty_Int();
+        }
+        Ty_ty def = Ty_Name (decType.name, type);
+        S_Enter (context->tenv, decType.name, def);;
         return Tr_Void();
     }
     case A_varDec:
