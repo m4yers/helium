@@ -516,13 +516,56 @@ T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
     return stm;
 }
 
+// TODO rename to F_PreRegAlloc
 ASM_lineList F_ProcEntryExit2 (F_frame frame, ASM_lineList body)
 {
     DBG ("F_ProcEntryExit2 for <%s>\n", frame->name->name)
+
+    // Set local arrays' handles
+    T_stmList stms = NULL;
+    LIST_FOREACH (word, frame->words)
+    {
+        F_access access = word->access;
+        if (access)
+        {
+            if (word->kind == FA_reg)
+            {
+                LIST_PUSH (stms, T_Move (
+                               T_Temp (word->u.reg),
+                               T_Binop (T_plus,
+                                        T_Temp (fp),
+                                        T_Const (access->u.stackArray.offset))));
+            }
+            else if (word->kind == FA_stackWord)
+            {
+                LIST_PUSH (stms, T_Move (
+                               T_Mem (T_Binop (
+                                          T_plus,
+                                          T_Temp (fp),
+                                          T_Const (word->u.stackWord.offset))),
+                               T_Binop (T_plus,
+                                        T_Temp (fp),
+                                        T_Const (access->u.stackArray.offset))));
+            }
+            else
+            {
+                // WTF
+                assert (0);
+            }
+        }
+    }
+
+    if (stms)
+    {
+        ASM_lineList handlers = F_CodeGen (frame, stms);
+        LIST_INJECT (body, handlers, 1);
+    }
+
     // HMM is the sink necessary here?
     return ASM_Splice (body, ASM_LineList (ASM_Oper ("", NULL, sink, NULL), NULL));
 }
 
+// TODO rename to F_PostRegAlloc
 ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList colors)
 {
     DBG ("F_ProcEntryExit3 for\n%s\n", Frame_ToString (frame))
@@ -768,39 +811,6 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     // Set FP
     LIST_PUSH (stms, T_Move (T_Temp (fp), T_Binop (T_plus, T_Temp (sp), T_Const (frameSize))));
 
-    // Set local arrays' handles
-    LIST_FOREACH (word, frame->words)
-    {
-        F_access access = word->access;
-        if (access)
-        {
-            if (word->kind == FA_reg)
-            {
-                LIST_PUSH (stms, T_Move (
-                               T_Temp (word->u.reg),
-                               T_Binop (T_plus,
-                                        T_Temp (fp),
-                                        T_Const (access->u.stackArray.offset))));
-            }
-            else if (word->kind == FA_stackWord)
-            {
-                LIST_PUSH (stms, T_Move (
-                               T_Mem (T_Binop (
-                                          T_plus,
-                                          T_Temp (fp),
-                                          T_Const (word->u.stackWord.offset))),
-                               T_Binop (T_plus,
-                                        T_Temp (fp),
-                                        T_Const (access->u.stackArray.offset))));
-            }
-            else
-            {
-                // WTF
-                assert (0);
-            }
-        }
-    }
-
     LIST_PUSH (stms, T_Comment ("body-"));
 
     ASM_lineList prologue = F_CodeGen (frame, stms);
@@ -956,7 +966,7 @@ T_exp F_GetVar (F_access access, T_exp framePtr)
     }
     else if (access->kind == FA_reg)
     {
-        /* 
+        /*
          * FIXME this is a bit tricky, when translation asks for the actual access location
          * inside the frame it might give the function not frame pointer but some offset from it
          * if the access belongs to a different scope, but if something went wrong with escape
