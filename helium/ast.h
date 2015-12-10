@@ -274,6 +274,12 @@ A_decList A_DecList (A_dec head, A_decList tail);
  *  Types  *
  ***********/
 
+struct A_arrayTy_t
+{
+    A_ty type;
+    A_exp size;
+};
+
 struct A_ty_t
 {
     struct A_loc_t loc;
@@ -290,14 +296,14 @@ struct A_ty_t
     {
         S_symbol name;
         A_fieldList record;
-        A_expList array;
+        struct A_arrayTy_t array;
     } u;
 
     A_specList specs;
 };
 
 A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs);
-A_ty A_ArrayTy (A_loc loc, A_expList list);
+A_ty A_ArrayTy (A_loc loc, A_ty type, A_exp size);
 A_ty A_RecordTy (A_loc loc, A_fieldList record);
 
 /**************

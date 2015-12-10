@@ -318,12 +318,13 @@ A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs)
     return p;
 }
 
-A_ty A_ArrayTy (A_loc loc, A_expList list)
+A_ty A_ArrayTy (A_loc loc, A_ty type, A_exp size)
 {
     A_ty p = checked_malloc (sizeof (*p));
     p->loc = *loc;
     p->kind = A_arrayTy;
-    p->u.array = list;
+    p->u.array.type = type;
+    p->u.array.size = size;
     return p;
 }
 
@@ -843,7 +844,9 @@ static void PrintType (FILE * out, A_ty v, int d)
 
     case A_arrayTy:
         fprintf (out, "ArrayTy(\n");
-        PrintExpList (out, v->u.array, d + 1);
+        PrintType (out, v->u.array.type, d + 1);
+        fprintf (out, ",\n");
+        PrintExp (out, v->u.array.size, d + 1);
         break;
 
     default:

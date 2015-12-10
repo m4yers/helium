@@ -1,0 +1,23 @@
+fn main
+{
+    let a: {x: int, y: int};
+    a.x = 10;
+    a.y = 11;
+
+    assert! (a.x = 10);
+    assert! (a.y = 11);
+
+    let b: { x: [int;2] };
+    b.x[0] = 12;
+    b.x[1] = 13;
+
+    assert! (b.x[0] == 12);
+    assert! (b.x[1] == 13);
+
+    let c: { x: { y: int, z: int }};
+    c.x.y = 14;
+    c.x.z = 15;
+
+    assert! (c.x.y == 14);
+    assert! (c.x.z == 15);
+}

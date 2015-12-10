@@ -1,0 +1,17 @@
+fn main
+{
+    /** Size */
+
+    let a: [int;10+1];      //~ ERROR 3011 yeah yeah i know, but not now;)
+    let b: [int;blah()];    //~ ERROR 3011
+
+    let c = 10;
+    let d: [int;c];         //~ ERROR 3011
+
+
+    /** Types */
+
+    let e: [Type;10];       //~ ERROR 3004
+    let f: [[Type;10];10];  //~ ERROR 3004
+    let g: [{a:Type};10];   //~ ERROR 3004
+}

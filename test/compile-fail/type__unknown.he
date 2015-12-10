@@ -1,0 +1,4 @@
+fn main
+{
+    let a:Type; //~ ERROR 3004
+}

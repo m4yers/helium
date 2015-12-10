@@ -20,7 +20,7 @@
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
 
-#define ERROR_UNEXPECTED_TYPE(loc, expected, actual)                          \
+#define ERROR_UNEXPECTED_TYPE(loc, expected, actual)                     \
     ERROR(                                                               \
         loc,                                                             \
         3001,                                                            \
@@ -61,6 +61,12 @@
         loc,                                                             \
         3009,                                                            \
         "Invalid expression", "");
+
+#define ERROR_EXPECTED_CONSTANT_EXPRESSION(loc)                          \
+    ERROR(                                                               \
+        loc,                                                             \
+        3011,                                                            \
+        "Expected constat expression", "");
 
 typedef struct Semant_ExpType
 {
@@ -169,14 +175,11 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 {
     assert (ty);
 
-    Ty_ty e_invalid = Ty_Invalid();
-    Ty_ty type;
-
     switch (ty->kind)
     {
     case A_nameTy:
     {
-        type = (Ty_ty)S_Look (context->tenv, ty->u.name);
+        Ty_ty type = (Ty_ty)S_Look (context->tenv, ty->u.name);
         if (!type)
         {
             ERROR_UNKNOWN_TYPE (&ty->loc, ty->u.name);
@@ -187,41 +190,61 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
     }
     case A_arrayTy:
     {
-        // SHIT well u did it again
-        type = (Ty_ty)S_Look (context->tenv, ty->u.array->head->u.var->u.simple);
-        int size = ty->u.array->tail->head->u.intt;
+        struct A_arrayTy_t arrayTy = ty->u.array;
+
+        /*
+         * If the type of array is not a valid type we change it to int and proceed, this will
+         * not bring ripple effect to error generation. The user will be only notified by the
+         * error produced by A_nameTy look-up
+         */
+        Ty_ty type = TransTyp (context, arrayTy.type);
+        if (is_invalid (type))
+        {
+            type = Ty_Int();
+        }
+
+        /*
+         * As with the type the type we do not break the translation process and replace an invalid
+         * size expression with int(1), spawn error and proceed.
+         */
+        int size;
+        if (arrayTy.size->kind != A_intExp)
+        {
+            ERROR_EXPECTED_CONSTANT_EXPRESSION (&arrayTy.size->loc)
+            size = 1;
+        }
+        else
+        {
+            size = arrayTy.size->u.intt;
+        }
+
         return Ty_Array (type, size);
     }
     case A_recordTy:
     {
-        Ty_fieldList tlist = NULL;
-        for (A_fieldList l = ty->u.record; l; l = l->tail)
+        Ty_fieldList flist = NULL;
+        LIST_FOREACH (field, ty->u.record)
         {
-            A_field field = l->head;
-            if (field->type->kind == A_nameTy)
+            /*
+             * Same as for the array translation we do not break the process but simply fallback
+             * to the default type int
+             */
+            Ty_ty type = TransTyp (context, field->type);
+            if (is_invalid (type))
             {
-                type = (Ty_ty)S_Look (context->tenv, field->type->u.name);
-            }
-            else
-            {
-                type = TransTyp (context, field->type);
+                type = Ty_Int();
             }
 
-            // FIXME fix type tests
-            /* if (!type) */
-            /* { */
-            /*     ERROR_UNKNOWN_TYPE (field->loc, field->typ); */
-            /*     type = Ty_Unknown (S_Name (field->typ)); */
-            /* } */
-
-            LIST_PUSH (tlist, Ty_Field (field->name, type))
+            LIST_PUSH (flist, Ty_Field (field->name, type))
         }
 
-        return Ty_Record (tlist);
+        return Ty_Record (flist);
+    }
+    default:
+    {
+        assert (0);
     }
     }
-
-    return e_invalid;
 }
 
 // TODO you need to do it in two passes: 1 - names, 2 - definitions
@@ -285,9 +308,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
         else
         {
-            // alloc uninitialized array
             access = Tr_Alloc (context->level, GetActualType (ty), dec->u.var.escape);
-
         }
 
         // anonymous record
@@ -302,8 +323,10 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
         S_Enter (context->venv, dec->u.var.var, Env_VarEntryNew (access, ty));
 
-        return sexp.exp;
+        return sexp.exp ? sexp.exp : Tr_Void();
     }
+    // TODO functions without any exp?
+    // TODO general and main fn
     case A_functionDec:
     {
         struct A_decFn_t decFn = dec->u.function;
@@ -1077,7 +1100,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         if (!context->loopNesting)
         {
-            ERROR(&exp->loc, 3010, "Unexpected break", "");
+            ERROR (&exp->loc, 3010, "Unexpected break", "");
             return e_void;
         }
         else

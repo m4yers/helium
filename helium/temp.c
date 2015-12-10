@@ -39,13 +39,13 @@ static int temps = 100;
 
 Temp_temp Temp_NewTemp (void)
 {
-    Temp_temp p = (Temp_temp) checked_malloc (sizeof (*p));
+    Temp_temp p = checked_malloc (sizeof (*p));
     p->num = temps++;
-    {
-        char r[16];
-        sprintf (r, "t%d", p->num);
-        Temp_Enter (Temp_Name(), p, r);
-    }
+
+    char * r = checked_malloc (16);
+    sprintf (r, "t%d", p->num);
+    Temp_Enter (Temp_Name(), p, r);
+
     return p;
 }
 
@@ -126,15 +126,17 @@ Temp_tempList Temp_TempList (Temp_temp h, Temp_tempList t)
     return p;
 }
 
-int Temp_GetTempIndex(Temp_temp temp)
+int Temp_GetTempIndex (Temp_temp temp)
 {
     return temp->num;
 }
 
-Temp_tempList Temp_SortTempList(Temp_tempList list)
+Temp_tempList Temp_SortTempList (Temp_tempList list)
 {
     if (list == NULL || list->tail == NULL)
+    {
         return list;
+    }
 
     Temp_tempList head = NULL;
     while (list != NULL)

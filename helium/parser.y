@@ -532,9 +532,9 @@ type:                     LBRACE typed_field typed_field_comma RBRACE
                           {
                               $$ = A_RecordTy (&(@$), A_FieldList ($2, $3));
                           }
-                        | LBRACK expression exp_semi RBRACK
+                        | LBRACK type SEMICOLON expression RBRACK
                           {
-                              $$ = A_ArrayTy (&(@$), A_ExpList($2, $3));
+                              $$ = A_ArrayTy (&(@$), $2, $4);
                           }
                         | ID specs
                           {

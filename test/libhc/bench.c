@@ -56,6 +56,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         assert_true (m->ast);
 
         /* AST_Print (stdout, m->ast, 0); */
+        /* exit(0); */
 
         if (PreProc_Translate (m) != 0)
         {
@@ -197,9 +198,10 @@ static void main__return (void ** state)
         /*      if (1) { 1; } else { 2; }\n\ */
         /*      ret 0;\n\ */
         /*  }", */
-        "fn test_break_deep\n\
+        "fn main\n\
         {\n\
-            for (i = (1 + 1) to (10 * 10)) { 1; }\n\
+            let f: {};\n\
+            ret 0;\n\
         }"
     };
 
