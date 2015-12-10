@@ -151,7 +151,7 @@ static void main__return (void ** state)
         /*         ret 0;\n\ */
         /*     }\n\ */
         /*     ret 0;\n\ */
-        /* }", */
+       /* }", */
         /* "fn main\n\ */
         /* {\n\ */
         /*     fn plus (a: int, b: int)\n\ */
