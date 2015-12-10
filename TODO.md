@@ -4,16 +4,21 @@
     - [x] restore fp -> sp and stack -> fp
     - [x] test it
 - [x] new front-end
-- [ ] BIG CLEAN UP
+- [x] BIG CLEAN UP
     - [x] module-based debug
     - [x] proper front-end error message system
-- [ ] new test system
+- [x] new test system
     - [x] internals
     - [x] syntax
     - [x] semant
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
+- [ ] clear definion of what is:
+    - [ ] undefined
+    - [ ] malformed
+    - [ ] invalid
+    - [ ] unknown
 - [ ] clean-up error codes
 - [ ] tests for list.h/.c
 - [ ] ir printer
@@ -70,9 +75,11 @@
       ret a + b;
   }
 
-- make if as expression that yields a valid result, e.g:
+- make if,while,for as expression that yields a valid result, e.g:
 
   let f = if (blah) { true; } else { false; };
+
+  let f = while(b > 0) { b--; }
 
 
 
