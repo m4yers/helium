@@ -19,7 +19,6 @@
     - [ ] malformed
     - [ ] invalid
     - [ ] unknown
-- [ ] clean-up error codes
 - [ ] tests for list.h/.c
 - [ ] ir printer
 - [ ] language features
@@ -32,7 +31,9 @@
     - [ ] unions
     - [ ] packages
     - [ ] macro
+    - [ ] static storage
     - [ ] floats?
+- [ ] clean-up error codes
 - [ ] minimal stdlib
     - [ ] io
     - [ ] mem

@@ -85,21 +85,6 @@ static bool is_invalid (Ty_ty ty)
     return ty == Ty_Invalid();
 }
 
-static bool is_unknown (Ty_ty ty)
-{
-    return ty->kind == Ty_unknown;
-}
-
-static bool is_truetype (Ty_ty ty)
-{
-    return !is_invalid (ty) && !is_unknown (ty);
-}
-
-//static bool is_unknown (Ty_ty ty)
-//{
-//    return ty->kind == Ty_unknown;
-//}
-//
 static bool is_int_type (Ty_ty ty)
 {
     return ty == Ty_Int();
@@ -171,6 +156,7 @@ static Semant_Exp TransScope (Semant_Context context, A_scope scope)
     return Expression_New (seq, r.ty);
 }
 
+// TODO hash function to uniquly identify a type
 static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 {
     assert (ty);
@@ -183,7 +169,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
         if (!type)
         {
             ERROR_UNKNOWN_TYPE (&ty->loc, ty->u.name);
-            return Ty_Unknown (S_Name (ty->u.name));
+            return Ty_Invalid();
         }
 
         return type;
@@ -218,6 +204,8 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             size = arrayTy.size->u.intt;
         }
 
+        // TODO find a way to uniquly  identify the anonymous array type and return a very first
+        // parse type instance so the type checks would be correct
         return Ty_Array (type, size);
     }
     case A_recordTy:
@@ -238,6 +226,8 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             LIST_PUSH (flist, Ty_Field (field->name, type))
         }
 
+        // TODO find a way to uniquly  identify the anonymous record type and return a very first
+        // parse type instance so the type checks would be correct
         return Ty_Record (flist);
     }
     default:
@@ -344,16 +334,6 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             return Tr_Void();
         }
-
-        // anonymous record
-        // HMM do i need this?
-        // YES for external unit linkage
-        /* if (ty->kind == Ty_record) */
-        /* { */
-        /*     S_symbol name = S_Symbol ("__scope_anon_rec_0"); */
-        /*     ty = Ty_Name (name, ty); */
-        /*     S_Enter (context->tenv, name, ty); */
-        /* } */
 
         S_Enter (context->venv, decVar.var, Env_VarEntryNew (access, dty));
 
@@ -469,7 +449,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         {
             ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, Ty_Int(), sexp.ty);
         }
-        else if (!is_unknown (rty) && !is_invalid (rty) && rty != sexp.ty)
+        else if (!is_invalid (rty) && !is_invalid (rty) && rty != sexp.ty)
         {
             ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, rty, sexp.ty);
         }
@@ -529,53 +509,90 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
     }
     case A_fieldVar:
     {
-        level++;
-        Semant_Exp ety = TransVar (context, var->u.field.var);
-        level--;
-        Ty_ty ty = ety.ty;
+        struct A_varField_t varField = var->u.field;
 
-        if (!is_truetype (ty) || ty->kind != Ty_record)
+        level++;
+        Semant_Exp vexp = TransVar (context, varField.var);
+        level--;
+
+        if (is_invalid (vexp.ty))
         {
-            // TODO:  proper error here
+            return e_invalid;
+        }
+        else if (vexp.ty->kind != Ty_record)
+        {
+            ERROR (
+                &var->loc,
+                3012,
+                "Cannot access field '%s' of non record instance of type '%s'",
+                varField.sym->name,
+                vexp.ty->meta.name);
+
             return e_invalid;
         }
 
-        LIST_FOREACH (f, ty->u.record)
+        LIST_FOREACH (f, vexp.ty->u.record)
         {
-            if (f->name == var->u.field.sym)
+            if (f->name == varField.sym)
             {
-                return Expression_New (
-                           Tr_FieldVar (ety.exp, ty, f->name, level == 0),
-                           GetActualType (GetActualType (f->ty)));
+                Ty_ty ty = GetActualType (f->ty);
+                Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, level == 0);
+                return Expression_New (exp, ty);
             }
         }
+
+        ERROR (
+            &var->loc,
+            3012,
+            "Record type '%s' does not contain field '%s'",
+            vexp.ty->meta.name,
+            varField.sym->name);
 
         return e_invalid;
     }
     case A_subscriptVar:
     {
+        struct A_varSubscript_t varSubscript = var->u.subscript;
+
         level++;
-        Semant_Exp ety = TransVar (context, var->u.subscript.var);
+        Semant_Exp vexp = TransVar (context, varSubscript.var);
         level--;
-        if (is_invalid (ety.ty) || ety.ty->kind != Ty_array)
+
+        if (is_invalid (vexp.ty))
         {
-            // TODO:  proper error here
+            return e_invalid;
+        }
+        else if (vexp.ty->kind != Ty_array)
+        {
+            ERROR (
+                &var->loc,
+                3012,
+                "Cannot subscript non array instance of type '%s'",
+                vexp.ty->meta.name);
+
             return e_invalid;
         }
 
-        Semant_Exp sty = TransExp (context, var->u.subscript.exp);
-        if (!is_int (sty))
+        Semant_Exp sexp = TransExp (context, var->u.subscript.exp);
+        /*
+         * Essentially, array subscript expects an Int expression, if the subscript is not an Int
+         * we simply spawn an error and try to recover by using a correct Int(0) translation.
+         */
+        if (!is_int (sexp))
         {
-            // TODO:  proper error here
+            ERROR_UNEXPECTED_TYPE (&varSubscript.exp->loc, Ty_Int(), sexp.ty);
+            sexp.exp = Tr_Int (0);
+            sexp.ty = Ty_Int();
         }
 
-        return Expression_New (
-                   Tr_SubscriptVar (ety.exp, ety.ty, sty.exp, level == 0),
-                   ety.ty->u.array.type);
+        Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, level == 0);
+        return Expression_New (exp, vexp.ty->u.array.type);
+    }
+    default:
+    {
+        assert (0);
     }
     }
-
-    return e_invalid;
 }
 
 /*
@@ -787,6 +804,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), left.ty);
     }
     case A_arrayExp:
+    // TODO store anonymous records
     case A_recordExp:
     {
         static Tr_access access = NULL;

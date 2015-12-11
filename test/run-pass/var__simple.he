@@ -1,0 +1,18 @@
+fn main
+{
+    let a: int;
+    a = 10;
+    a;
+
+    let b: int;
+    b = 11;
+    b;
+
+    a = b;
+    b = a;
+
+    assert! (a == 11);
+    assert! (b == 11);
+
+    ret 0;
+}

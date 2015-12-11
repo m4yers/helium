@@ -1,0 +1,17 @@
+fn main
+{
+    let a: int;
+
+    a.x;            //~ ERROR 3012
+    a.x.blah;       //~ ERROR 3012
+
+    let b: { x:int, y: int };
+
+    b.z;            //~ ERROR 3012
+    b.z.blah;       //~ ERROR 3012
+
+    c.a;            //~ ERROR 3005
+    c.a.b.c;        //~ ERROR 3005
+
+    ret 0;
+}

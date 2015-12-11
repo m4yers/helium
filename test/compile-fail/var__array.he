@@ -1,0 +1,16 @@
+fn main
+{
+    let a: int;
+    a[0];           //~ ERROR 3012
+    a[0][0];        //~ ERROR 3012
+
+    let b: [int;10];
+    b["fuck"];      //~ ERROR 3001
+    b["fuck"][0];   //~ ERROR 3001
+           //^ ERROR 3012 because of int subscript fallback
+
+    c[0];           //~ ERROR 3005
+    c[0][0];        //~ ERROR 3005
+
+    ret 0;
+}

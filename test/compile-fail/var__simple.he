@@ -1,0 +1,9 @@
+fn main
+{
+    a;      //~ ERROR 3005
+
+    def b = { x: int, y: int }
+    b;      //~ ERROR 3005
+
+    ret 0;
+}

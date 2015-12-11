@@ -198,11 +198,16 @@ static void main__return (void ** state)
         /*      if (1) { 1; } else { 2; }\n\ */
         /*      ret 0;\n\ */
         /*  }", */
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     let point: Type;\n\ */
+        /*     point;\n\ */
+        /* }", */
         "fn main\n\
         {\n\
-            let f: {};\n\
-            ret 0;\n\
-        }"
+            let point: int = [ 1, \"blah\" ];\n\
+            point;\n\
+        }",
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

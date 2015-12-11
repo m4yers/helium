@@ -1,0 +1,26 @@
+fn main
+{
+    let a: { x: int, y: int };
+    a.x = 10;
+    a.y = 11;
+
+    a.x = a.y;
+    a.y = a.x;
+
+    assert! (a.x == 11);
+    assert! (a.y == 11);
+
+    def Point = { x: int, y: int }
+    let b: Point;
+
+    b.x = 12;
+    b.y = 13;
+
+    b.x = b.y;
+    b.y = b.x;
+
+    assert! (b.x == 13);
+    assert! (b.y == 13);
+
+    ret 0;
+}
