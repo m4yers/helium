@@ -1,0 +1,17 @@
+fn main
+{
+    let a: Type;         //~ ERROR 3004
+    a;                   //~ ERROR 3005
+
+    let b: Type = 10;    //~ ERROR 3004
+    b;                   // no error because init exp is correct
+
+    let c: int = [ 1, "surprise, motherfucker" ];   //~ ERROR 3002
+    c;                                              // no error
+
+    let d: Type = [ 1, "yeah" ];    //~ ERROR 3004
+                //^ ERROR 3002
+    d;                              //~ ERROR 3005
+
+    ret 0;
+}

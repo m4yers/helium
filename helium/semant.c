@@ -260,7 +260,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         struct A_decType_t decType = dec->u.type;
         Ty_ty type = TransTyp (context, decType.type);
         // fallback to int if type is invalid
-        if (is_invalid(type))
+        if (is_invalid (type))
         {
             type = Ty_Int();
         }
@@ -270,52 +270,79 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     }
     case A_varDec:
     {
-        Ty_ty ty = NULL;
-        Semant_Exp sexp = { NULL, NULL };
+        struct A_decVar_t decVar = dec->u.var;
 
-        if (dec->u.var.init)
+        Ty_ty dty = NULL;
+        if (decVar.type)
         {
-            sexp = TransExp (context, dec->u.var.init);
-            if (is_invalid (sexp.ty))
+            dty = TransTyp (context, decVar.type);
+            /*
+             * The type error was spawn by TransTyp already, this fallback will require type
+             * inferring based on init expression if it exists, otherwise the translation will
+             * return Tr_Void, in this case the variable won't be declared and all reference to
+             * it will be illegal.
+             */
+            if (is_invalid (dty))
             {
-                // TODO proper error here
-                printf ("VarDec: invalid expresison type\n");
-                return Tr_Void();
-            }
-        }
-
-        if (dec->u.var.type)
-        {
-            ty = TransTyp (context, dec->u.var.type);
-            if (is_invalid (ty))
-            {
-                // TODO error proper here
-                printf ("VarDec: invalid type\n");
-                return Tr_Void();
-            }
-            ty = GetActualType (ty);
-        }
-
-        Tr_access access;
-        if (sexp.exp)
-        {
-            // alloc handle only
-            access = Tr_Alloc (context->level, Ty_Int(), dec->u.var.escape);
-            sexp.exp = Tr_Assign (Tr_SimpleVar (access, context->level), sexp.exp);
-
-            if (ty && ty != sexp.ty)
-            {
-                ERROR_UNEXPECTED_TYPE (loc, ty, sexp.ty);
-                return Tr_Void();
+                dty = NULL;
             }
             else
             {
-                ty = sexp.ty;
+                dty = GetActualType (dty);
             }
+        }
+
+        Ty_ty ity = NULL;
+        Tr_exp iexp = NULL;
+        if (decVar.init)
+        {
+            Semant_Exp sexp = TransExp (context, decVar.init);
+            /*
+             * If the initialization expression is invalid we simply drop it, the actual error was
+             * spawn by TransExp scope.
+             */
+            if (!is_invalid (sexp.ty))
+            {
+                iexp = sexp.exp;
+                ity = sexp.ty;
+            }
+        }
+
+        Tr_access access = NULL;
+        if (iexp)
+        {
+            access = Tr_Alloc (context->level, Ty_Int(), decVar.escape);
+            iexp = Tr_Assign (Tr_SimpleVar (access, context->level), iexp);
+
+            /*
+             * If provided initialization expression is not of the variable type, spawn an error
+             * and drop initialization completely.
+             */
+            if (dty && dty != ity)
+            {
+                ERROR_UNEXPECTED_TYPE (loc, dty, ity);
+                iexp = Tr_Void();
+            }
+            /*
+             * Type inferring
+             */
+            else
+            {
+                dty = ity;
+            }
+
+        }
+        /*
+         * We have only type supplied so no initialization is made.
+         */
+        else if (dty)
+        {
+            access = Tr_Alloc (context->level, GetActualType (dty), decVar.escape);
+            iexp = Tr_Void();
         }
         else
         {
-            access = Tr_Alloc (context->level, GetActualType (ty), dec->u.var.escape);
+            return Tr_Void();
         }
 
         // anonymous record
@@ -328,9 +355,9 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         /*     S_Enter (context->tenv, name, ty); */
         /* } */
 
-        S_Enter (context->venv, dec->u.var.var, Env_VarEntryNew (access, ty));
+        S_Enter (context->venv, decVar.var, Env_VarEntryNew (access, dty));
 
-        return sexp.exp ? sexp.exp : Tr_Void();
+        return iexp;
     }
     // TODO functions without any exp?
     // TODO general and main fn
@@ -891,6 +918,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
                 // checking whether the named record type can be initialized with the anon struct
 
+                // TODO type checks for fuck sake
                 // FIXME find fields that do not belong to the type
                 nextOffset = 0;
                 LIST_FOREACH (type_filed, ty->u.record)

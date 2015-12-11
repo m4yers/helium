@@ -1,0 +1,14 @@
+fn main
+{
+    let a: int;
+    a;
+
+    let b: int = 10;
+    b;
+
+    def Point = { x: int, y: int }
+    let c: Point;
+    c;
+
+    ret 0;
+}
