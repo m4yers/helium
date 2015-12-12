@@ -1069,7 +1069,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             S_EndScope (context->tenv);
         }
 
-        return Expression_New (Tr_If (texp.exp, pexp.exp, nexp.exp), Ty_Void());
+        return Expression_New (Tr_If (texp.exp, pexp.exp, nexp.exp), nexp.ty);
     }
     case A_whileExp:
     {

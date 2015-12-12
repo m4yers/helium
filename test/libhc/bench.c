@@ -205,8 +205,7 @@ static void main__return (void ** state)
         /* }", */
         "fn main\n\
         {\n\
-            let a = -1;\n\
-            ret 0;\n\
+            assert! ((0 && 1) == 0);\n\
         }",
     };
 

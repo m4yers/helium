@@ -80,8 +80,8 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "<="             { return LE; }
 ">"              { return GT; }
 ">="             { return GE; }
-"&"              { return AND; }
-"|"              { return OR; }
+"&&"             { return AND; }
+"||"             { return OR; }
 {DIGIT}+         { yylval.ival=atoi(yytext); return INT; }
 fn               { return FN; }
 macro            { return MACRO; }

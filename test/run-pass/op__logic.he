@@ -1,0 +1,115 @@
+fn test_gt
+{
+    assert! (( 1 >  2) ==  0);
+    assert! (( 2 >  1) ==  1);
+
+    assert! ((-1 > -1) ==  0);
+    assert! ((-1 >  1) ==  0);
+    assert! (( 1 > -1) ==  1);
+
+    assert! (( 0 >  0) ==  0);
+    assert! ((-1 >  0) ==  0);
+    assert! (( 0 > -1) ==  1);
+}
+
+fn test_lt
+{
+    assert! (( 1 <  2) ==  1);
+    assert! (( 2 <  1) ==  0);
+
+    assert! ((-1 < -1) ==  0);
+    assert! ((-1 <  1) ==  1);
+    assert! (( 1 < -1) ==  0);
+
+    assert! (( 0 <  0) ==  0);
+    assert! ((-1 <  0) ==  1);
+    assert! (( 0 < -1) ==  0);
+}
+
+fn test_ge
+{
+    assert! (( 1 >=  1) ==  1);
+    assert! (( 1 >=  2) ==  0);
+    assert! (( 2 >=  1) ==  1);
+
+    assert! ((-1 >= -1) ==  1);
+    assert! ((-1 >=  1) ==  0);
+    assert! (( 1 >= -1) ==  1);
+
+    assert! (( 0 >=  0) ==  1);
+    assert! ((-1 >=  0) ==  0);
+    assert! (( 0 >= -1) ==  1);
+}
+
+fn test_le
+{
+    assert! (( 1 <=  1) ==  1);
+    assert! (( 1 <=  2) ==  1);
+    assert! (( 2 <=  1) ==  0);
+
+    assert! ((-1 <= -1) ==  1);
+    assert! ((-1 <=  1) ==  1);
+    assert! (( 1 <= -1) ==  0);
+
+    assert! (( 0 <=  0) ==  1);
+    assert! ((-1 <=  0) ==  1);
+    assert! (( 0 <= -1) ==  0);
+}
+
+fn test_eq
+{
+    assert! (( 1 ==  1) ==  1);
+    assert! (( 1 ==  2) ==  0);
+    assert! (( 2 ==  1) ==  0);
+
+    assert! ((-1 == -1) ==  1);
+    assert! ((-1 ==  1) ==  0);
+    assert! (( 1 == -1) ==  0);
+
+    assert! (( 0 ==  0) ==  1);
+    assert! ((-1 ==  0) ==  0);
+    assert! (( 0 == -1) ==  0);
+}
+
+fn test_neq
+{
+    assert! (( 1 <>  1) ==  0);
+    assert! (( 1 <>  2) ==  1);
+    assert! (( 2 <>  1) ==  1);
+
+    assert! ((-1 <> -1) ==  0);
+    assert! ((-1 <>  1) ==  1);
+    assert! (( 1 <> -1) ==  1);
+
+    assert! (( 0 <>  0) ==  0);
+    assert! ((-1 <>  0) ==  1);
+    assert! (( 0 <> -1) ==  1);
+}
+
+fn test_and
+{
+    assert! ((1 && 1) == 1);
+    assert! ((0 && 1) == 0);
+    assert! ((1 && 0) == 0);
+    assert! ((0 && 0) == 0);
+}
+
+fn test_or
+{
+    assert! ((1 || 1) == 1);
+    assert! ((0 || 1) == 1);
+    assert! ((1 || 0) == 1);
+    assert! ((0 || 0) == 0);
+}
+
+fn main
+{
+    test_gt();
+    test_lt();
+    test_ge();
+    test_le();
+    test_eq();
+    test_neq();
+    test_and();
+    test_or();
+}

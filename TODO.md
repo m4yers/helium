@@ -74,7 +74,7 @@
   let c = {
       let a = 100;
       let b = 500;
-      ret a + b;
+      a + b;
   }
 
 - make if,while,for as expression that yields a valid result, e.g:
