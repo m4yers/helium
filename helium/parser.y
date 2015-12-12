@@ -94,7 +94,7 @@
 %type <stm> stm
 %type <stmlist> stm_list stm_semi
 %type <var> lvalue
-%type <expList> exp_list_comma exp_comma exp_list_semi exp_semi
+%type <expList> exp_list_comma exp_comma
 %type <ty> type
 %type <decList> declarations
 %type <dec> declaration
@@ -233,9 +233,9 @@ operations:               MINUS expression %prec UMINUS
                           {
                               $$ = A_OpExp (&(@$), A_minusOp, A_IntExp (0, 0), $2);
                           }
-                        | LPAREN exp_list_semi RPAREN
+                        | LPAREN expression RPAREN
                           {
-                              $$ = A_SeqExp (&(@$), $2);
+                              $$ = $2;
                           }
                         | expression PLUS expression
                           {
@@ -353,31 +353,6 @@ exp_list_comma:           %empty { $$ = NULL; }
                         ;
 exp_comma:                %empty { $$ = NULL; }
                         | exp_comma COMMA expression
-                          {
-                              if ($1)
-                              {
-                                  A_expList current = $1;
-                                  while (current && current->tail)
-                                  {
-                                    current = current->tail;
-                                  }
-                                  current->tail = A_ExpList ($3, NULL);
-                                  $$ = $1;
-                              }
-                              else
-                              {
-                                  $$ = A_ExpList ($3, NULL);
-                              }
-                          }
-                        ;
-exp_list_semi:            %empty { $$ = NULL; }
-                        | expression exp_semi
-                          {
-                              $$ = A_ExpList ($1, $2);
-                          }
-                        ;
-exp_semi:                 %empty { $$ = NULL; }
-                        | exp_semi SEMICOLON expression
                           {
                               if ($1)
                               {
