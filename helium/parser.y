@@ -231,7 +231,7 @@ call_macro:               lvalue EMARK LPAREN exp_list_comma RPAREN
                         ;
 operations:               MINUS expression %prec UMINUS
                           {
-                              $$ = A_OpExp (&(@$), A_minusOp, A_IntExp (0, 0), $2);
+                              $$ = A_OpExp (&(@$), A_minusOp, A_IntExp (&(@$), 0), $2);
                           }
                         | LPAREN expression RPAREN
                           {
@@ -282,13 +282,13 @@ operations:               MINUS expression %prec UMINUS
                               $$ = A_IfExp (&(@$),
                                   $1,
                                   A_Scope(A_StmList(A_StmExp($3), NULL)),
-                                  A_Scope(A_StmList(A_StmExp(A_IntExp(0, 0)), NULL)));
+                                  A_Scope(A_StmList(A_StmExp(A_IntExp(&(@$), 0)), NULL)));
                           }
                         | expression OR expression
                           {
                               $$ = A_IfExp (&(@$),
                                   $1,
-                                  A_Scope(A_StmList(A_StmExp(A_IntExp(0, 1)), NULL)),
+                                  A_Scope(A_StmList(A_StmExp(A_IntExp(&(@$), 1)), NULL)),
                                   A_Scope(A_StmList(A_StmExp($3), NULL)));
                           }
                         ;

@@ -14,7 +14,7 @@
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
-- [ ] clear definion of what is:
+- [ ] clear definion on what is:
     - [ ] undefined
     - [ ] malformed
     - [ ] invalid
@@ -32,6 +32,7 @@
     - [ ] packages
     - [ ] macro
     - [ ] static storage
+    - [ ] proper int ranges
     - [ ] floats?
 - [ ] clean-up error codes
 - [ ] minimal stdlib

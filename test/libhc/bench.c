@@ -205,8 +205,8 @@ static void main__return (void ** state)
         /* }", */
         "fn main\n\
         {\n\
-            let point: int = [ 1, \"blah\" ];\n\
-            point;\n\
+            let a = -1;\n\
+            ret 0;\n\
         }",
     };
 

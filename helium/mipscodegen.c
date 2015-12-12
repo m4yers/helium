@@ -171,32 +171,52 @@ static Temp_temp munchExp (T_exp e)
             Temp_temp r = Temp_NewTemp();
             T_exp ex;
             int co;
-            if (e->u.BINOP.left->kind == T_CONST)
-            {
-                co = e->u.BINOP.left->u.CONST;
-                ex = e->u.BINOP.right;
-            }
-            else
-            {
-                co = e->u.BINOP.right->u.CONST;
-                ex = e->u.BINOP.left;
-            }
 
             if (e->u.BINOP.op == T_plus)
             {
+                if (e->u.BINOP.right->kind == T_CONST)
+                {
+                    co = e->u.BINOP.right->u.CONST;
+                    ex = e->u.BINOP.left;
+                }
+                else
+                {
+                    co = e->u.BINOP.left->u.CONST;
+                    ex = e->u.BINOP.right;
+                }
+
                 I_INST (buffer, "addi", co);
                 emit (ASM_Oper (
                           buffer,
                           L (r, NULL),
                           L (munchExp (ex), NULL), NULL));
             }
-            else if (e->u.BINOP.op == T_minus)
+            else
             {
-                I_INST (buffer, "addi", -co);
-                emit (ASM_Oper (
-                          buffer,
-                          L (r, NULL),
-                          L (munchExp (ex), NULL), NULL));
+                /*
+                 * 1 - 2 -> -2 + 1
+                 */
+                if (e->u.BINOP.right->kind == T_CONST)
+                {
+                    co = e->u.BINOP.right->u.CONST;
+                    ex = e->u.BINOP.left;
+
+                    I_INST (buffer, "addi", -co);
+                    emit (ASM_Oper (
+                              buffer,
+                              L (r, NULL),
+                              L (munchExp (ex), NULL), NULL));
+                }
+                else
+                {
+                    R_INST (buffer, "sub");
+                    emit (ASM_Oper (
+                              buffer,
+                              L (r, NULL),
+                              L (munchExp (e->u.BINOP.left), L (munchExp (e->u.BINOP.right), NULL)),
+                              NULL));
+                }
+
             }
 
             return r;
@@ -262,6 +282,10 @@ static Temp_temp munchExp (T_exp e)
                           NULL));
                 break;
             }
+            default:
+            {
+                assert (0);
+            }
             }
 
             return r;
@@ -300,8 +324,11 @@ static Temp_temp munchExp (T_exp e)
         emit (ASM_Oper (buffer, L (r, NULL), NULL, NULL));
         return r;
     }
+    default:
+    {
+        assert (0);
     }
-    assert (0);
+    }
 }
 
 static void munchStm (T_stm s)
@@ -399,7 +426,7 @@ static void munchStm (T_stm s)
                 munchStm (T_Move (T_Temp (addr), T_Const (dst->u.CONST)));
                 munchStm (T_Move (T_Temp (addr), s->u.MOVE.src));
             }
-            else if (dst->kind == T_EXP)
+            else
             {
                 sprintf (buffer, "%-5s `s0, 0(`s1)", "sw");
                 emit (ASM_Oper (
@@ -407,10 +434,6 @@ static void munchStm (T_stm s)
                           NULL,
                           L (munchExp (s->u.MOVE.src),
                              L (munchExp (s->u.MOVE.dst), NULL)), NULL));
-            }
-            else
-            {
-                assert (0);
             }
         }
         /*
@@ -819,19 +842,19 @@ static void munchStm (T_stm s)
     case T_EXIT:
     {
         R_INST (buffer, "add");
-        emit(ASM_Move (
-                 buffer,
-                 L (a0, NULL),
-                 L(munchExp(s->u.EXIT), L(zero, NULL))));
+        emit (ASM_Move (
+                  buffer,
+                  L (a0, NULL),
+                  L (munchExp (s->u.EXIT), L (zero, NULL))));
 
         buffer = checked_malloc (50);
         // TODO move out syscall constants
         I_INST (buffer, "addi", 17);
-        emit(ASM_Oper (
-                 buffer,
-                 L (v0, NULL),
-                 L(zero, NULL),
-                 NULL));
+        emit (ASM_Oper (
+                  buffer,
+                  L (v0, NULL),
+                  L (zero, NULL),
+                  NULL));
 
         emit (ASM_Oper (
                   "syscall",
@@ -846,8 +869,11 @@ static void munchStm (T_stm s)
         emit (ASM_MetaCallComment (s->u.COMMENT));
         return;
     }
+    default:
+    {
+        assert (0);
     }
-    assert (0);
+    }
 }
 
 ASM_lineList F_CodeGen (F_frame frame, T_stmList list)
