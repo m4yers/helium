@@ -69,6 +69,11 @@ fn test_eq
     assert! (( 0 ==  0) ==  1);
     assert! ((-1 ==  0) ==  0);
     assert! (( 0 == -1) ==  0);
+
+    let a = { x = 10, y = 20 };
+    let b = a;
+
+    assert! ((a == b) == 1);
 }
 
 fn test_neq
@@ -84,6 +89,11 @@ fn test_neq
     assert! (( 0 <>  0) ==  0);
     assert! ((-1 <>  0) ==  1);
     assert! (( 0 <> -1) ==  1);
+
+    let a = { x = 10, y = 20 };
+    let b = { x = 10, y = 20 };
+
+    assert! ((a <> b) == 1);
 }
 
 fn test_and

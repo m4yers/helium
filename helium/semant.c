@@ -16,6 +16,7 @@
 
 #define ERROR(loc, code, format, ...)                                    \
     {                                                                    \
+        printf ("line: %d\n", __LINE__);\
         Vector_PushBack(&context->module->errors.semant,                 \
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
@@ -310,8 +311,20 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              */
             if (dty && dty != ity)
             {
-                ERROR_UNEXPECTED_TYPE (loc, dty, ity);
-                iexp = Tr_Void();
+                // unless the variable is nillable and the init is nil
+                if (! (dty->meta.is_nillable && ity == Ty_Nil()))
+                {
+                    ERROR_UNEXPECTED_TYPE (loc, dty, ity);
+                    iexp = Tr_Void();
+                }
+            }
+            // initializing a non-typed variable with nil is a bad idea
+            else if (!dty && ity == Ty_Nil())
+            {
+                ERROR (&dec->loc,
+                       3013,
+                       "Invalide declaration, you cannot init a non-typed variable '%s' with nil",
+                       decVar.var->name);
             }
             /*
              * Type inferring
@@ -771,36 +784,82 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp right = TransExp (context, opExp.right);
 
         // do type checks
-        if (oper == A_plusOp
-                || oper == A_minusOp
-                || oper == A_timesOp
-                || oper == A_divideOp
-                || oper == A_gtOp
-                || oper == A_ltOp
-                || oper == A_geOp
-                || oper == A_leOp
-                || oper == A_eqOp
-                || oper == A_neqOp)
+        if (!is_int (left) && !is_int (right))
         {
             /*
-             * We do type recovery here to parse the unit further assuming these operations are
-             * applicable for int only.
+             * Only int type allow perform math and logic, so we change the type of the operands
+             * to int, spawn an error and continue.
              */
-            if (!is_int (left) || !is_int (right))
+            if (oper != A_eqOp && oper != A_neqOp)
             {
-                if (!is_int (left))
-                {
-                    ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
-                    left.ty = Ty_Int();
-                }
-                if (!is_int (right))
-                {
-                    ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
-                    right.ty = Ty_Int();
-                }
+                ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                left.ty = Ty_Int();
+                right.ty = Ty_Int();
             }
-
+            /*
+             * Two nillable objects can be compared by their addresses
+             */
+            else if (left.ty->meta.is_nillable && right.ty->meta.is_nillable)
+            {
+                left.ty = Ty_Int();
+                right.ty = Ty_Int();
+            }
+            /*
+             * Nillable types can be compared with nil, and the actual comprising is based on the
+             * nil value and value(address) of the nillable object handle
+             */
+            else if ((left.ty->meta.is_nillable && right.ty == Ty_Nil())
+                     || (right.ty->meta.is_nillable && left.ty == Ty_Nil()))
+            {
+                left.ty = Ty_Int();
+                right.ty = Ty_Int();
+            }
+            /*
+             * In case of comprising of nil and non-nillable value we change the type of the bad
+             * value to int, spawn error and parse further
+             */
+            else if (left.ty == Ty_Nil())
+            {
+                ERROR (
+                    &opExp.right->loc,
+                    3001,
+                    "Expected nilable type got '%s'",
+                    left.ty->meta.name);
+                right.ty = Ty_Int();
+            }
+            else if (right.ty == Ty_Nil())
+            {
+                ERROR (
+                    &opExp.left->loc,
+                    3001,
+                    "Expected nilable type got '%s'",
+                    left.ty->meta.name);
+                left.ty = Ty_Int();
+            }
+            else
+            {
+                assert (0);
+            }
         }
+        /*
+         * We do type recovery here to parse the unit further assuming these operations are
+         * applicable for int only.
+         */
+        else if (!is_int (left) || !is_int (right))
+        {
+            if (!is_int (left))
+            {
+                ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                left.ty = Ty_Int();
+            }
+            if (!is_int (right))
+            {
+                ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                right.ty = Ty_Int();
+            }
+        }
+
         return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), left.ty);
     }
     case A_arrayExp:
@@ -1024,11 +1083,15 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             rexp.ty = lexp.ty;
         }
-        // correct but unmatched types, fix the type of the right expression
+        // Unmatched types require special handling
         else if (lexp.ty != rexp.ty)
         {
-            ERROR_UNEXPECTED_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
-            rexp.ty = lexp.ty;
+            // If lexp is nillablre and rexp is nil then everything is fine
+            if (! (rexp.ty == Ty_Nil() && lexp.ty->meta.is_nillable))
+            {
+                ERROR_UNEXPECTED_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
+                rexp.ty = lexp.ty;
+            }
         }
 
         return Expression_New (Tr_Assign (lexp.exp, rexp.exp), rexp.ty);

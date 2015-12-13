@@ -8,5 +8,43 @@ fn main
     // only one error because the paren exp recovers to int type
     1 + ( 1 + "blah" );      //~ ERROR 3001
 
+    def Point = { x: int, y: int }
+    let b: Point;
+    
+    /** math on objects */
+
+    b + b;          //~ ERROR 3001
+      //^ ERROR 3001
+    1 + b;          //~ ERROR 3001
+    b + 1;          //~ ERROR 3001
+
+    b - b;          //~ ERROR 3001
+      //^ ERROR 3001
+    1 - b;          //~ ERROR 3001
+    b - 1;          //~ ERROR 3001
+
+    b * b;          //~ ERROR 3001
+      //^ ERROR 3001
+    1 * b;          //~ ERROR 3001
+    b * 1;          //~ ERROR 3001
+
+    b / b;          //~ ERROR 3001
+      //^ ERROR 3001
+    1 / b;          //~ ERROR 3001
+    b / 1;          //~ ERROR 3001
+
+    /** logic on objects */
+
+    let c = { x = 10, y = 5 };
+
+    c >  b;         //~ ERROR 3001
+       //^ ERROR 3001
+    c >= b;         //~ ERROR 3001
+       //^ ERROR 3001
+    c <  b;         //~ ERROR 3001
+       //^ ERROR 3001
+    c <= b;         //~ ERROR 3001
+       //^ ERROR 3001
+
     ret 0;
 }

@@ -1,0 +1,5 @@
+fn main
+{
+    let a = nil;     //~ ERROR 3013
+    let b:int = nil; //~ ERROR 3001
+}
