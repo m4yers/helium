@@ -16,7 +16,7 @@
 
 #define ERROR(loc, code, format, ...)                                    \
     {                                                                    \
-        printf ("line: %d\n", __LINE__);\
+        printf ("error line: %d\n", __LINE__);\
         Vector_PushBack(&context->module->errors.semant,                 \
                 Error_New(loc, code, format, __VA_ARGS__));              \
     }                                                                    \
@@ -1007,7 +1007,12 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
                 }
-                if (is_invalid (ty))
+                else if (ty->kind != Ty_record)
+                {
+                    ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
+                    return e_invalid;
+                }
+                else if (is_invalid (ty))
                 {
                     ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
@@ -1043,6 +1048,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             // returning to the current level offset
             thisOffset -= nextOffset;
 
+            // field traversal yield invalid expression
             if (!valid)
             {
                 ty = Ty_Invalid();

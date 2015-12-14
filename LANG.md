@@ -46,8 +46,6 @@ let c = Point{ x = 10, y = 11 };
 ```
 Again, note that first two variables share the same anonymous record type of two int fields, but the third one defined its own custom type Point which is compatible but not strictly equal with the anonymous type of the first two variables.
 
-Variables of named records allowed to be initialized with anonymous record expressions as long as those expressions' field names and types match exactly the name type of the variable.
-
 Records support partial initialization, meaning you do not have to supply all fields or maintain the direct order of the type declaration. Missed fields will be initialized with the default value of the field type, e.g. 0 for integers.
 
 Examples:
@@ -58,7 +56,7 @@ let d = Point{ y = 10 };
 
 // complex partial init
 def Rectangle = { tl: Point, br: Point }
-let e = Rectangle{ br = { y = 10 }};
+let e = Rectangle{ br = Point{ y = 10 }};
 ```
 ## Union
 ## Tuple

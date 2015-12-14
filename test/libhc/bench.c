@@ -238,14 +238,22 @@ static void main__return (void ** state)
         /*     ret 0;\n\ */
         /* }", */
 
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect = { tl: Point, br: Point }\n\ */
+        /*     let r = Rect{};\n\ */
+        /*     let p: Point;\n\ */
+        /*     p.x = r.br.y;\n\ */
+        /*     ret 0;\n\ */
+        /* }", */
+
         "fn main\n\
         {\n\
             def Point = { x: int, y: int }\n\
             def Rect = { tl: Point, br: Point }\n\
-            let r = Rect{};\n\
-            let p: Point;\n\
-            p.x = r.br.y;\n\
-            ret 0;\n\
+            \n\
+            let a: Point = { x = 10, y = 20 };\n\
         }",
     };
 

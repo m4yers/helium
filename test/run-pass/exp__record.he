@@ -7,9 +7,9 @@ fn test_anonymous
 
 fn test_anonymous_nested
 {
-    let a = { x = 10, y = 11 };
-    assert! (a.x == 10);
-    assert! (a.y == 11);
+    let a = { x = { z = 10 }, y = { z = 11 } };
+    assert! (a.x.z == 10);
+    assert! (a.y.z == 11);
 }
 
 fn test_named
@@ -62,7 +62,6 @@ fn test_named_nested
     assert! (r.br.x = p2.x);
     assert! (r.br.y = p2.y);
 }
-
 fn test_field_copy
 {
     def Point = { x: int, y: int }

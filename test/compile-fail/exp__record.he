@@ -1,0 +1,7 @@
+fn main
+{
+    def Point = int
+    let a = Point{ x = 10, y = 11 }; //~ ERROR 3002
+
+    ret 0;
+}
