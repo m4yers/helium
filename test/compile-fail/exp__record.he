@@ -1,7 +1,10 @@
 fn main
 {
-    def Point = int
-    let a = Point{ x = 10, y = 11 }; //~ ERROR 3002
+    def Blah = int
+    let a = Blah{ x = 10, y = 11 };             //~ ERROR 3002
+
+    def Point = { x: int, y: int }
+    let b = Point { x = 10, y = "nonono" };     //~ ERROR 3001
 
     ret 0;
 }
