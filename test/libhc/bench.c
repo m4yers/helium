@@ -238,23 +238,24 @@ static void main__return (void ** state)
         /*     ret 0;\n\ */
         /* }", */
 
-        /* "fn main\n\ */
-        /* {\n\ */
-        /*     def Point = { x: int, y: int }\n\ */
-        /*     def Rect = { tl: Point, br: Point }\n\ */
-        /*     let r = Rect{};\n\ */
-        /*     let p: Point;\n\ */
-        /*     p.x = r.br.y;\n\ */
-        /*     ret 0;\n\ */
-        /* }", */
-
         "fn main\n\
         {\n\
             def Point = { x: int, y: int }\n\
             def Rect = { tl: Point, br: Point }\n\
-            \n\
-            let a: Point = { x = 10, y = 20 };\n\
+            let b = Rect{\n\
+                tl = Point{ x = 1, y = 2 },\n\
+                br = Point{ x = 3, y = 4 }\n\
+            };\n\
+            ret 0;\n\
         }",
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect = { tl: Point, br: Point }\n\ */
+        /*     \n\ */
+        /*     let a: Point = { x = 10, y = 20 };\n\ */
+        /* }", */
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

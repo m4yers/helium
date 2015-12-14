@@ -996,32 +996,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         else
         {
-            /*
-             * Check whether ty record type is named, if so validate it.
-             */
-            if (exp->u.record.name)
-            {
-                ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
-                if (!ty)
-                {
-                    ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
-                    return e_invalid;
-                }
-                else if (ty->kind != Ty_record)
-                {
-                    ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
-                    return e_invalid;
-                }
-                else if (is_invalid (ty))
-                {
-                    ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
-                    return e_invalid;
-                }
-            }
-
-            /*
-             * Traverse expression in curly braces, this effectively creates anonymous record type.
-             */
+            // Traverse expression in curly braces.
             Tr_expList el = NULL;
             Ty_fieldList fl = NULL;
             bool valid = TRUE;
@@ -1048,6 +1023,27 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             // returning to the current level offset
             thisOffset -= nextOffset;
 
+            // Check whether ty record type is named, if so validate it.
+            if (exp->u.record.name)
+            {
+                ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
+                if (!ty)
+                {
+                    ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
+                    return e_invalid;
+                }
+                else if (is_invalid (ty))
+                {
+                    ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
+                    return e_invalid;
+                }
+                else if (ty->kind != Ty_record)
+                {
+                    ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
+                    return e_invalid;
+                }
+            }
+
             // field traversal yield invalid expression
             if (!valid)
             {
@@ -1067,18 +1063,33 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 {
                     Tr_expList iel = el;
                     Tr_exp ie = NULL;
-                    Ty_ty it = NULL;
+                    Ty_ty tyty = GetActualType(type_field->ty);
 
                     LIST_FOREACH (init_field, fl)
                     {
-                        if (init_field->name == type_field->name)
+                        Ty_ty inty = GetActualType(init_field->ty);
+                        if (init_field->name != type_field->name)
                         {
-                            ie = iel->head;
-                            it = init_field->ty;
-                            break;
+                            iel = iel->tail;
+                            continue;
                         }
 
-                        iel = iel->tail;
+                        /*
+                         * If the types do not match we fallback to default type init and do
+                         * not break analysis.
+                         */
+                        if (inty != tyty)
+                        {
+                            // FIXME need the actual field location
+                            ERROR_UNEXPECTED_TYPE (&exp->loc, tyty, inty);
+                            ie = TransDefaultValue (access, tyty, thisOffset).exp;
+                        }
+                        else
+                        {
+                            ie = iel->head;
+                        }
+
+                        break;
                     }
 
                     // found the proper name in type that matches init expression
@@ -1091,13 +1102,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     else
                     {
                         /* printf ("default value for '%s'\n", type_field->name->name); */
-                        LIST_PUSH (ael, TransDefaultValue (
-                                       access,
-                                       type_field->ty,
-                                       thisOffset).exp);
+                        LIST_PUSH (ael, TransDefaultValue (access, tyty, thisOffset).exp);
                     }
 
-                    int size = Ty_SizeOf (type_field->ty);
+                    int size = Ty_SizeOf (tyty);
                     thisOffset += size;
                     nextOffset += size;
                 }
