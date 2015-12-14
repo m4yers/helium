@@ -451,11 +451,12 @@ static void munchStm (T_stm s)
                 value = -value;
             }
             I_INST (buffer, "addi", value);
-            emit (ASM_Move (
+            emit (ASM_Oper (
                       buffer,
                       L (s->u.MOVE.dst->u.TEMP, NULL),
                       L (s->u.MOVE.src->u.BINOP.left->u.TEMP,
-                         NULL)));
+                         NULL),
+                      NULL));
         }
         else if (s->u.MOVE.dst->kind == T_TEMP
                  && s->u.MOVE.src->kind == T_MEM
@@ -469,11 +470,12 @@ static void munchStm (T_stm s)
                 value = -value;
             }
             sprintf (buffer, "%-5s `d0, %d(`s0)", "lw", value);
-            emit (ASM_Move (
+            emit (ASM_Oper (
                       buffer,
                       L (s->u.MOVE.dst->u.TEMP, NULL),
                       L (s->u.MOVE.src->u.MEM->u.BINOP.left->u.TEMP,
-                         NULL)));
+                         NULL),
+                      NULL));
         }
         else if (s->u.MOVE.dst->kind == T_TEMP
                  && s->u.MOVE.src->kind == T_TEMP)
