@@ -151,7 +151,7 @@ static void main__return (void ** state)
         /*         ret 0;\n\ */
         /*     }\n\ */
         /*     ret 0;\n\ */
-       /* }", */
+        /* }", */
         /* "fn main\n\ */
         /* {\n\ */
         /*     fn plus (a: int, b: int)\n\ */
@@ -203,11 +203,49 @@ static void main__return (void ** state)
         /*     let point: Type;\n\ */
         /*     point;\n\ */
         /* }", */
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect  = { b: Point }\n\ */
+        /*     let p = Point{ x = 10, y = 11 };\n\ */
+        /*     let r = Rect{ b = p };\n\ */
+        /* }", */
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect  = { tl: Point, br: Point }\n\ */
+        /*     let r = Rect{};\n\ */
+        /*     let p = r.br;\n\ */
+        /*     ret p.x;\n\ */
+        /* }", */
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect = { tl: Point, br: Point }\n\ */
+        /*     let r = Rect{};\n\ */
+        /*     let p = r.br;\n\ */
+        /*     ret 0;\n\ */
+        /* }", */
+        /*  */
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect = { tl: Point, br: Point }\n\ */
+        /*     let r = Rect{};\n\ */
+        /*     let p: Point;\n\ */
+        /*     p = r.br;\n\ */
+        /*     ret 0;\n\ */
+        /* }", */
+
         "fn main\n\
         {\n\
-            let a = { x = 10, y = 20 };\n\
-            let b = a;\n\
-            assert! (a == b);\n\
+            def Point = { x: int, y: int }\n\
+            def Rect = { tl: Point, br: Point }\n\
+            let r = Rect{};\n\
+            let p: Point;\n\
+            p.x = r.br.y;\n\
+            ret 0;\n\
         }",
     };
 

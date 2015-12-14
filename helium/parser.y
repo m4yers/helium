@@ -194,6 +194,7 @@ creation:                 LBRACK expression exp_comma RBRACK
                               //TODO make it accept any lvalue
                               $$ = A_RecordExp (&(@$), $1->u.simple, A_EfieldList($3, $4));
                           }
+
                         | lvalue LBRACE RBRACE
                           {
                               //TODO make it accept any lvalue

@@ -66,6 +66,7 @@ Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty);
 Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset);
 Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset);
 Tr_exp Tr_Assign (Tr_exp left, Tr_exp right);
+Tr_exp Tr_Memcpy (Tr_exp dst, Tr_exp src, size_t words);
 Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe);
 Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done);
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label done);

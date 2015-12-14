@@ -69,6 +69,13 @@
         3011,                                                            \
         "Expected constat expression", "");
 
+#define ERROR_SYMBOL_EXISTS(loc, sym)                                    \
+    ERROR(                                                               \
+        loc,                                                             \
+        3014,                                                            \
+        "Symbol '%s' already exist",                                     \
+        S_Name(sym));                                                    \
+
 typedef struct Semant_ExpType
 {
     Tr_exp exp;
@@ -112,19 +119,6 @@ static Semant_Exp Expression_New (Tr_exp exp, Ty_ty ty)
     r.exp = exp;
     r.ty = ty;
     return r;
-}
-
-static Ty_ty GetActualType (Ty_ty ty)
-{
-    if (ty->kind == Ty_name)
-    {
-        if (ty->u.name.ty == NULL)
-        {
-            printf ("NULL");
-        }
-        return ty->u.name.ty;
-    }
-    return ty;
 }
 
 static Semant_Exp TransExp (Semant_Context context, A_exp exp);
@@ -302,8 +296,46 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_access access = NULL;
         if (iexp)
         {
-            access = Tr_Alloc (context->level, Ty_Int(), decVar.escape);
-            iexp = Tr_Assign (Tr_SimpleVar (access, context->level), iexp);
+            /*
+             * There are three possible init scenarios:
+             *
+             *  1. The variable is assigned a simple value, like int or pointer, in this case we
+             *     do simple temp-to-temp move.
+             *
+             *  2. The variable is initialized with an array or record expression. In this case a
+             *     space is allocated on stack by processing this init exp, in this case we just
+             *     need to move handle temp to the new var temp and regalloc will coalesce these
+             *     two temps.
+             *
+             *  3. The variable is assigned another variable that was initialized with an array or
+             *     record expression(basically any var that is handle in nature). In this case we
+             *     need to allocate the same array on stack and do deep copy of the var.
+             *
+             *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
+             */
+
+            /*
+             * If the rhs is a variable and the value it yields is handle we copy the whole array.
+             */
+            bool copy = decVar.init->kind == A_varExp && ity->meta.is_nillable;
+
+            /*
+             * The difference here is in the type size, if we copy the stack array we allocate full
+             * size, if we just move handle we allocate word-size temp.
+             *
+             * HMM have no idea how this will impact floats
+             */
+            if (copy)
+            {
+                access = Tr_Alloc (context->level, ity, decVar.escape);
+                Tr_exp left = Tr_SimpleVar (access, context->level);
+                iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (ity) / F_wordSize);
+            }
+            else
+            {
+                access = Tr_Alloc (context->level, Ty_Int(), decVar.escape);
+                iexp = Tr_Assign (Tr_SimpleVar (access, context->level), iexp);
+            }
 
             /*
              * If provided initialization expression is not of the variable type, spawn an error
@@ -348,7 +380,17 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             return Tr_Void();
         }
 
-        S_Enter (context->venv, decVar.var, Env_VarEntryNew (access, dty));
+        /* Env_Entry e = (Env_Entry)S_Look (context->venv, decVar.var); */
+
+        // TODO need a way to check whether the entry belongs to current scope
+        /* if (e) */
+        /* { */
+        /*     ERROR_SYMBOL_EXISTS (&dec->loc, decVar.var); */
+        /* } */
+        /* else */
+        {
+            S_Enter (context->venv, decVar.var, Env_VarEntryNew (access, dty));
+        }
 
         return iexp;
     }
@@ -549,7 +591,11 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             if (f->name == varField.sym)
             {
                 Ty_ty ty = GetActualType (f->ty);
-                Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, level == 0);
+                /*
+                 * All nillible types are returned by handle(address)
+                 */
+                bool deref = level == 0 && !ty->meta.is_nillable;
+                Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, deref);
                 return Expression_New (exp, ty);
             }
         }
@@ -586,6 +632,8 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             return e_invalid;
         }
 
+        Ty_ty ty = GetActualType (vexp.ty->u.array.type);
+
         Semant_Exp sexp = TransExp (context, var->u.subscript.exp);
         /*
          * Essentially, array subscript expects an Int expression, if the subscript is not an Int
@@ -598,8 +646,12 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             sexp.ty = Ty_Int();
         }
 
-        Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, level == 0);
-        return Expression_New (exp, vexp.ty->u.array.type);
+        /*
+         * All nillible types are returned by handle(address)
+         */
+        bool deref = level == 0 && !ty->meta.is_nillable;
+        Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, deref);
+        return Expression_New (exp, ty);
     }
     default:
     {
@@ -609,7 +661,6 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
 }
 
 /*
- * TODO
  * Returns default initialization for a type
  * TODO move to translate
  */
@@ -642,7 +693,8 @@ static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
         Tr_expList el = NULL;
         LIST_FOREACH (f, type->u.record)
         {
-            LIST_PUSH (el, TransDefaultValue (access, f->ty, o).exp);
+            Semant_Exp sexp = TransDefaultValue (access, f->ty, o);
+            LIST_PUSH (el, sexp.exp);
             o += Ty_SizeOf (f->ty);
         }
 
@@ -873,6 +925,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Ty_ty ty = NULL;
         Tr_exp ex = NULL;
 
+        /*
+         * This is offset(as part of thisOffset value) is used by the lower record level if
+         * exists.
+         */
         int nextOffset = 0;
 
         if (level == 0)
@@ -940,7 +996,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         else
         {
-
+            /*
+             * Check whether ty record type is named, if so validate it.
+             */
             if (exp->u.record.name)
             {
                 ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
@@ -956,18 +1014,18 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 }
             }
 
+            /*
+             * Traverse expression in curly braces, this effectively creates anonymous record type.
+             */
             Tr_expList el = NULL;
             Ty_fieldList fl = NULL;
             bool valid = TRUE;
-            /*
-             * This is offset(as part of thisOffset value) is used by the lower record level if
-             * exists.
-             */
             LIST_FOREACH (f, exp->u.record.fields)
             {
                 level++;
                 Semant_Exp sexp = TransExp (context, f->exp);
                 level--;
+
                 LIST_PUSH (el, sexp.exp);
                 if (is_invalid (sexp.ty))
                 {
@@ -978,7 +1036,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 thisOffset += size;
                 nextOffset += size;
 
-                // creating name: type list
+                // creating name ~ type list
                 LIST_PUSH (fl, Ty_Field (f->name, sexp.ty));
             }
 
@@ -991,6 +1049,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             }
             else if (ty)
             {
+                // stores list of init expressions in type order
                 Tr_expList ael = NULL;
 
                 // checking whether the named record type can be initialized with the anon struct
@@ -998,35 +1057,41 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 // TODO type checks for fuck sake
                 // FIXME find fields that do not belong to the type
                 nextOffset = 0;
-                LIST_FOREACH (type_filed, ty->u.record)
+                LIST_FOREACH (type_field, ty->u.record)
                 {
                     Tr_expList iel = el;
                     Tr_exp ie = NULL;
+                    Ty_ty it = NULL;
 
                     LIST_FOREACH (init_field, fl)
                     {
-                        if (init_field->name == type_filed->name)
+                        if (init_field->name == type_field->name)
                         {
                             ie = iel->head;
+                            it = init_field->ty;
                             break;
                         }
 
                         iel = iel->tail;
                     }
 
+                    // found the proper name in type that matches init expression
                     if (ie)
                     {
+                        /* printf ("init value for '%s'\n", type_field->name->name); */
                         LIST_PUSH (ael, ie);
                     }
+                    // did not found any match, use default value
                     else
                     {
+                        /* printf ("default value for '%s'\n", type_field->name->name); */
                         LIST_PUSH (ael, TransDefaultValue (
                                        access,
-                                       type_filed->ty,
+                                       type_field->ty,
                                        thisOffset).exp);
                     }
 
-                    int size = Ty_SizeOf (type_filed->ty);
+                    int size = Ty_SizeOf (type_field->ty);
                     thisOffset += size;
                     nextOffset += size;
                 }
@@ -1094,7 +1159,42 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             }
         }
 
-        return Expression_New (Tr_Assign (lexp.exp, rexp.exp), rexp.ty);
+        Tr_exp aexp = NULL;
+
+        /*
+         * There are two possible assignment scenarios:
+         *
+         *  1. The variable is assigned a simple value, like int or pointer, in this case we
+         *     do simple temp-to-temp move.
+         *
+         *  2. The variable is assigned another variable that was initialized with an array or
+         *     record expression(basically any var that is handle in nature). In this case we
+         *     need to allocate the same array on stack and do deep copy of the var.
+         *
+         *  In the first case we simply do temp-to-temp move, in the second case we do deep copy.
+         */
+
+        /*
+         * If the rhs is a variable and the value it yields is handle we copy the whole array.
+         */
+        bool copy = assignExp.exp->kind == A_varExp && rexp.ty->meta.is_nillable;
+
+        /*
+         * The difference here is in the type size, if we copy the stack array we allocate full
+         * size, if we just move handle we allocate word-size temp.
+         */
+        if (copy)
+        {
+            aexp = Tr_Memcpy (lexp.exp, rexp.exp, Ty_SizeOf (rexp.ty) / F_wordSize);
+            aexp = Tr_Seq (aexp, lexp.exp); //assignment yields a value everytime for now
+        }
+        else
+        {
+            aexp = Tr_Assign (lexp.exp, rexp.exp);
+            aexp = Tr_Seq (aexp, lexp.exp); //assignment yields a value everytime for now
+        }
+
+        return Expression_New (aexp, rexp.ty);
     }
     case A_ifExp:
     {

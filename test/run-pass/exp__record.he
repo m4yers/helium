@@ -1,0 +1,98 @@
+fn test_anonymous
+{
+    let a = { x = 10, y = 11 };
+    assert! (a.x == 10);
+    assert! (a.y == 11);
+}
+
+fn test_anonymous_nested
+{
+    let a = { x = 10, y = 11 };
+    assert! (a.x == 10);
+    assert! (a.y == 11);
+}
+
+fn test_named
+{
+    def Point = { x: int, y: int }
+
+    let b: Point = Point{ x = 12, y = 13 };
+    assert! (b.x == 12);
+    assert! (b.y == 13);
+
+    let c = Point{ x = 14, y = 15 };
+    assert! (c.x == 14);
+    assert! (c.y == 15);
+
+    let d = Point{};
+    assert! (d.x == 0);
+    assert! (d.y == 0);
+}
+
+fn test_named_nested
+{
+    def Point = { x: int, y: int }
+    def Rect  = { tl: Point, br: Point }
+
+    let a = Rect{};
+    assert! (a.tl.x == 0);
+    assert! (a.tl.y == 0);
+    assert! (a.br.x == 0);
+    assert! (a.br.y == 0);
+
+    let b = Rect{
+        tl = Point{ x = 1, y = 2 },
+        br = Point{ x = 3, y = 4 }
+    };
+    assert! (b.tl.x == 1);
+    assert! (b.tl.y == 2);
+    assert! (b.br.x == 3);
+    assert! (b.br.y == 4);
+
+    let p1 = Point{ x = 10, y = 11 };
+    let p2 = Point{ x = 12, y = 13 };
+
+    let r = Rect{ tl = p1, br = p2 };
+
+    assert! (r.tl <> p1);
+    assert! (r.tl.x = p1.x);
+    assert! (r.tl.y = p1.y);
+
+    assert! (r.br <> p2);
+    assert! (r.br.x = p2.x);
+    assert! (r.br.y = p2.y);
+}
+
+fn test_field_copy
+{
+    def Point = { x: int, y: int }
+    def Rect  = { tl: Point, br: Point }
+
+    let r = Rect{};
+
+    r.tl.x = 10;
+    r.tl.y = 11;
+    r.br.x = 12;
+    r.br.y = 13;
+
+    let p = r.br;
+    assert! (p <> r.br);
+    assert! (p.x == 12);
+    assert! (p.y == 13);
+
+    p = r.tl;
+    assert! (p <> r.tl);
+    assert! (p.x == 10);
+    assert! (p.y == 11);
+
+    ret 0;
+}
+
+fn main
+{
+    test_anonymous();
+    test_anonymous_nested();
+    test_named();
+    test_named_nested();
+    test_field_copy();
+}

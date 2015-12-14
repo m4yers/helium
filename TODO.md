@@ -83,6 +83,14 @@
 
   let f = while(b > 0) { b--; }
 
+- every traverse level need to know exactly where it belongs to: left side or right or none side of
+assignment, this will tell whether blocks used as statements or as expressions. Also this helps in
+general do deside whether a value must be fetched e.g.:
+
+    a = b = b + 1;
+
+here, b must be fetched again after assignment, but a should not. Though, clever asm optimizer can
+follow def/use graph and delte all the shit.
 
 
 

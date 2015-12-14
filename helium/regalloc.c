@@ -18,7 +18,7 @@
 #include "ext/util.h"
 #include "ext/mem.h"
 
-#define LOG_LEVEL LOG_LEVEL_WARN
+#define LOG_LEVEL LOG_LEVEL_WARNING
 #include "ext/log.h"
 
 #include "frame.h"
@@ -697,7 +697,7 @@ static void Coalesce (Workspace w)
         BitArray_UnSet (w->worklistMoves, first);
 
         ASM_line move = GetMove (first, w->moveList);
-        // SHIT: Artyom Goncharov u know what to do
+        // SHIT: u know what to do
         int di = GetIndex (move->u.MOVE.dst->head, w->temps);
         int si = GetIndex (move->u.MOVE.src->head, w->temps);
         int x = GetAlias (w, di);

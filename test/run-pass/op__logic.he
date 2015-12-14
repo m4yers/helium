@@ -73,7 +73,7 @@ fn test_eq
     let a = { x = 10, y = 20 };
     let b = a;
 
-    assert! ((a == b) == 1);
+    assert! ((a == b) == 0);
 }
 
 fn test_neq

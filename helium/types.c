@@ -158,6 +158,19 @@ Ty_fieldList Ty_FieldList (Ty_field head, Ty_fieldList tail)
     return p;
 }
 
+Ty_ty GetActualType (Ty_ty ty)
+{
+    if (ty->kind == Ty_name)
+    {
+        if (ty->u.name.ty == NULL)
+        {
+            printf ("NULL");
+        }
+        return ty->u.name.ty;
+    }
+    return ty;
+}
+
 // HMM alignment?
 // HMM what with types smaller than word size?
 // HMM what with types that do not evenly lay over array of words? e.g. array of bytes?

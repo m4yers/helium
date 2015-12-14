@@ -74,6 +74,7 @@ Ty_tyList Ty_TyList (Ty_ty head, Ty_tyList tail);
 Ty_field Ty_Field (S_symbol name, Ty_ty ty);
 Ty_fieldList Ty_FieldList (Ty_field head, Ty_fieldList tail);
 
+Ty_ty GetActualType (Ty_ty ty);
 int Ty_SizeOf (Ty_ty type);
 
 #endif /* end of include guard: TYPES_H_K4WAGU3S */
