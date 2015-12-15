@@ -59,11 +59,12 @@ A_fieldList A_FieldList (A_field head, A_fieldList tail);
 
 struct A_efield_t
 {
+    struct A_loc_t loc;
     S_symbol name;
     A_exp exp;
 };
 
-A_efield A_Efield (S_symbol name, A_exp exp);
+A_efield A_Efield (A_loc loc, S_symbol name, A_exp exp);
 A_efieldList A_EfieldList (A_efield head, A_efieldList tail);
 
 /*********

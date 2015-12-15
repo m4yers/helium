@@ -324,7 +324,7 @@ scope:                    LBRACE stm_list RBRACE
                         ;
 record_field:             ID EQ expression
                           {
-                              $$ = A_Efield (S_Symbol ($1), $3);
+                              $$ = A_Efield (&(@$), S_Symbol ($1), $3);
                           }
                         ;
 record_field_comma:       %empty { $$ = NULL; }

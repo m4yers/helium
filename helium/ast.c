@@ -30,9 +30,10 @@ A_fieldList A_FieldList (A_field head, A_fieldList tail)
     return p;
 }
 
-A_efield A_Efield (S_symbol name, A_exp exp)
+A_efield A_Efield (A_loc loc, S_symbol name, A_exp exp)
 {
     A_efield p = checked_malloc (sizeof (*p));
+    p->loc = *loc;
     p->name = name;
     p->exp = exp;
     return p;
