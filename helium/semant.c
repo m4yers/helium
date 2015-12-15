@@ -100,7 +100,7 @@ static bool is_int_type (Ty_ty ty)
 
 static bool is_int (Semant_Exp exp)
 {
-    return exp.ty == Ty_Int();
+    return exp.ty == Ty_Int() || GetActualType(exp.ty) == Ty_Int();
 }
 
 static bool is_string (Semant_Exp exp)
@@ -341,7 +341,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              * If provided initialization expression is not of the variable type, spawn an error
              * and drop initialization completely.
              */
-            if (dty && dty != ity)
+            if (dty && dty != ity && GetActualType(dty) != GetActualType(ity))
             {
                 // unless the variable is nillable and the init is nil
                 if (! (dty->meta.is_nillable && ity == Ty_Nil()))
@@ -833,7 +833,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         A_oper oper = opExp.oper;
 
         Semant_Exp left = TransExp (context, opExp.left);
+        left.ty = GetActualType(left.ty);
+
         Semant_Exp right = TransExp (context, opExp.right);
+        right.ty = GetActualType(right.ty);
 
         // do type checks
         if (!is_int (left) && !is_int (right))
@@ -996,37 +999,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
         else
         {
-            // Traverse expression in curly braces.
-            Tr_expList el = NULL;
-            Ty_fieldList fl = NULL;
-            bool valid = TRUE;
-            LIST_FOREACH (f, exp->u.record.fields)
-            {
-                level++;
-                Semant_Exp sexp = TransExp (context, f->exp);
-                level--;
-
-                LIST_PUSH (el, sexp.exp);
-                if (is_invalid (sexp.ty))
-                {
-                    valid = FALSE;
-                }
-
-                int size = Ty_SizeOf (sexp.ty);
-                thisOffset += size;
-                nextOffset += size;
-
-                // creating name ~ type list
-                LIST_PUSH (fl, Ty_Field (f->name, sexp.ty));
-            }
-
-            // returning to the current level offset
-            thisOffset -= nextOffset;
-
             // Check whether ty record type is named, if so validate it.
             if (exp->u.record.name)
             {
-                ty = GetActualType ((Ty_ty)S_Look (context->tenv, exp->u.record.name));
+                ty = (Ty_ty)S_Look (context->tenv, exp->u.record.name);
                 if (!ty)
                 {
                     ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
@@ -1037,12 +1013,97 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
                 }
-                else if (ty->kind != Ty_record)
+                else if (GetActualType(ty)->kind != Ty_record)
                 {
                     ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
                     return e_invalid;
                 }
             }
+
+            // traverse expression in curly braces.
+            Tr_expList el = NULL;
+            Ty_fieldList fl = NULL;
+            bool valid = TRUE;
+            LIST_FOREACH (exp_field, exp->u.record.fields)
+            {
+                level++;
+                Semant_Exp sexp = TransExp (context, exp_field->exp);
+                level--;
+
+                if (is_invalid (sexp.ty))
+                {
+                    valid = FALSE;
+                }
+
+                // check for field repetion
+                LIST_FOREACH (exp_field_s, exp->u.record.fields)
+                {
+                    if (exp_field_s == exp_field)
+                    {
+                        break;
+                    }
+                    else if ( exp_field_s->name == exp_field->name)
+                    {
+                        ERROR(
+                            &exp_field->loc,
+                            3002,
+                            "Redefinition of field '%s'",
+                            exp_field->name->name);
+                        valid = FALSE;
+                    }
+                }
+
+                /*
+                 * If we have a specified type we need to do these things:
+                 *  - check for type matching
+                 *  - check for field belonging
+                 */
+                if (valid && ty)
+                {
+                    Ty_field ty_field = NULL;
+                    LIST_FOREACH (type_field, GetActualType(ty)->u.record)
+                    {
+                        if (type_field->name == exp_field->name)
+                        {
+                            ty_field = type_field;
+                            break;
+                        }
+                    }
+
+                    // init expression contains a field that does not belong to the specified type
+                    if (!ty_field)
+                    {
+                        ERROR(
+                            &exp_field->loc,
+                            3002,
+                            "Unknown to type '%s' field '%s' of type '%s'",
+                            ty->meta.name,
+                            exp_field->name->name,
+                            sexp.ty->meta.name);
+
+                        valid = FALSE;
+                    }
+                    // types of init expression and type field mismatch
+                    else if (GetActualType(ty_field->ty) != GetActualType(sexp.ty))
+                    {
+                        ERROR_UNEXPECTED_TYPE (&exp_field->loc, ty_field->ty, sexp.ty);
+                        valid = FALSE;
+                    }
+                }
+
+                // creating init expression list
+                LIST_PUSH (el, sexp.exp);
+
+                // creating name ~ type list
+                LIST_PUSH (fl, Ty_Field (exp_field->name, sexp.ty));
+
+                int size = Ty_SizeOf (sexp.ty);
+                thisOffset += size;
+                nextOffset += size;
+            }
+
+            // returning to the current level offset
+            thisOffset -= nextOffset;
 
             // field traversal yield invalid expression
             if (!valid)
@@ -1051,45 +1112,24 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             }
             else if (ty)
             {
-                // stores list of init expressions in type order
+                // We need to rearrange the init expression list in type order and fill the gaps
                 Tr_expList ael = NULL;
-
-                // checking whether the named record type can be initialized with the anon struct
-
-                // TODO type checks for fuck sake
-                // FIXME find fields that do not belong to the type
                 nextOffset = 0;
-                LIST_FOREACH (type_field, ty->u.record)
+                LIST_FOREACH (type_field, GetActualType(ty)->u.record)
                 {
                     Tr_expList iel = el;
                     Tr_exp ie = NULL;
-                    Ty_ty tyty = GetActualType(type_field->ty);
+                    Ty_ty tyty = type_field->ty;
 
                     LIST_FOREACH (init_field, fl)
                     {
-                        Ty_ty inty = GetActualType(init_field->ty);
-                        if (init_field->name != type_field->name)
-                        {
-                            iel = iel->tail;
-                            continue;
-                        }
-
-                        /*
-                         * If the types do not match we fallback to default type init and do
-                         * not break analysis.
-                         */
-                        if (inty != tyty)
-                        {
-                            // FIXME need the actual field location
-                            ERROR_UNEXPECTED_TYPE (&exp->loc, tyty, inty);
-                            ie = TransDefaultValue (access, tyty, thisOffset).exp;
-                        }
-                        else
+                        if (init_field->name == type_field->name)
                         {
                             ie = iel->head;
+                            break;
                         }
 
-                        break;
+                        iel = iel->tail;
                     }
 
                     // found the proper name in type that matches init expression
@@ -1121,11 +1161,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 ty = Ty_Record (fl);
             }
 
-            ex = Tr_RecordExp (access, ty, el, thisOffset);
+            ex = Tr_RecordExp (access, GetActualType(ty), el, thisOffset);
         }
 
 
-        if (level == 0)
+        if (!is_invalid (ty) && level == 0)
         {
             /*
              * Now we know the type and the init tree is created using virtual access point,
@@ -1141,7 +1181,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         struct A_assignExp_t assignExp = exp->u.assign;
 
         Semant_Exp lexp = TransVar (context, assignExp.var);
+        lexp.ty = GetActualType(lexp.ty);
+
         Semant_Exp rexp = TransExp (context, assignExp.exp);
+        rexp.ty = GetActualType(rexp.ty);
 
         // no way to recover from this
         if (is_invalid (lexp.ty) && is_invalid (rexp.ty))

@@ -6,5 +6,11 @@ fn main
     def Point = { x: int, y: int }
     let b = Point { x = 10, y = "nonono" };     //~ ERROR 3001
 
+    let c = Point { x = 10, x = 20 };           //~ ERROR 3002
+
+    let d = Point { z = 10, x = 20 };           //~ ERROR 3002
+    
+    let e = None{};                             //~ ERROR 3004
+
     ret 0;
 }

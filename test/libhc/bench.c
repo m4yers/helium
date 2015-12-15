@@ -227,7 +227,7 @@ static void main__return (void ** state)
         /*     let p = r.br;\n\ */
         /*     ret 0;\n\ */
         /* }", */
-        /*  */
+
         /* "fn main\n\ */
         /* {\n\ */
         /*     def Point = { x: int, y: int }\n\ */
@@ -238,24 +238,60 @@ static void main__return (void ** state)
         /*     ret 0;\n\ */
         /* }", */
 
-        "fn main\n\
-        {\n\
-            def Point = { x: int, y: int }\n\
-            def Rect = { tl: Point, br: Point }\n\
-            let b = Rect{\n\
-                tl = Point{ x = 1, y = 2 },\n\
-                br = Point{ x = 3, y = 4 }\n\
-            };\n\
-            ret 0;\n\
-        }",
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     def Rect = { tl: Point, br: Point }\n\ */
+        /*     let b = Rect{\n\ */
+        /*         tl = Point{ x = 1, y = 2 },\n\ */
+        /*         br = Point{ x = 3, y = 4 }\n\ */
+        /*     };\n\ */
+        /*     ret 0;\n\ */
+        /* }", */
 
         /* "fn main\n\ */
         /* {\n\ */
         /*     def Point = { x: int, y: int }\n\ */
         /*     def Rect = { tl: Point, br: Point }\n\ */
         /*     \n\ */
-        /*     let a: Point = { x = 10, y = 20 };\n\ */
+        /*     let a = Point{ x = 10, y = 20 };\n\ */
         /* }", */
+
+        "fn main\n\
+        {\n\
+            def Point = { x: int, y: int }\n\
+            def Rect  = { tl: Point, br: Point }\n\
+        \n\
+            let a = Rect{};\n\
+            assert! (a.tl.x == 0);\n\
+            assert! (a.tl.y == 0);\n\
+            assert! (a.br.x == 0);\n\
+            assert! (a.br.y == 0);\n\
+        \n\
+            let b = Rect{\n\
+                tl = Point{ x = 1, y = 2 },\n\
+                br = Point{ x = 3, y = 4 }\n\
+            };\n\
+            assert! (b.tl.x == 1);\n\
+            assert! (b.tl.y == 2);\n\
+            assert! (b.br.x == 3);\n\
+            assert! (b.br.y == 4);\n\
+        \n\
+            let p1 = Point{ x = 10, y = 11 };\n\
+            let p2 = Point{ x = 12, y = 13 };\n\
+        \n\
+            let r = Rect{ tl = p1, br = p2 };\n\
+        \n\
+            assert! (r.tl <> p1);\n\
+            assert! (r.tl.x = p1.x);\n\
+            assert! (r.tl.y = p1.y);\n\
+        \n\
+            assert! (r.br <> p2);\n\
+            assert! (r.br.x = p2.x);\n\
+            assert! (r.br.y = p2.y);\n\
+        \n\
+            ret 0;\n\
+        }",
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

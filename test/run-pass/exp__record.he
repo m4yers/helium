@@ -62,6 +62,7 @@ fn test_named_nested
     assert! (r.br.x = p2.x);
     assert! (r.br.y = p2.y);
 }
+
 fn test_field_copy
 {
     def Point = { x: int, y: int }

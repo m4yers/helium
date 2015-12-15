@@ -14,7 +14,9 @@
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
 - [ ] tests for existing functionality
-- [ ] clear definion on what is:
+- [ ] solve typedef vs actual type hell
+- [ ] better semant error system
+- [ ] clear definition on what is:
     - [ ] undefined
     - [ ] malformed
     - [ ] invalid
