@@ -208,6 +208,23 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
         Ty_fieldList flist = NULL;
         LIST_FOREACH (field, ty->u.record)
         {
+            // check for field repetition
+            LIST_FOREACH(field_s, ty->u.record)
+            {
+                if (field_s == field)
+                {
+                    break;
+                }
+                else if (field_s->name == field->name)
+                {
+                    ERROR(
+                        &field_s->loc,
+                        3002,
+                        "Redefinition of field '%s'",
+                        field_s->name->name);
+                }
+            }
+
             /*
              * Same as for the array translation we do not break the process but simply fallback
              * to the default type int
@@ -1026,15 +1043,6 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             bool valid = TRUE;
             LIST_FOREACH (exp_field, exp->u.record.fields)
             {
-                level++;
-                Semant_Exp sexp = TransExp (context, exp_field->exp);
-                level--;
-
-                if (is_invalid (sexp.ty))
-                {
-                    valid = FALSE;
-                }
-
                 // check for field repetion
                 LIST_FOREACH (exp_field_s, exp->u.record.fields)
                 {
@@ -1051,6 +1059,15 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                             exp_field->name->name);
                         valid = FALSE;
                     }
+                }
+
+                level++;
+                Semant_Exp sexp = TransExp (context, exp_field->exp);
+                level--;
+
+                if (is_invalid (sexp.ty))
+                {
+                    valid = FALSE;
                 }
 
                 /*

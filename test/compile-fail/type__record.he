@@ -3,4 +3,5 @@ fn main
     let a: {a: Type};                 //~ ERROR 3004
     let b: {a: [Type;10]};            //~ ERROR 3004
     let c: {a: { b: { c: Type }}};    //~ ERROR 3004
+    let d: { a: int, a: int };        //~ ERROR 3002
 }
