@@ -1,0 +1,12 @@
+fn main
+{
+    def Point = { x: int, y: int}
+    def Point = { x: int, y: int} //~ ERROR 3014
+
+    if (1)
+    {
+        def Point = { x: int, y: int} //~ ERROR 3014
+    }
+
+    ret 0;
+}

@@ -256,13 +256,28 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     {
         struct A_decType_t decType = dec->u.type;
         Ty_ty type = TransTyp (context, decType.type);
+
         // fallback to int if type is invalid
         if (is_invalid (type))
         {
             type = Ty_Int();
         }
-        Ty_ty def = Ty_Name (decType.name, type);
-        S_Enter (context->tenv, decType.name, def);;
+
+        // check for typedef duplicate
+        Ty_ty def = (Ty_ty)S_Look(context->tenv, decType.name);
+
+        if (def)
+        {
+            ERROR(
+                &dec->loc,
+                3014,
+                "Redefinition of type '%s'",
+                decType.name->name);
+        }
+        else
+        {
+            S_Enter (context->tenv, decType.name, Ty_Name (decType.name, type));;
+        }
         return Tr_Void();
     }
     case A_varDec:
@@ -388,7 +403,11 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             return Tr_Void();
         }
 
-        // check if a variable with the same name exist in the current scope
+        /*
+         * check if the variable with the same name exist in the current scope; this is different
+         * from type scope checks because we check the top most scope, meaning innner code blocks
+         * can shadow outer blocks variable declarations.
+         */
         Env_Entry e = (Env_Entry)S_LookTop (context->venv, decVar.var);
 
         if (e && e->level == context->level)
@@ -1302,24 +1321,20 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         if (ifExp.tr)
         {
             S_BeginScope (context->venv);
-            S_BeginScope (context->tenv);
 
             pexp = TransScope (context, ifExp.tr);
 
             S_EndScope (context->venv);
-            S_EndScope (context->tenv);
         }
 
         Semant_Exp nexp = e_void;
         if (ifExp.fl)
         {
             S_BeginScope (context->venv);
-            S_BeginScope (context->tenv);
 
             nexp = TransScope (context, ifExp.fl);
 
             S_EndScope (context->venv);
-            S_EndScope (context->tenv);
         }
 
         return Expression_New (Tr_If (texp.exp, pexp.exp, nexp.exp), nexp.ty);
@@ -1342,12 +1357,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         context->loopNesting++;
 
         S_BeginScope (context->venv);
-        S_BeginScope (context->tenv);
 
         Semant_Exp body = TransScope (context, whileExp.body);
 
         S_EndScope (context->venv);
-        S_EndScope (context->tenv);
 
         context->loopNesting--;
         context->breaker = outter_breaker;
@@ -1371,7 +1384,6 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         }
 
         S_BeginScope (context->venv);
-        S_BeginScope (context->tenv);
 
         // store the iterator within the new scope
         Env_Entry entry = Env_VarEntryNew (
@@ -1391,7 +1403,6 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         context->breaker = label;
 
         S_EndScope (context->venv);
-        S_EndScope (context->tenv);
 
         return Expression_New (Tr_For (
                                    lexp.exp,

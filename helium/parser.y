@@ -432,7 +432,7 @@ declaration:              decl_type
                         ;
 decl_type:                DEF ID EQ type
                           {
-                              $$ = A_TypeDec (S_Symbol($2), $4);
+                              $$ = A_TypeDec (&(@$), S_Symbol($2), $4);
                           }
                         ;
 decl_variable:            LET ID COLON type SEMICOLON

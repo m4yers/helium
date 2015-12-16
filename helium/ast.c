@@ -288,10 +288,11 @@ A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init)
     return p;
 }
 
-A_dec A_TypeDec (S_symbol name, A_ty type)
+A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type)
 {
     A_dec p = checked_malloc (sizeof (*p));
     p->kind = A_typeDec;
+    p->loc = *loc;
     p->u.type.name = name;
     p->u.type.type = type;
     return p;
