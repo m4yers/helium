@@ -82,7 +82,7 @@ void * G_NodeInfo (G_node n);
 /**
  * The type of "tables" mapping graph-nodes to information
  */
-typedef struct TAB_table_ * G_table;
+typedef struct TAB_table_t * G_table;
 
 /**
  * Make a new table

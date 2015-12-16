@@ -5,23 +5,6 @@
 #include "mem.h"
 #include "table.h"
 
-#define TABSIZE 127
-
-typedef struct binder_ * binder;
-struct binder_
-{
-    const void * key;
-    const void * value;
-    binder next;
-    const void * prevtop;
-};
-
-struct TAB_table_
-{
-    binder table[TABSIZE];
-    const void * top;
-};
-
 static binder Binder (const void * key, const void * value, binder next, const void * prevtop)
 {
     binder b = checked_malloc (sizeof (*b));

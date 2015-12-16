@@ -69,12 +69,29 @@ void S_Enter (S_table t, S_symbol sym, void * value)
     TAB_Enter (t, sym, value);
 }
 
-const void * S_Look (const S_table t, const S_symbol sym)
+const void * S_Look (const S_table t, const S_symbol s)
 {
-    return TAB_Look (t, sym);
+    return TAB_Look (t, s);
 }
 
-static struct S_symbol_ marksym = {"<mark>", 0};
+static struct S_symbol_ marksym = {.name = "<mark>", .next = NULL};
+
+const void * S_LookTop (const S_table t, const S_symbol s)
+{
+    TAB_FOREACH(k, v, t)
+    {
+        if (k == &marksym)
+        {
+            return NULL;
+        }
+        else if (k == s)
+        {
+            return v;
+        }
+    }
+
+    return NULL;
+}
 
 void S_BeginScope (S_table t)
 {

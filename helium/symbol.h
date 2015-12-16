@@ -22,7 +22,7 @@ const char * S_Name (S_symbol);
 
 /* S_table is a mapping from S_symbol->any, where "any" is represented
  *     here by void*  */
-typedef struct TAB_table_ * S_table;
+typedef struct TAB_table_t * S_table;
 
 /* Make a new table */
 S_table S_Empty (void);
@@ -31,9 +31,16 @@ S_table S_Empty (void);
  *    any previous binding of "sym". */
 void S_Enter (S_table t, S_symbol sym, void * value);
 
-/* Look up the most recent binding of "sym" in "t", or return NULL
- *    if sym is unbound. */
-const void * S_Look (const S_table t, const S_symbol sym);
+/* 
+ * Look up the most recent binding of 's' in 't', or return NULL if sym is unbound.
+ */
+const void * S_Look (const S_table t, const S_symbol s);
+
+/*
+ * Look up the most recent binding of 's' in 't' for the top most scope level or return NULL if 's'
+ * is unbound.
+ */
+const void * S_LookTop (const S_table t, const S_symbol s);
 
 /* Start a new "scope" in "t".  Scopes are nested. */
 void S_BeginScope (S_table t);
