@@ -77,7 +77,7 @@ Ty_field Ty_Field (S_symbol name, Ty_ty ty);
 Ty_fieldList Ty_FieldList (Ty_field head, Ty_fieldList tail);
 
 Ty_ty GetActualType (Ty_ty ty);
-String GetTypeId (Ty_ty ty, String str);
+String GetQTypeName (Ty_ty ty, String str);
 int Ty_SizeOf (Ty_ty type);
 
 #endif /* end of include guard: TYPES_H_K4WAGU3S */

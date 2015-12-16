@@ -1,0 +1,105 @@
+fn test_anonymous
+{
+    let a = [1,2,3];
+
+    assert! (a[0] == 1);
+    assert! (a[1] == 2);
+    assert! (a[2] == 3);
+}
+
+fn test_anonymous_nested
+{
+    let a = [[1,2],[3,4]];
+
+    assert! (a[0][0] == 1);
+    assert! (a[0][1] == 2);
+    assert! (a[1][0] == 3);
+    assert! (a[1][1] == 4);
+}
+
+fn test_named
+{
+    def IP = [int;4]
+
+    let a: IP;
+    a[0] = 127;
+    a[1] = 0;
+    a[2] = 0;
+    a[3] = 1;
+
+    assert!(a[0] == 127);
+    assert!(a[1] == 0);
+    assert!(a[2] == 0);
+    assert!(a[3] == 1);
+}
+
+fn test_named_nested
+{
+    def Point = [int;2]
+    def Rect = [Point;2]
+
+    let a: Rect;
+
+    a[0][0] = 10;
+    a[0][1] = 11;
+
+    a[1][0] = 12;
+    a[1][1] = 13;
+
+    a[2][0] = 14;
+    a[2][1] = 15;
+
+    a[3][0] = 16;
+    a[3][1] = 17;
+
+    assert! (a[0][0] == 10);
+    assert! (a[0][1] == 11);
+
+    assert! (a[1][0] == 12);
+    assert! (a[1][1] == 13);
+
+    assert! (a[2][0] == 14);
+    assert! (a[2][1] == 15);
+
+    assert! (a[3][0] == 16);
+    assert! (a[3][1] == 17);
+}
+
+fn test_field_copy
+{
+    def Point = [int;2]
+    def Rect = [Point;2]
+
+    let a: Rect;
+
+    a[0][0] = 10;
+    a[0][1] = 11;
+
+    a[1][0] = 12;
+    a[1][1] = 13;
+
+    a[2][0] = 14;
+    a[2][1] = 15;
+
+    a[3][0] = 16;
+    a[3][1] = 17;
+
+    let b = a[0];
+    assert! (b <> a[0]);
+    assert! (b[0] == a[0][0]);
+    assert! (b[1] == a[0][1]);
+
+    let c = a[1];
+    assert! (c <> a[1]);
+    assert! (c[0] == a[1][0]);
+    assert! (c[1] == a[1][1]);
+}
+
+fn main
+{
+    test_anonymous();
+    test_anonymous_nested();
+    test_named();
+    test_named_nested();
+    test_field_copy();
+}

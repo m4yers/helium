@@ -171,7 +171,7 @@ Ty_ty GetActualType (Ty_ty ty)
     return ty;
 }
 
-String GetTypeId (Ty_ty ty, String str)
+String GetQTypeName (Ty_ty ty, String str)
 {
     if (!str)
     {
@@ -184,7 +184,7 @@ String GetTypeId (Ty_ty ty, String str)
     {
         String_Append(str, ty->meta.name);
         String_Append(str, "[");
-        GetTypeId(ty->u.array.type, str);
+        GetQTypeName(ty->u.array.type, str);
         String_Append(str, ",");
         String_Append(str, ty->u.array.size);
         String_Append(str, "]");
@@ -198,7 +198,7 @@ String GetTypeId (Ty_ty ty, String str)
         {
             String_Append(str, f->name->name);
             String_Append(str, ":");
-            GetTypeId(f->ty, str);
+            GetQTypeName(f->ty, str);
             String_Append(str, ",");
         }
         String_Append(str, "}");
@@ -208,7 +208,7 @@ String GetTypeId (Ty_ty ty, String str)
     {
         String_Append(str, ty->u.name.sym->name);
         String_Append(str, "__");
-        GetTypeId(ty->u.name.ty, str);
+        GetQTypeName(ty->u.name.ty, str);
         break;
     }
     default:

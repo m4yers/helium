@@ -151,7 +151,6 @@ static Semant_Exp TransScope (Semant_Context context, A_scope scope)
     return Expression_New (seq, r.ty);
 }
 
-// TODO hash function to uniquly identify a type
 static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 {
     assert (ty);
@@ -199,8 +198,6 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             size = arrayTy.size->u.intt;
         }
 
-        // TODO find a way to uniquly  identify the anonymous array type and return a very first
-        // parse type instance so the type checks would be correct
         return Ty_Array (type, size);
     }
     case A_recordTy:
@@ -238,8 +235,6 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             LIST_PUSH (flist, Ty_Field (field->name, type))
         }
 
-        // TODO find a way to uniquly  identify the anonymous record type and return a very first
-        // parse type instance so the type checks would be correct
         return Ty_Record (flist);
     }
     default:
@@ -976,6 +971,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 level++;
                 Semant_Exp sexp = TransExp (context, item);
                 level--;
+
                 LIST_PUSH (el, sexp.exp);
                 LIST_PUSH (tl, sexp.ty);
 
@@ -1012,6 +1008,26 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             }
 
             ty = Ty_Array (ty, size);
+
+            /*
+             * Array always yields anonymous array type. It is done for consistency sake, so the
+             * equal expressions will get the same(instance address wise) type.
+             */
+            struct String_t ty_id = String("");
+            GetQTypeName (ty, &ty_id);
+            S_symbol symbol = S_Symbol(ty_id.data);
+
+            Ty_ty type = (Ty_ty)S_Look (context->tenv, symbol);
+
+            if (type)
+            {
+                ty = type;
+            }
+            else
+            {
+                S_Enter (context->tenv, symbol, ty);;
+            }
+
             ex = Tr_ArrayExp (access, ty, el, thisOffset);
         }
         else
