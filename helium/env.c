@@ -3,10 +3,11 @@
 #include "env.h"
 #include "semant.h"
 
-Env_Entry Env_VarEntryNew (Tr_access access, Ty_ty ty)
+Env_Entry Env_VarEntryNew (Tr_level level, Tr_access access, Ty_ty ty)
 {
     Env_Entry e = checked_malloc (sizeof (*e));
     e->kind = Env_varEntry;
+    e->level = level;
     e->u.var.access = access;
     e->u.var.ty = ty;
     return e;
@@ -16,7 +17,7 @@ Env_Entry Env_FunEntryNew (Tr_level level, Temp_label label, S_symbolList names,
 {
     Env_Entry e = checked_malloc (sizeof (*e));
     e->kind = Env_funEntry;
-    e->u.fun.level = level;
+    e->level = level;
     e->u.fun.label = label;
     e->u.fun.names = names;
     e->u.fun.types = types;

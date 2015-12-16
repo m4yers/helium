@@ -251,7 +251,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
     switch (dec->kind)
     {
-    // TODO when forward declaration will be available check for cycle defines
+    // TODO when forward declaration will be available check for cycle typedefs
     case A_typeDec:
     {
         struct A_decType_t decType = dec->u.type;
@@ -370,18 +370,14 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
                        "Invalide declaration, you cannot init a non-typed variable '%s' with nil",
                        decVar.var->name);
             }
-            /*
-             * Type inferring
-             */
+            // Type inferring
             else
             {
                 dty = ity;
             }
 
         }
-        /*
-         * We have only type supplied so no initialization is made.
-         */
+        // We have only type supplied so no initialization is made.
         else if (dty)
         {
             access = Tr_Alloc (context->level, GetActualType (dty), decVar.escape);
@@ -392,16 +388,20 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             return Tr_Void();
         }
 
-        /* Env_Entry e = (Env_Entry)S_Look (context->venv, decVar.var); */
+        // check if a variable with the same name exist in the current scope
+        Env_Entry e = (Env_Entry)S_LookTop (context->venv, decVar.var);
 
-        // TODO need a way to check whether the entry belongs to current scope
-        /* if (e) */
-        /* { */
-        /*     ERROR_SYMBOL_EXISTS (&dec->loc, decVar.var); */
-        /* } */
-        /* else */
+        if (e && e->level == context->level)
         {
-            S_Enter (context->venv, decVar.var, Env_VarEntryNew (access, dty));
+            ERROR(
+                &dec->loc,
+                3014,
+                "Redefinition of '%s'",
+                decVar.var->name);
+        }
+        else
+        {
+            S_Enter (context->venv, decVar.var, Env_VarEntryNew (context->level, access, dty));
         }
 
         return iexp;
@@ -464,14 +464,14 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         // add each formal parameter binding to the newly entered scope
         {
             A_fieldList f = decFn.params;
-            Tr_accessList al = Tr_Formals (entry->u.fun.level);
+            Tr_accessList al = Tr_Formals (entry->level);
             Ty_tyList t = types;
             for (; f; f = f->tail, t = t->tail, al = al->tail)
             {
                 S_Enter (
                     context->venv,
                     f->head->name,
-                    Env_VarEntryNew (al->head, t->head));
+                    Env_VarEntryNew (context->level, al->head, t->head));
             }
         }
 
@@ -822,7 +822,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         return Expression_New (Tr_Call (
                                    fnEntry.label,
                                    context->level,
-                                   fnEntry.level,
+                                   entry->level,
                                    tral),
                                fnEntry.result);
     }
@@ -1375,6 +1375,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         // store the iterator within the new scope
         Env_Entry entry = Env_VarEntryNew (
+                              context->level,
                               Tr_Alloc (context->level, Ty_Int(), forExp.escape),
                               Ty_Int());
         S_Enter (context->venv, forExp.var, entry);

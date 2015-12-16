@@ -314,11 +314,6 @@ Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level)
     {
         assert (current);
         framePtr = T_Mem (framePtr);
-        /*
-         * TODO: check this, the thing above outght to be correct
-         * since FP also points to the 0th argument to the current frame which is Static Link
-         * framePtr = T_Mem (T_Binop (T_plus, framePtr, T_Const (F_wordSize)));
-         */
         current = current->parent;
     }
     return Tr_Ex (F_GetVar (access->access, framePtr));
