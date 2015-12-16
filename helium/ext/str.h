@@ -197,11 +197,15 @@ void String_Append_cp (String s, const char * c);
  */
 void String_Append_s (String s, String o);
 
+void String_Append_l (String s, long n);
+
 #define String_Append(a,b)                                           \
     _Generic ((0,b),                                                 \
             char *: String_Append_cp,                                \
             const char *: String_Append_cp,                          \
-            struct String_t *: String_Append_s                       \
+            struct String_t *: String_Append_s,                      \
+            int: String_Append_l,                                    \
+            long: String_Append_l                                    \
             )(a,b)
 
 /*

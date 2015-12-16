@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "str.h"
 
@@ -237,6 +238,14 @@ void String_Append_s (String s, String o)
     assert (o);
 
     String_Append_cp (s, o->data);
+}
+
+void String_Append_l (String s, long n)
+{
+    assert (s);
+    char str[256];
+    sprintf(str, "%lu", n);
+    String_Append_cp (s, str);
 }
 
 void String_Assign_s (String s, String o)

@@ -262,6 +262,21 @@ static void string_append_ok (void ** state)
     (void) state;
 }
 
+static void string_append_integer_ok (void ** state)
+{
+    String str = String_New ("13");
+
+    assert_true (String_IsStatic (str));
+    assert_true (String_Equal(str, "13"));
+
+    String_Append (str, 37);
+
+    assert_false (String_IsStatic (str));
+    assert_true (String_Equal(str, "1337"));
+
+    (void) state;
+}
+
 /**
  * appending a zero length string basically does nothing
  */
@@ -454,6 +469,7 @@ int main (void)
         cmocka_unit_test (string_push_back_ok),
         cmocka_unit_test (string_pop_back_ok),
         cmocka_unit_test (string_append_ok),
+        cmocka_unit_test (string_append_integer_ok),
         cmocka_unit_test (string_append_zero_len_ok),
         cmocka_unit_test (string_assign_ok),
         cmocka_unit_test (string_assign_empty_ok),
