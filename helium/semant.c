@@ -113,6 +113,14 @@ static bool same_type (Semant_Exp a, Semant_Exp b)
     return a.ty == b.ty;
 }
 
+static bool campatible_types (Ty_ty a, Ty_ty b)
+{
+    a = GetActualType(a);
+    b = GetActualType(b);
+
+    return a == b;
+}
+
 static Semant_Exp Expression_New (Tr_exp exp, Ty_ty ty)
 {
     Semant_Exp r;
@@ -323,28 +331,25 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_access access = NULL;
         if (iexp)
         {
-            /*
-             * There are three possible init scenarios:
-             *
-             *  1. The variable is assigned a simple value, like int or pointer, in this case we
-             *     do simple temp-to-temp move.
-             *
-             *  2. The variable is initialized with an array or record expression. In this case a
-             *     space is allocated on stack by processing this init exp, in this case we just
-             *     need to move handle temp to the new var temp and regalloc will coalesce these
-             *     two temps.
-             *
-             *  3. The variable is assigned another variable that was initialized with an array or
-             *     record expression(basically any var that is handle in nature). In this case we
-             *     need to allocate the same array on stack and do deep copy of the var.
-             *
-             *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
-             */
+    /*
+     * There are three possible init scenarios:
+     *
+     *  1. The variable is assigned a simple value, like int or pointer, in this case we do simple
+     *     temp-to-temp move.
+     *
+     *  2. The variable is initialized with an array or record expression. In this case a space is
+     *     allocated on stack by processing this init exp, in this case we just need to move handle
+     *     temp to the new var temp and regalloc will coalesce these two temps.
+     *
+     *  3. The variable is assigned another variable that was initialized with an array or record
+     *     expression(basically any var that is handle in nature). In this case we need to allocate
+     *     the same array on stack and do deep copy of the var.
+     *
+     *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
+     */
 
-            /*
-             * If the rhs is a variable and the value it yields is handle we copy the whole array.
-             */
-            bool copy = decVar.init->kind == A_varExp && ity->meta.is_nillable;
+            // If the rhs is a variable and the value it yields is handle we copy the whole array.
+            bool copy = decVar.init->kind == A_varExp && ity->meta.is_handle;
 
             /*
              * The difference here is in the type size, if we copy the stack array we allocate full
@@ -370,12 +375,8 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              */
             if (dty && dty != ity && GetActualType(dty) != GetActualType(ity))
             {
-                // unless the variable is nillable and the init is nil
-                if (! (dty->meta.is_nillable && ity == Ty_Nil()))
-                {
-                    ERROR_UNEXPECTED_TYPE (loc, dty, ity);
-                    iexp = Tr_Void();
-                }
+                ERROR_UNEXPECTED_TYPE (loc, dty, ity);
+                iexp = Tr_Void();
             }
             // initializing a non-typed variable with nil is a bad idea
             else if (!dty && ity == Ty_Nil())
@@ -622,10 +623,16 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             if (f->name == varField.sym)
             {
                 Ty_ty ty = GetActualType (f->ty);
-                /*
-                 * All nillible types are returned by handle(address)
-                 */
-                bool deref = level == 0 && !ty->meta.is_nillable;
+    /*
+     * All primitive and handle types are returned by value, but in case of a handle type we need
+     * not to fetch the value and do return base+offset so the following parser will do memory
+     * copy starting from this location based on the type size.
+     *
+     * Specifically this line means we have returned to the root parse level of the current
+     * instance so the whole offset has been computed in form of base+offset and that the type
+     * of the instance we are parsing is primitive(single word size).
+     */
+                bool deref = level == 0 && !ty->meta.is_handle;
                 Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, deref);
                 return Expression_New (exp, ty);
             }
@@ -677,10 +684,17 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             sexp.ty = Ty_Int();
         }
 
-        /*
-         * All nillible types are returned by handle(address)
-         */
-        bool deref = level == 0 && !ty->meta.is_nillable;
+    /*
+     * All primitive and handle types are returned by value, but in case of a handle type we need
+     * not to fetch the value and do return base+offset so the following parser will do memory
+     * copy starting from this location based on the type size.
+     *
+     * Specifically this line means we have returned to the root parse level of the current
+     * instance so the whole offset has been computed in form of base+offset and that the type
+     * of the instance we are parsing is primitive(single word size).
+     */
+        bool deref = level == 0 && !ty->meta.is_handle;
+
         Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, deref);
         return Expression_New (exp, ty);
     }
@@ -884,19 +898,19 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 right.ty = Ty_Int();
             }
             /*
-             * Two nillable objects can be compared by their addresses
+             * Two pointers can be compared by their addresses
              */
-            else if (left.ty->meta.is_nillable && right.ty->meta.is_nillable)
+            else if (left.ty->meta.is_pointer && right.ty->meta.is_pointer)
             {
                 left.ty = Ty_Int();
                 right.ty = Ty_Int();
             }
             /*
-             * Nillable types can be compared with nil, and the actual comprising is based on the
+             * Pointer types can be compared with nil, and the actual comprising is based on the
              * nil value and value(address) of the nillable object handle
              */
-            else if ((left.ty->meta.is_nillable && right.ty == Ty_Nil())
-                     || (right.ty->meta.is_nillable && left.ty == Ty_Nil()))
+            else if ((left.ty->meta.is_pointer && right.ty == Ty_Nil())
+                     || (right.ty->meta.is_pointer && left.ty == Ty_Nil()))
             {
                 left.ty = Ty_Int();
                 right.ty = Ty_Int();
@@ -910,7 +924,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 ERROR (
                     &opExp.right->loc,
                     3001,
-                    "Expected nilable type got '%s'",
+                    "Expected pointer type got '%s'",
                     left.ty->meta.name);
                 right.ty = Ty_Int();
             }
@@ -919,9 +933,16 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 ERROR (
                     &opExp.left->loc,
                     3001,
-                    "Expected nilable type got '%s'",
+                    "Expected pointer type got '%s'",
                     left.ty->meta.name);
                 left.ty = Ty_Int();
+            }
+            else if (left.ty->meta.is_handle || left.ty->meta.is_handle)
+            {
+                ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                left.ty = Ty_Int();
+                right.ty = Ty_Int();
             }
             else
             {
@@ -1260,8 +1281,8 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // Unmatched types require special handling
         else if (lexp.ty != rexp.ty)
         {
-            // If lexp is nillablre and rexp is nil then everything is fine
-            if (! (rexp.ty == Ty_Nil() && lexp.ty->meta.is_nillable))
+            // If lexp is pointer and rexp is nil then everything is fine
+            if (! (rexp.ty == Ty_Nil() && lexp.ty->meta.is_pointer))
             {
                 ERROR_UNEXPECTED_TYPE (&assignExp.exp->loc, lexp.ty, rexp.ty)
                 rexp.ty = lexp.ty;
@@ -1286,7 +1307,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         /*
          * If the rhs is a variable and the value it yields is handle we copy the whole array.
          */
-        bool copy = assignExp.exp->kind == A_varExp && rexp.ty->meta.is_nillable;
+        bool copy = assignExp.exp->kind == A_varExp && rexp.ty->meta.is_handle;
 
         /*
          * The difference here is in the type size, if we copy the stack array we allocate full

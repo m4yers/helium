@@ -14,8 +14,9 @@ static struct Ty_ty_ tyauto =
     .kind = Ty_auto,
     .meta = {
         .name = "auto",
-        .is_primitive = FALSE,
-        .is_nillable = FALSE
+        .is_internal = TRUE,
+        .is_pointer = FALSE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -29,8 +30,9 @@ static struct Ty_ty_ tyinvalid =
     .kind = Ty_invalid,
     .meta = {
         .name = "invalid",
-        .is_primitive = FALSE,
-        .is_nillable = FALSE
+        .is_internal = TRUE,
+        .is_pointer = FALSE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -44,8 +46,9 @@ static struct Ty_ty_ tynil =
     .kind = Ty_nil,
     .meta = {
         .name = "nil",
-        .is_primitive = FALSE,
-        .is_nillable = FALSE
+        .is_internal = FALSE,
+        .is_pointer = TRUE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -59,8 +62,9 @@ static struct Ty_ty_ tyint =
     .kind = Ty_int,
     .meta = {
         .name = "int",
-        .is_primitive = TRUE,
-        .is_nillable = FALSE
+        .is_internal = FALSE,
+        .is_pointer = FALSE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -74,8 +78,9 @@ static struct Ty_ty_ tystring =
     .kind = Ty_string,
     .meta = {
         .name = "string",
-        .is_primitive = FALSE,
-        .is_nillable = FALSE
+        .is_internal = FALSE,
+        .is_pointer = FALSE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -89,8 +94,9 @@ static struct Ty_ty_ tyvoid =
     .kind = Ty_void,
     .meta = {
         .name = "void",
-        .is_primitive = FALSE,
-        .is_nillable = FALSE
+        .is_internal = FALSE,
+        .is_pointer = FALSE,
+        .is_handle = FALSE
     },
     .u = {NULL}
 };
@@ -104,8 +110,9 @@ Ty_ty Ty_Record (Ty_fieldList fields)
     Ty_ty p = checked_malloc (sizeof (*p));
     p->kind = Ty_record;
     p->meta.name = "record";
-    p->meta.is_primitive = FALSE;
-    p->meta.is_nillable = TRUE;
+    p->meta.is_internal = FALSE;
+    p->meta.is_pointer = FALSE;
+    p->meta.is_handle = TRUE;
     p->u.record = fields;
     return p;
 }
@@ -115,8 +122,9 @@ Ty_ty Ty_Array (Ty_ty type, int size)
     Ty_ty p = checked_malloc (sizeof (*p));
     p->kind = Ty_array;
     p->meta.name = "array";
-    p->meta.is_primitive = FALSE;
-    p->meta.is_nillable = TRUE;
+    p->meta.is_internal = FALSE;
+    p->meta.is_pointer = FALSE;
+    p->meta.is_handle = TRUE;
     p->u.array.type = type;
     p->u.array.size = size;
     return p;
@@ -127,8 +135,9 @@ Ty_ty Ty_Name (S_symbol sym, Ty_ty ty)
     Ty_ty p = checked_malloc (sizeof (*p));
     p->kind = Ty_name;
     p->meta.name = "name";
-    p->meta.is_primitive = FALSE;
-    p->meta.is_nillable = FALSE;
+    p->meta.is_internal = FALSE;
+    p->meta.is_pointer = FALSE;
+    p->meta.is_handle = FALSE;
     p->u.name.sym = sym;
     p->u.name.ty = ty;
     return p;

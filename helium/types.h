@@ -15,11 +15,11 @@ struct Ty_ty_
 {
     enum
     {
-        Ty_auto,
-        Ty_invalid,
+        Ty_auto, Ty_invalid,
         Ty_nil, Ty_void,
-        Ty_int, Ty_string,
+        Ty_int, Ty_pointer,
         Ty_array, Ty_record,
+        Ty_string,
         Ty_name
     } kind;
 
@@ -33,8 +33,9 @@ struct Ty_ty_
     struct
     {
         const char * name;
-        bool is_primitive;
-        bool is_nillable;
+        bool is_internal;
+        bool is_pointer;
+        bool is_handle;
     } meta;
 
     union

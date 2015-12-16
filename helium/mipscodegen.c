@@ -162,6 +162,7 @@ static Temp_temp munchExp (T_exp e)
 
             return r;
         }
+        assert(0);
     }
     case T_BINOP:
     {
