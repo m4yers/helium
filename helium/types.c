@@ -171,6 +171,55 @@ Ty_ty GetActualType (Ty_ty ty)
     return ty;
 }
 
+String GetTypeId (Ty_ty ty, String str)
+{
+    if (!str)
+    {
+        str = String_New("$");
+    }
+
+    switch (ty->kind)
+    {
+    case Ty_array:
+    {
+        String_Append(str, ty->meta.name);
+        String_Append(str, "[");
+        GetTypeId(ty->u.array.type, str);
+        String_Append(str, ",");
+        String_Append(str, ty->u.array.size);
+        String_Append(str, "]");
+        break;
+    }
+    case Ty_record:
+    {
+        String_Append(str, ty->meta.name);
+        String_Append(str, "{");
+        LIST_FOREACH(f, ty->u.record)
+        {
+            String_Append(str, f->name->name);
+            String_Append(str, ":");
+            GetTypeId(f->ty, str);
+            String_Append(str, ",");
+        }
+        String_Append(str, "}");
+        break;
+    }
+    case Ty_name:
+    {
+        String_Append(str, ty->u.name.sym->name);
+        String_Append(str, "__");
+        GetTypeId(ty->u.name.ty, str);
+        break;
+    }
+    default:
+    {
+        String_Append(str, ty->meta.name);
+        break;
+    }
+    }
+    return str;
+}
+
 // HMM alignment?
 // HMM what with types smaller than word size?
 // HMM what with types that do not evenly lay over array of words? e.g. array of bytes?
