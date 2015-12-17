@@ -331,22 +331,22 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_access access = NULL;
         if (iexp)
         {
-    /*
-     * There are three possible init scenarios:
-     *
-     *  1. The variable is assigned a simple value, like int or pointer, in this case we do simple
-     *     temp-to-temp move.
-     *
-     *  2. The variable is initialized with an array or record expression. In this case a space is
-     *     allocated on stack by processing this init exp, in this case we just need to move handle
-     *     temp to the new var temp and regalloc will coalesce these two temps.
-     *
-     *  3. The variable is assigned another variable that was initialized with an array or record
-     *     expression(basically any var that is handle in nature). In this case we need to allocate
-     *     the same array on stack and do deep copy of the var.
-     *
-     *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
-     */
+            /*
+             * There are three possible init scenarios:
+             *
+             *  1. The variable is assigned a simple value, like int or pointer, in this case we do simple
+             *     temp-to-temp move.
+             *
+             *  2. The variable is initialized with an array or record expression. In this case a space is
+             *     allocated on stack by processing this init exp, in this case we just need to move handle
+             *     temp to the new var temp and regalloc will coalesce these two temps.
+             *
+             *  3. The variable is assigned another variable that was initialized with an array or record
+             *     expression(basically any var that is handle in nature). In this case we need to allocate
+             *     the same array on stack and do deep copy of the var.
+             *
+             *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
+             */
 
             // If the rhs is a variable and the value it yields is handle we copy the whole array.
             bool copy = decVar.init->kind == A_varExp && ity->meta.is_handle;
@@ -473,9 +473,27 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         // create new frame
         Tr_level level = Tr_NewLevel (context->level, label, escapes);
 
-        // create environment function entry
-        Env_Entry entry = Env_FunEntryNew (level, label, names, types, rty);
+
+        /*
+         * check if the function with the same name exist in the current scope; this is different
+         * from type scope checks because we check the top most scope, meaning innner code blocks
+         * can shadow outer blocks function declarations.
+         */
+        Env_Entry entry = (Env_Entry)S_LookTop (context->venv, decFn.name);
+
+        if (entry && entry->level == context->level)
+        {
+            ERROR(
+                &dec->loc,
+                3014,
+                "Redefinition of '%s'",
+                decFn.name->name);
+        }
+        // else is not an option here because we need continue parsing
+
+        entry = Env_FunEntryNew (context->level, level, label, names, types, rty);
         S_Enter (context->venv, decFn.name, entry);
+
 
         // create new scope for the body
         S_BeginScope (context->venv);
@@ -484,7 +502,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         // add each formal parameter binding to the newly entered scope
         {
             A_fieldList f = decFn.params;
-            Tr_accessList al = Tr_Formals (entry->level);
+            Tr_accessList al = Tr_Formals (entry->u.fun.level);
             Ty_tyList t = types;
             for (; f; f = f->tail, t = t->tail, al = al->tail)
             {
@@ -623,15 +641,15 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             if (f->name == varField.sym)
             {
                 Ty_ty ty = GetActualType (f->ty);
-    /*
-     * All primitive and handle types are returned by value, but in case of a handle type we need
-     * not to fetch the value and do return base+offset so the following parser will do memory
-     * copy starting from this location based on the type size.
-     *
-     * Specifically this line means we have returned to the root parse level of the current
-     * instance so the whole offset has been computed in form of base+offset and that the type
-     * of the instance we are parsing is primitive(single word size).
-     */
+                /*
+                 * All primitive and handle types are returned by value, but in case of a handle type we need
+                 * not to fetch the value and do return base+offset so the following parser will do memory
+                 * copy starting from this location based on the type size.
+                 *
+                 * Specifically this line means we have returned to the root parse level of the current
+                 * instance so the whole offset has been computed in form of base+offset and that the type
+                 * of the instance we are parsing is primitive(single word size).
+                 */
                 bool deref = level == 0 && !ty->meta.is_handle;
                 Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, deref);
                 return Expression_New (exp, ty);
@@ -684,15 +702,15 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             sexp.ty = Ty_Int();
         }
 
-    /*
-     * All primitive and handle types are returned by value, but in case of a handle type we need
-     * not to fetch the value and do return base+offset so the following parser will do memory
-     * copy starting from this location based on the type size.
-     *
-     * Specifically this line means we have returned to the root parse level of the current
-     * instance so the whole offset has been computed in form of base+offset and that the type
-     * of the instance we are parsing is primitive(single word size).
-     */
+        /*
+         * All primitive and handle types are returned by value, but in case of a handle type we need
+         * not to fetch the value and do return base+offset so the following parser will do memory
+         * copy starting from this location based on the type size.
+         *
+         * Specifically this line means we have returned to the root parse level of the current
+         * instance so the whole offset has been computed in form of base+offset and that the type
+         * of the instance we are parsing is primitive(single word size).
+         */
         bool deref = level == 0 && !ty->meta.is_handle;
 
         Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, deref);

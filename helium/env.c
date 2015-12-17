@@ -13,11 +13,12 @@ Env_Entry Env_VarEntryNew (Tr_level level, Tr_access access, Ty_ty ty)
     return e;
 }
 
-Env_Entry Env_FunEntryNew (Tr_level level, Temp_label label, S_symbolList names, Ty_tyList types, Ty_ty result)
+Env_Entry Env_FunEntryNew (Tr_level parent, Tr_level level, Temp_label label, S_symbolList names, Ty_tyList types, Ty_ty result)
 {
     Env_Entry e = checked_malloc (sizeof (*e));
     e->kind = Env_funEntry;
-    e->level = level;
+    e->level = parent;
+    e->u.fun.level = level;
     e->u.fun.label = label;
     e->u.fun.names = names;
     e->u.fun.types = types;

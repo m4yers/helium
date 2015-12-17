@@ -259,9 +259,8 @@ static void main__return (void ** state)
 
         "fn main\n\
         {\n\
-            let a = { x = 10};\n\
-            let b = { x = 10};\n\
-            ret a <> b;\n\
+            fn blah () { ret 0; }\n\
+            fn blah () { ret 0; } //~ ERROR 3014\n\
         }",
     };
 

@@ -54,7 +54,8 @@
     - [ ] Memory usage/freeing
     - [ ] Subsystems split akin LLVM
 - [ ] C runtime interface
-- [ ] functions' specifications -> tempesting
+- [ ] templates
+- [ ] function overloading
 - [ ] lexer/parser/semant error recovery
 
  ...

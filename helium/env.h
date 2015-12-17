@@ -10,6 +10,7 @@ struct Semant_ContextType;
 
 struct Env_funEntry_t
 {
+    Tr_level level;
     Temp_label label;
     S_symbolList names;
     Ty_tyList types;
@@ -38,7 +39,7 @@ typedef struct Env_Entry_t
 } * Env_Entry;
 
 Env_Entry Env_VarEntryNew (Tr_level level, Tr_access access, Ty_ty ty);
-Env_Entry Env_FunEntryNew (Tr_level level, Temp_label label, S_symbolList names, Ty_tyList types, Ty_ty result);
+Env_Entry Env_FunEntryNew (Tr_level parent, Tr_level level, Temp_label label, S_symbolList names, Ty_tyList types, Ty_ty result);
 
 void Env_Init (struct Semant_ContextType * c);
 

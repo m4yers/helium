@@ -1,0 +1,5 @@
+fn main
+{
+    fn blah () { ret 0; }
+    fn blah () { ret 0; } //~ ERROR 3014
+}
