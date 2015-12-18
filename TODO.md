@@ -13,7 +13,7 @@
     - [x] semant
     - [x] runtime
     - [ ] codegen? -> postponed till optimization
-- [ ] tests for existing functionality
+- [x] tests for existing functionality
 - [ ] solve typedef vs actual type hell
 - [ ] better semant error system
 - [ ] clear definition on what is:
@@ -21,10 +21,9 @@
     - [ ] malformed
     - [ ] invalid
     - [ ] unknown
-- [ ] tests for list.h/.c
+- [x] tests for list.h/.c
 - [ ] ir printer
 - [ ] language features
-    - [ ] asm
     - [ ] pointers
     - [ ] strings
     - [ ] boolean
@@ -32,9 +31,11 @@
     - [ ] tuples
     - [ ] unions
     - [ ] packages
+    - [ ] asm
     - [ ] macro
     - [ ] static storage
     - [ ] proper int ranges
+    - [ ] array and record function results
     - [ ] floats?
 - [ ] clean-up error codes
 - [ ] minimal stdlib

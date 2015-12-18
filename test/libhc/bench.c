@@ -257,7 +257,7 @@ static void main__return (void ** state)
         /*     let a = Point{ x = 10, y = 20 };\n\ */
         /* }", */
 
-        "fn main\n\
+        "fn blah\n\
         {\n\
             fn blah () { ret 0; }\n\
             fn blah () { ret 0; } //~ ERROR 3014\n\

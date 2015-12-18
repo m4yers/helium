@@ -334,16 +334,17 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             /*
              * There are three possible init scenarios:
              *
-             *  1. The variable is assigned a simple value, like int or pointer, in this case we do simple
-             *     temp-to-temp move.
+             *  1. The variable is assigned a simple value, like int or pointer, in this case we
+             *     do simple temp-to-temp move.
              *
-             *  2. The variable is initialized with an array or record expression. In this case a space is
-             *     allocated on stack by processing this init exp, in this case we just need to move handle
-             *     temp to the new var temp and regalloc will coalesce these two temps.
+             *  2. The variable is initialized with an array or record expression. In this case
+             *     a space is allocated on stack by processing this init exp, in this case we just
+             *     need to move handle temp to the new var temp and regalloc will coalesce these
+             *     two temps.
              *
-             *  3. The variable is assigned another variable that was initialized with an array or record
-             *     expression(basically any var that is handle in nature). In this case we need to allocate
-             *     the same array on stack and do deep copy of the var.
+             *  3. The variable is assigned another variable that was initialized with an array or
+             *     record expression(basically any var that is handle in nature). In this case we
+             *     need to allocate the same array on stack and do deep copy of the var.
              *
              *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
              */
@@ -514,8 +515,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
 
         // add implicit return
-        A_stm last;
-        LIST_BACK (decFn.scope->list, last);
+        A_stm last = LIST_BACK (decFn.scope->list);
         if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
         {
             A_exp e = last->u.exp;
@@ -642,13 +642,13 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
             {
                 Ty_ty ty = GetActualType (f->ty);
                 /*
-                 * All primitive and handle types are returned by value, but in case of a handle type we need
-                 * not to fetch the value and do return base+offset so the following parser will do memory
-                 * copy starting from this location based on the type size.
+                 * All primitive and handle types are returned by value, but in case of a handle
+                 * type we need not to fetch the value and do return base+offset so the following
+                 * parser will do memory copy starting from this location based on the type size.
                  *
-                 * Specifically this line means we have returned to the root parse level of the current
-                 * instance so the whole offset has been computed in form of base+offset and that the type
-                 * of the instance we are parsing is primitive(single word size).
+                 * Specifically this line means we have returned to the root parse level of the
+                 * current instance so the whole offset has been computed in form of base+offset
+                 * and that the type of the instance we are parsing is primitive(single word size).
                  */
                 bool deref = level == 0 && !ty->meta.is_handle;
                 Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, deref);
@@ -725,7 +725,6 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
 
 /*
  * Returns default initialization for a type
- * TODO move to translate
  */
 static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
 {
@@ -988,7 +987,6 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         return Expression_New (Tr_Op (oper, left.exp, right.exp, left.ty), left.ty);
     }
     case A_arrayExp:
-    // TODO store anonymous records
     case A_recordExp:
     {
         static Tr_access access = NULL;
@@ -1249,6 +1247,8 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             // create anonymous type
             else if (!ty)
             {
+                // TODO store anonymous records
+                // HMM do i actually need to store anon records for module linking? anyway not now
                 ty = Ty_Record (fl);
             }
 

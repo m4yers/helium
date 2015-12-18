@@ -39,7 +39,7 @@ let b = { x = 10, y = 11 };
 
 // record typedef
 def Point = { x:int, y:int }
-let c: Point = { x = 10, y = 11 };
+let c: Point = Point{ x = 10, y = 11 };
 
 // or simply with type infering
 let c = Point{ x = 10, y = 11 };

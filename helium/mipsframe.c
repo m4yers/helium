@@ -676,8 +676,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     /*
      * Making sure we materialized all virtual allocations
      */
-    int vlen;
-    LIST_LEN (frame->virtuals, vlen);
+    size_t vlen = LIST_SIZE (frame->virtuals);
     assert (vlen == 0);
 
     /*

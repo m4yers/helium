@@ -320,6 +320,10 @@ scope:                    LBRACE stm_list RBRACE
                           {
                               $$ = A_Scope($2);
                           }
+                        | LBRACE RBRACE
+                          {
+                              $$ = A_Scope(NULL);
+                          }
                         ;
 record_field:             ID EQ expression
                           {

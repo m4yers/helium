@@ -505,8 +505,7 @@ static void PrintScope (FILE * out, A_scope scope, int d)
         fprintf (out, "\n");
     }
 
-    int size;
-    LIST_LEN (scope->list, size);
+    size_t size = LIST_SIZE (scope->list);
     LIST_FOREACH (stm, scope->list)
     {
         switch (stm->kind)
@@ -571,8 +570,7 @@ static void PrintSpecs (FILE * out, A_specList specs, int d)
 
     fprintf (out, "Specs(\n");
 
-    int size;
-    LIST_LEN (specs, size);
+    size_t size = LIST_SIZE (specs);
     LIST_FOREACH (spec, specs)
     {
         switch (spec->kind)

@@ -1,47 +1,79 @@
+
+/*-----------------------------------------------------------------------------------------,
+| LIST:                                                                                    |
+|                                                                                          |
+| This file contains bunch of macros and inline routines to work with conventional dynamic |
+| lists. To make everything work you SHOULD define your list using LIST_DEFINE macro, note |
+| that type you provide SHOULD NOT be integer if you intend to look up the elements using  |
+| provided macro, like ITEM_AT, because there is no way to return non existing int value.  |
+| Normally you SHOULD use these methods to operate on lists of pointer type data.          |
+|                                                                                          |
+\_________________________________________________________________________________________*/
+
 #ifndef LISTS_H_4LNW5ZXX
 #define LISTS_H_4LNW5ZXX
 
+#include <assert.h>
+
 #include "mem.h"
 #include "bool.h"
+#include "util.h"
 
-#define LIST_LEN(list, result)                                                      \
-    result = 0;                                                                     \
-    if (list)                                                                       \
+#define LIST_DEFINE(name,type)                                                      \
+    typedef struct name##_t                                                         \
     {                                                                               \
-        result = 1;                                                                 \
-        __typeof__(list) __current = list;                                          \
-        while(__current && __current->tail)                                         \
-        {                                                                           \
-            __current = __current->tail;                                            \
-            result++;                                                               \
-        }                                                                           \
-    }                                                                               \
+        /** NOTE: DO NOT FUCKING CHANGE THE ORDER */                                \
+        struct name##_t * tail;                                                     \
+        type head;                                                                  \
+    } * name;                                                                       \
 
-#define LIST_NEXT(list)                                                             \
-    list ? list->tail : NULL                                                        \
+LIST_DEFINE (U_voidList, void *)
 
-#define LIST_BACK(list, var_name)                                                   \
-    {                                                                               \
-        if (list)                                                                   \
-        {                                                                           \
-            __typeof__(list) __current = list;                                      \
-            while(__current && __current->tail)                                     \
-            {                                                                       \
-                __current = __current->tail;                                        \
-            }                                                                       \
-            var_name = __current->head;                                             \
-        }                                                                           \
-        else                                                                        \
-        {                                                                           \
-            var_name = NULL;                                                        \
-        }                                                                           \
-    }                                                                               \
+static inline size_t List_Size_ (U_voidList list)
+{
+    size_t r = 0;
+    while (list)
+    {
+        list = list->tail;
+        r++;
+    }
+    return r;
+}
+
+#define LIST_SIZE(list) List_Size_((U_voidList) list)
+
+#define LIST_NEXT(list) list ? list->tail : NULL                                    \
+
+static inline U_voidList List_Back_ (U_voidList list)
+{
+    while (list && list->tail)
+    {
+        list = list->tail;
+    }
+    return list;
+}
+
+#define LIST_BACK(list) (((__typeof__(list))List_Back_((U_voidList) list))->head)
+
+static inline U_voidList List_At_ (U_voidList list, size_t pos)
+{
+    while (pos--)
+    {
+        list = list->tail;
+    }
+    return list;
+}
+
+#define LIST_AT(list, pos)                                                          \
+    List_Size_((U_voidList)list) <= pos                                             \
+        ? 0                                                                         \
+        : (((__typeof__(list))List_At_((U_voidList)list,pos))->head)
 
 #define LIST_PUSH(list, item)                                                       \
     {                                                                               \
-        __typeof__(list) node = checked_malloc(sizeof(*node));                      \
-        node->head = item;                                                          \
-        node->tail = NULL;                                                          \
+        __typeof__(list) __node = checked_malloc(sizeof(*__node));                  \
+        __node->head = item;                                                        \
+        __node->tail = NULL;                                                        \
         if (list)                                                                   \
         {                                                                           \
             __typeof__(list) __current = list;                                      \
@@ -49,13 +81,41 @@
             {                                                                       \
                 __current = __current->tail;                                        \
             }                                                                       \
-            __current->tail = node;                                                 \
+            __current->tail = __node;                                               \
         }                                                                           \
         else                                                                        \
         {                                                                           \
-            list = node;                                                            \
+            list = __node;                                                          \
         }                                                                           \
     }                                                                               \
+
+#define LIST_PUSH_UNIQUE(list, item)                                                \
+    {                                                                               \
+        __typeof__(list) __node = checked_malloc(sizeof(*__node));                  \
+        __node->head = item;                                                        \
+        __node->tail = NULL;                                                        \
+        if (list)                                                                   \
+        {                                                                           \
+            __typeof__(list) __current = list;                                      \
+            bool unique = __current->head != item;                                  \
+            while(__current && __current->tail)                                     \
+            {                                                                       \
+                if (__current->head == item)                                        \
+                {                                                                   \
+                    unique = FALSE;                                                 \
+                }                                                                   \
+                __current = __current->tail;                                        \
+            }                                                                       \
+            if (unique && __current->head != item)                                  \
+            {                                                                       \
+                __current->tail = __node;                                           \
+            }                                                                       \
+        }                                                                           \
+        else                                                                        \
+        {                                                                           \
+            list = __node;                                                          \
+        }                                                                           \
+    }
 
 #define LIST_REMOVE(list, item)                                                     \
     {                                                                               \
@@ -83,62 +143,6 @@
         }                                                                           \
     }
 
-#define LIST_PUSH_UNIQUE(list, item)                                                \
-    {                                                                               \
-        __typeof__(list) node = checked_malloc(sizeof(*node));                      \
-        node->head = item;                                                          \
-        node->tail = NULL;                                                          \
-        if (list)                                                                   \
-        {                                                                           \
-            __typeof__(list) __current = list;                                      \
-            bool unique = __current->head != item;                                  \
-            while(!unique && __current && __current->tail)                          \
-            {                                                                       \
-                if (__current->head == item)                                        \
-                {                                                                   \
-                    unique = FALSE;                                                 \
-                    break;                                                          \
-                }                                                                   \
-                __current = __current->tail;                                        \
-            }                                                                       \
-            if (unique)                                                             \
-            {                                                                       \
-                __current->tail = node;                                             \
-            }                                                                       \
-        }                                                                           \
-        else                                                                        \
-        {                                                                           \
-            list = node;                                                            \
-        }                                                                           \
-    }
-
-#define LIST_INSERT(list, item, index)                                              \
-    {                                                                               \
-        assert(index >= 0);                                                         \
-        __typeof__(list) node = checked_malloc(sizeof(*node));                      \
-        node->head = item;                                                          \
-        node->tail = NULL;                                                          \
-        if (list)                                                                   \
-        {                                                                           \
-            __typeof__(list) __previous = NULL;                                     \
-            __typeof__(list) __current = list;                                      \
-            while(index-- != 0 && __current)                                        \
-            {                                                                       \
-                __previous = __current;                                             \
-                __current = __current->tail;                                        \
-            }                                                                       \
-            node->tail = __current;                                                 \
-            if (__previous)                                                         \
-            {                                                                       \
-                __previous->tail = node;                                            \
-            }                                                                       \
-        }                                                                           \
-        else                                                                        \
-        {                                                                           \
-            list = node;                                                            \
-        }                                                                           \
-    }
-
 #define LIST_JOIN(list, another)                                                    \
     {                                                                               \
         if (list)                                                                   \
@@ -156,28 +160,61 @@
         }                                                                           \
     }
 
+#define LIST_INSERT(list, item, index)                                              \
+    {                                                                               \
+        assert(index >= 0);                                                         \
+        __typeof__(index) __index = index;                                          \
+        __typeof__(list) __node = checked_malloc(sizeof(*__node));                  \
+        __node->head = item;                                                        \
+        __node->tail = NULL;                                                        \
+        if (list)                                                                   \
+        {                                                                           \
+            __typeof__(list) __previous = NULL;                                     \
+            __typeof__(list) __current = list;                                      \
+            while(__index != 0 && __current)                                        \
+            {                                                                       \
+                __previous = __current;                                             \
+                __current = __current->tail;                                        \
+                __index--;                                                          \
+            }                                                                       \
+            __node->tail = __current;                                               \
+            if (__previous)                                                         \
+            {                                                                       \
+                __previous->tail = __node;                                          \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                list = __node;                                                      \
+            }                                                                       \
+        }                                                                           \
+        else                                                                        \
+        {                                                                           \
+            list = __node;                                                          \
+        }                                                                           \
+    }
+
 #define LIST_INJECT(list, another, index)                                           \
     {                                                                               \
         if (list)                                                                   \
         {                                                                           \
-            int __index = index;                                                    \
-            __typeof__(list) __list_inject_previous = NULL;                         \
-            __typeof__(list) __list_inject_current = list;                          \
+            __typeof__(index) __index = index;                                      \
+            __typeof__(list) __previous = NULL;                                     \
+            __typeof__(list) __current = list;                                      \
+            /** index counting from the end */                                      \
             if (__index < 0)                                                        \
             {                                                                       \
-                int len;                                                            \
-                LIST_LEN(list, len);                                                \
+                size_t len = LIST_SIZE(list);                                       \
                 __index = MAX(len + __index, 0);                                    \
             }                                                                       \
-            while(__index != 0 && __list_inject_current)                            \
+            while(__index != 0 && __current)                                        \
             {                                                                       \
-                __list_inject_previous = __list_inject_current;                     \
-                __list_inject_current = __list_inject_current->tail;                \
+                __previous = __current;                                             \
+                __current = __current->tail;                                        \
                 __index--;                                                          \
             }                                                                       \
-            if (__list_inject_previous)                                             \
+            if (__previous)                                                         \
             {                                                                       \
-                __list_inject_previous->tail = another;                             \
+                __previous->tail = another;                                         \
             }                                                                       \
             else                                                                    \
             {                                                                       \
@@ -185,13 +222,13 @@
             }                                                                       \
             if (another)                                                            \
             {                                                                       \
-                __list_inject_previous = __list_inject_current;                     \
-                __list_inject_current = another;                                    \
-                while(__list_inject_current && __list_inject_current->tail)         \
+                __previous = __current;                                             \
+                __current = another;                                                \
+                while(__current && __current->tail)                                 \
                 {                                                                   \
-                    __list_inject_current = __list_inject_current->tail;            \
+                    __current = __current->tail;                                    \
                 }                                                                   \
-                __list_inject_current->tail = __list_inject_previous;               \
+                __current->tail = __previous;                                       \
             }                                                                       \
         }                                                                           \
         else                                                                        \
@@ -206,43 +243,10 @@
             __##item##__iterator;                                                   \
             __##item##__iterator = NULL)                                            \
     for (                                                                           \
-        __typeof__ (list->head) item = (__##item##__iterator ? __##item##__iterator->head : NULL);\
+        __typeof__ (list->head) item = (__##item##__iterator ? __##item##__iterator->head : 0);\
         __##item##__iterator;                                                       \
         __##item##__iterator = __##item##__iterator->tail,                          \
-        item = (__##item##__iterator ? __##item##__iterator->head : NULL))          \
-
-#define LIST_ITEM_AT(list, result, index)                                           \
-    {                                                                               \
-        int __len = 0;                                                              \
-        int __index = index;                                                        \
-        LIST_LEN(list, __len);                                                      \
-        if (__len <= __index)                                                       \
-        {                                                                           \
-            result = NULL;                                                          \
-        }                                                                           \
-        else                                                                        \
-        {                                                                           \
-            LIST_FOREACH(item, list)                                                \
-            {                                                                       \
-                if (__index == 0)                                                   \
-                {                                                                   \
-                    result = item;                                                  \
-                    break;                                                          \
-                }                                                                   \
-                __index--;                                                          \
-            }                                                                       \
-        }                                                                           \
-    }                                                                               \
-
-#define LIST_EVERY(item, list)                                                      \
-    LIST_FOREACH(i, list) if (i == item)                                            \
-
-#define LIST_DEFINE(name,type)                                                      \
-    typedef struct name##_t                                                         \
-    {                                                                               \
-        type head;                                                                  \
-        struct name##_t * tail;                                                     \
-    } * name;                                                                       \
+        item = (__##item##__iterator ? __##item##__iterator->head : 0))             \
 
 LIST_DEFINE (U_boolList, bool)
 U_boolList U_BoolList (bool head, U_boolList tail);

@@ -914,9 +914,8 @@ static ASM_lineList Rewrite (Workspace w)
      * We need to allocate space on stack to store the spilled temps.
      * TODO stack space coloring, like for tegisters
      */
-    int spilledNum = BitArray_GetDegree (w->spilled);
-    int accessNum = 0;
-    LIST_LEN (w->accessList, accessNum);
+    size_t spilledNum = BitArray_GetDegree (w->spilled);
+    size_t accessNum = LIST_SIZE (w->accessList);
     while (accessNum < spilledNum)
     {
         LIST_PUSH (w->accessList, F_AllocFrame (w->frame));
@@ -935,7 +934,7 @@ static ASM_lineList Rewrite (Workspace w)
 
         Temp_temp temp = GetTemp (index, w->temps);
 
-        LIST_ITEM_AT (w->accessList, access, --accessNum);
+        access = LIST_AT (w->accessList, --accessNum);
 
         ASM_lineList pre = NULL;
         ASM_lineList cur = w->asmll;
