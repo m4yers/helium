@@ -345,14 +345,14 @@ Workspace_New (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers reg
         r->activeMoves = BitArray_New (lg.movesNum, FALSE);
     }
 
-    r->stack = Stack_New (sizeof (StackFrame), NULL);
+    r->stack = Stack_New (StackFrame, NULL);
     // FIXME: Artyom Goncharov TAB_table does not handle primitive types
     // for now we gonna use additional conversion
     r->aliases = TAB_Empty();
     r->coloring = coloring;
     r->colors = NULL;
     r->accessList = accessList;
-    // FIXME Artyom Goncharov there is no need to create reg map all the time
+    // FIXME Artyom Goncharov there is no need to create reg map every time
     r->results = Temp_LayerMap (Temp_Empty(), F_RegistersToMap (Temp_Empty(), regs_all));
 
     return r;
@@ -505,8 +505,8 @@ static BitArray Adjacent (Workspace w, int temp)
     BitArray r = BitMatrix_GetRowCopy (w->interference, temp, NULL);
     BitArray s = BitArray_New (w->interference->width, FALSE);
     // FIXME: Artyom Goncharov not pretty
-    int len = w->stack->length;
-    StackFrame * f = w->stack->items;
+    int len = Stack_Size (w->stack);
+    StackFrame * f = (StackFrame *)w->stack->items;
     while (len--)
     {
         BitArray_Set (s, f[len].index);
@@ -577,7 +577,7 @@ static void Simplify (Workspace w)
         sf.index = index;
         sf.edges = BitMatrix_GetCollumnCopy (w->interference, index, NULL);
         BitMatrix_UnSetColumn (w->interference, index);
-        Stack_Push (w->stack, &sf);
+        Stack_Push (w->stack, sf);
         BitArray adj = Adjacent (w, index);
         BITARRAY_FOREACH_SET (a, adj)
         {
@@ -823,17 +823,16 @@ static void Colorify (Workspace w)
     Stack s = w->stack;
     BitArray interference = BitArray_New (w->interference->width, FALSE);
     BitArray colored = BitArray_New (w->simplify->length, FALSE);
-    while (s->length)
+    while (!Stack_Empty (s))
     {
-        StackFrame sf;
-        Stack_Pop (s, &sf);
-        Temp_temp temp = GetTemp (sf.index, w->temps);
+        StackFrame * sf = Stack_Top (s);
+        Temp_temp temp = GetTemp (sf->index, w->temps);
 
         /*
          * Putting back the column so that we could evaluate nodes' degree
          * correctly
          */
-        BitMatrix_SetColumnFromArray (w->interference, sf.edges, sf.index);
+        BitMatrix_SetColumnFromArray (w->interference, sf->edges, sf->index);
         /**
          * Set of colors that is possible to use. It is updated (decremented) with
          * each colorized adjacent node of the current node.
@@ -845,7 +844,7 @@ static void Colorify (Workspace w)
         // this line reads all available interference in the i-graph for this node
         /* interference = sf.edges; */
         // this line reads currently available interference for this node
-        BitMatrix_GetCollumnCopy (w->interference, sf.index, interference);
+        BitMatrix_GetCollumnCopy (w->interference, sf->index, interference);
         BITARRAY_FOREACH_SET (i, interference)
         {
             int a = GetAlias (w, i);
@@ -879,7 +878,7 @@ static void Colorify (Workspace w)
         {
             color = GetTemp (i, w->regs);
             DBG ("temp %d colored as %s\n", sf.index, Temp_Look (w->results, color));
-            BitArray_Set (colored, sf.index);
+            BitArray_Set (colored, sf->index);
             LIST_PUSH_UNIQUE (w->colors, color);
             TAB_Enter (w->coloring, temp, color);
             Temp_Enter (w->results, temp, (char *)Temp_Look (w->results, color));
@@ -888,9 +887,11 @@ static void Colorify (Workspace w)
 
         if (!color)
         {
-            DBG ("temp %d spilled\n", sf.index);
-            BitArray_Set (w->spilled, sf.index);
+            DBG ("temp %d spilled\n", sf->index);
+            BitArray_Set (w->spilled, sf->index);
         }
+
+        Stack_Pop (s);
     }
 
     BITARRAY_FOREACH_SET (c, w->coalesced)

@@ -11,9 +11,9 @@
 
 static void stack_creation_ok (void ** state)
 {
-    Stack s = Stack_New (sizeof (int), NULL);
+    Stack s = Stack_New (size_t, NULL);
     assert_non_null (s);
-    assert_true (s->itemSize == sizeof (int));
+    assert_true (s->itemSize == sizeof (size_t));
     Stack_Delete (s);
 
     (void) state;
@@ -21,24 +21,62 @@ static void stack_creation_ok (void ** state)
 
 static void stack_storring_ok (void ** state)
 {
-    Stack s = Stack_New (sizeof (int), NULL);
-    int number = 1000;
-    for (int i = 0; i < number; ++i)
+    Stack s = Stack_New (size_t, NULL);
+    size_t number = 1000;
+
+    for (size_t i = 0; i < number; ++i)
     {
-        Stack_Push (s, &i);
+        Stack_Push (s, i);
     }
-    assert_true (s->length == number);
-    for (int i = number - 1; i >= 0; --i)
+
+    assert_true (Stack_Size (s) == number);
+
+    while (number-- > 0)
     {
-        int sv;
-        Stack_Pop (s, &sv);
-        assert_true (sv == i);
+        size_t * sv = Stack_Top (s);
+        assert_true (*sv == number);
+        Stack_Pop (s);
     }
+
     (void) state;
 }
 
-static void stack_delete_semifull_ok (void ** state)
+static void stack_foreach_backwards_ok (void ** state)
 {
+    struct Stack_t s = Stack (size_t, NULL);
+
+    size_t number = 1000;
+
+    for (size_t i = 0; i < number; ++i)
+    {
+        Stack_Push (&s, i);
+    }
+
+    STACK_FOREACH_BACKWARDS (size_t, i, &s)
+    {
+        assert_true (*i == --number);
+    }
+
+    (void) state;
+}
+
+static void stack_foreach_ok (void ** state)
+{
+    struct Stack_t s = Stack (size_t, NULL);
+
+    size_t number = 1000;
+
+    for (size_t i = 0; i < number; ++i)
+    {
+        Stack_Push (&s, i);
+    }
+
+    size_t c = 0;
+    STACK_FOREACH (size_t, i, &s)
+    {
+        assert_true (*i == c++);
+    }
+
     (void) state;
 }
 
@@ -48,7 +86,8 @@ int main (void)
     {
         cmocka_unit_test (stack_creation_ok),
         cmocka_unit_test (stack_storring_ok),
-        cmocka_unit_test (stack_delete_semifull_ok),
+        cmocka_unit_test (stack_foreach_backwards_ok),
+        cmocka_unit_test (stack_foreach_ok),
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }
