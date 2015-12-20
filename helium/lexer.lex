@@ -71,7 +71,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "."              { return DOT; }
 "+"              { return PLUS; }
 "-"              { return MINUS; }
-"*"              { return TIMES; }
+"*"              { return STAR; }
 "/"              { return DIVIDE; }
 "="              { return EQ; }
 "=="             { return EQEQ; }
@@ -82,6 +82,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 ">="             { return GE; }
 "&&"             { return AND; }
 "||"             { return OR; }
+"&"              { return AMP; }
 {DIGIT}+         { yylval.ival=atoi(yytext); return INT; }
 fn               { return FN; }
 macro            { return MACRO; }

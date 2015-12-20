@@ -71,11 +71,11 @@
 %token
   COMMA COLON SEMICOLON LPAREN RPAREN LBRACK RBRACK
   LBRACE RBRACE DOT
-  EMARK PLUS MINUS TIMES DIVIDE EQ NEQ LT LE GT GE
+  EMARK PLUS MINUS STAR DIVIDE EQ NEQ LT LE GT GE
   AND OR EQEQ
   IF THEN ELSE WHILE FOR TO DO IN END OF
   FN MACRO LET DEF RET
-  BREAK NIL
+  BREAK AMP NIL
   AUTO TYPE NEW CLASS EXTENDS METHOD PRIMITIVE IMPORT
 
 %type <exp>
@@ -116,7 +116,7 @@
 %left         AND
 %nonassoc     GE LE EQEQ NEQ LT GT
 %left         MINUS PLUS
-%left         TIMES DIVIDE
+%left         STAR DIVIDE
 %left         UMINUS
 %precedence   ID
 %precedence   LBRACK
@@ -162,7 +162,7 @@ stm:                      expression SEMICOLON
                           }
                         | controls
                           {
-                             $$ = A_StmExp($1);
+                              $$ = A_StmExp($1);
                           }
                         | declaration
                           {
@@ -176,6 +176,10 @@ expression:               literals
                         | call_macro
                         | operations
                         | assignment
+                        | AMP lvalue
+                          {
+                              $$ = A_AddressOfExp(&(@$), $2);
+                          }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }
                         | INT     { $$ = A_IntExp (&(@$), $1);    }
@@ -245,7 +249,7 @@ operations:               MINUS expression %prec UMINUS
                           {
                               $$ = A_OpExp (&(@$), A_minusOp, $1, $3);
                           }
-                        | expression TIMES expression
+                        | expression STAR expression
                           {
                               $$ = A_OpExp (&(@$), A_timesOp, $1, $3);
                           }
@@ -507,7 +511,11 @@ decl_function:            FN ID scope
                                   $9);
                           }
                         ;
-type:                     LBRACE typed_field typed_field_comma RBRACE
+type:                     AMP type
+                          {
+                              $$ = A_PointerTy(&(@$), $2);
+                          }
+                        | LBRACE typed_field typed_field_comma RBRACE
                           {
                               $$ = A_RecordTy (&(@$), A_FieldList ($2, $3));
                           }

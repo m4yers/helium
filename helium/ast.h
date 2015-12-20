@@ -42,6 +42,28 @@ typedef struct A_loc_t
     const char * token;
 } * A_loc;
 
+/****************
+ *  Node types  *
+ ****************/
+
+typedef enum
+{
+    /** Var */
+    A_simpleVar, A_fieldVar, A_subscriptVar,
+
+    /** Dec */
+    A_typeDec, A_functionDec, A_varDec, 
+
+    /** Exp */
+    A_retExp, A_addressOf,
+    A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
+    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
+    A_whileExp, A_forExp, A_breakExp, A_arrayExp,
+
+    /** Types */
+    A_nameTy, A_pointerTy, A_arrayTy, A_recordTy,
+} A_nodeKind;
+
 /************
  *  Fields  *
  ************/
@@ -87,7 +109,7 @@ struct A_var_t
 {
     struct A_loc_t loc;
 
-    enum { A_simpleVar, A_fieldVar, A_subscriptVar } kind;
+    A_nodeKind kind;
 
     union
     {
@@ -175,18 +197,13 @@ struct A_exp_t
 {
     struct A_loc_t loc;
 
-    enum
-    {
-        A_retExp,
-        A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
-        A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
-        A_whileExp, A_forExp, A_breakExp, A_arrayExp
-    } kind;
+    A_nodeKind kind;
 
     union
     {
         /* break - need only the pos */
         /* nil; - needs only the pos */
+        A_var addressOf;
         A_expList seq;
         A_var var;
         A_exp ret;
@@ -204,6 +221,8 @@ struct A_exp_t
         A_expList array;
     } u;
 };
+
+A_exp A_AddressOfExp (A_loc loc, A_var var);
 
 // TODO parse it for real
 A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList src, U_stringList dst);
@@ -256,7 +275,7 @@ struct A_dec_t
 {
     struct A_loc_t loc;
 
-    enum { A_typeDec, A_functionDec, A_varDec, } kind;
+    A_nodeKind kind;
 
     union
     {
@@ -285,17 +304,12 @@ struct A_ty_t
 {
     struct A_loc_t loc;
 
-    enum
-    {
-        A_nameTy,
-        A_arrayTy,
-        A_recordTy,
-
-    } kind;
+    A_nodeKind kind;
 
     union
     {
         S_symbol name;
+        A_ty pointer;
         A_fieldList record;
         struct A_arrayTy_t array;
     } u;
@@ -304,6 +318,7 @@ struct A_ty_t
 };
 
 A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs);
+A_ty A_PointerTy (A_loc loc, A_ty type);
 A_ty A_ArrayTy (A_loc loc, A_ty type, A_exp size);
 A_ty A_RecordTy (A_loc loc, A_fieldList record);
 

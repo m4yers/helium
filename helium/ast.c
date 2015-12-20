@@ -84,6 +84,16 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp)
  *  Expressions  *
  *****************/
 
+
+A_exp A_AddressOfExp (A_loc loc, A_var var)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_addressOf;
+    p->loc = *loc;
+    p->u.addressOf = var;
+    return p;
+}
+
 A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList dst, U_stringList src)
 {
     A_exp p = checked_malloc (sizeof (*p));
@@ -316,6 +326,15 @@ A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs)
     p->kind = A_nameTy;
     p->u.name = name;
     p->specs = specs;
+    p->loc = *loc;
+    return p;
+}
+
+A_ty A_PointerTy (A_loc loc, A_ty type)
+{
+    A_ty p = checked_malloc (sizeof (*p));
+    p->kind = A_pointerTy;
+    p->u.pointer = type;
     p->loc = *loc;
     return p;
 }
