@@ -629,13 +629,14 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         else if (e->kind == Env_varEntry)
         {
             Ty_ty vty = GetActualType(e->u.var.ty);
-            // SHIT in case of handle i need the address which is the same routine as for
-            // non-address-of approach it is just handled differently in the context above, FUCK!!!
-            deref = vty->meta.is_handle ? TRUE : deref;
-            Tr_exp exp = Tr_SimpleVar (e->u.var.access, context->level, deref);
             Ty_ty type = deref
                          ? GetActualType (vty)
                          : Ty_Pointer (GetActualType (e->u.var.ty));
+            // SHIT order here matters
+            // in case of handle i need the address which is the same routine as for non-address-of
+            // approach it is just handled differently in the context above, FUCK!!!
+            deref = vty->meta.is_handle ? TRUE : deref;
+            Tr_exp exp = Tr_SimpleVar (e->u.var.access, context->level, deref);
 
             return Expression_New (exp, type);
         }

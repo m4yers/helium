@@ -261,7 +261,9 @@ static void main__return (void ** state)
         {\n\
             def Point = { x: int, y: int }\n\
             let a = Point{ x = 11, y = 12 };\n\
-            let c = &a;\n\
+            let b = &a;\n\
+            let c = &b;\n\
+            let d = &c;\n\
         }",
 
         /* "fn main\n\ */
