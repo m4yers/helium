@@ -105,6 +105,18 @@ Ty_ty Ty_Void (void)
     return &tyvoid;
 }
 
+Ty_ty Ty_Pointer (Ty_ty type)
+{
+    Ty_ty p = checked_malloc (sizeof (*p));
+    p->kind = Ty_pointer;
+    p->meta.name = "pointer";
+    p->meta.is_internal = FALSE;
+    p->meta.is_pointer = TRUE;
+    p->meta.is_handle = FALSE;
+    p->u.pointer = type;
+    return p;
+}
+
 Ty_ty Ty_Record (Ty_fieldList fields)
 {
     Ty_ty p = checked_malloc (sizeof (*p));
@@ -184,45 +196,45 @@ String GetQTypeName (Ty_ty ty, String str)
 {
     if (!str)
     {
-        str = String_New("$");
+        str = String_New ("$");
     }
 
     switch (ty->kind)
     {
     case Ty_array:
     {
-        String_Append(str, ty->meta.name);
-        String_Append(str, "[");
-        GetQTypeName(ty->u.array.type, str);
-        String_Append(str, ",");
-        String_Append(str, ty->u.array.size);
-        String_Append(str, "]");
+        String_Append (str, ty->meta.name);
+        String_Append (str, "[");
+        GetQTypeName (ty->u.array.type, str);
+        String_Append (str, ",");
+        String_Append (str, ty->u.array.size);
+        String_Append (str, "]");
         break;
     }
     case Ty_record:
     {
-        String_Append(str, ty->meta.name);
-        String_Append(str, "{");
-        LIST_FOREACH(f, ty->u.record)
+        String_Append (str, ty->meta.name);
+        String_Append (str, "{");
+        LIST_FOREACH (f, ty->u.record)
         {
-            String_Append(str, f->name->name);
-            String_Append(str, ":");
-            GetQTypeName(f->ty, str);
-            String_Append(str, ",");
+            String_Append (str, f->name->name);
+            String_Append (str, ":");
+            GetQTypeName (f->ty, str);
+            String_Append (str, ",");
         }
-        String_Append(str, "}");
+        String_Append (str, "}");
         break;
     }
     case Ty_name:
     {
-        String_Append(str, ty->u.name.sym->name);
-        String_Append(str, "__");
-        GetQTypeName(ty->u.name.ty, str);
+        String_Append (str, ty->u.name.sym->name);
+        String_Append (str, "__");
+        GetQTypeName (ty->u.name.ty, str);
         break;
     }
     default:
     {
-        String_Append(str, ty->meta.name);
+        String_Append (str, ty->meta.name);
         break;
     }
     }
@@ -237,6 +249,7 @@ int Ty_SizeOf (Ty_ty type)
 {
     switch (type->kind)
     {
+    case Ty_pointer:
     case Ty_int:
     {
         return F_wordSize;

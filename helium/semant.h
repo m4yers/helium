@@ -4,6 +4,8 @@
 #include "translate.h"
 #include "program.h"
 
+#include "ext/stack.h"
+
 typedef struct Semant_ContextType
 {
     Program_Module module;

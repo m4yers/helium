@@ -24,7 +24,7 @@ static Entry Entry_New (int depth, bool * escape)
 }
 
 static void TraverseDec (S_table env, int depth, A_dec dec);
-static void TraverseVar (S_table env, int depth, A_var var);
+static void TraverseVar (S_table env, int depth, A_var var, bool addressOf);
 static void TraverseExp (S_table env, int depth, A_exp exp);
 
 static void TraverseScope (S_table env, int depth, A_scope scope)
@@ -81,28 +81,35 @@ static void TraverseDec (S_table env, int depth, A_dec dec)
 
 }
 
-static void TraverseVar (S_table env, int depth, A_var var)
+static void TraverseVar (S_table env, int depth, A_var var, bool addressOf)
 {
     switch (var->kind)
     {
     case A_simpleVar:
     {
         Entry e = (Entry) S_Look (env, var->u.simple);
-        if (e && depth > e->depth)
+        if (e)
         {
-            *e->escape = TRUE;
+            if (depth > e->depth || addressOf)
+            {
+                *e->escape = TRUE;
+            }
         }
         break;
     }
     case A_fieldVar:
     {
-        TraverseVar (env, depth, var->u.field.var);
+        TraverseVar (env, depth, var->u.field.var, addressOf);
         break;
     }
     case A_subscriptVar:
     {
-        TraverseVar (env, depth, var->u.subscript.var);
+        TraverseVar (env, depth, var->u.subscript.var, addressOf);
         break;
+    }
+    default:
+    {
+        assert (0);
     }
     }
 }
@@ -121,7 +128,12 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
     }
     case A_varExp:
     {
-        TraverseVar (env, depth, exp->u.var);
+        TraverseVar (env, depth, exp->u.var, FALSE);
+        break;
+    }
+    case A_addressOf:
+    {
+        TraverseVar (env, depth, exp->u.addressOf, TRUE);
         break;
     }
     case A_retExp:
@@ -142,12 +154,6 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
         TraverseExp (env, depth, exp->u.op.right);
         break;
     }
-    /* case A_arrayExp: */
-    /* { */
-    /*     TraverseExp (env, depth, exp->u.array.size); */
-    /*     TraverseExp (env, depth, exp->u.array.init); */
-    /*     break; */
-    /* } */
     case A_recordExp:
     {
         for (A_efieldList l = exp->u.record.fields; l; l = l->tail)
@@ -158,7 +164,7 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
     }
     case A_assignExp:
     {
-        TraverseVar (env, depth, exp->u.assign.var);
+        TraverseVar (env, depth, exp->u.assign.var, FALSE);
         TraverseExp (env, depth, exp->u.assign.exp);
         break;
     }

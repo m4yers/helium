@@ -254,9 +254,9 @@ Tr_accessList Tr_Formals (Tr_level level)
     return level->formals->tail;
 }
 
-Tr_access Tr_AllocVirtual (Tr_level level)
+Tr_access Tr_AllocVirtual (Tr_level level, S_symbol name)
 {
-    Tr_access ta = Tr_Access (level, F_AllocVirtual (level->frame));
+    Tr_access ta = Tr_Access (level, F_AllocVirtual (level->frame, name ? name->name : NULL));
     LIST_PUSH (level->locals, ta);
 
     return ta;
@@ -274,7 +274,7 @@ Tr_access Tr_AllocMaterialize (Tr_access access, Tr_level level, Ty_ty type, boo
     return access;
 }
 
-Tr_access Tr_Alloc (Tr_level level, Ty_ty type, bool escape)
+Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape)
 {
     int size = Ty_SizeOf (type);
     assert (size > 0);
@@ -283,11 +283,12 @@ Tr_access Tr_Alloc (Tr_level level, Ty_ty type, bool escape)
     if (size > F_wordSize)
     {
         // FIXME currently assuming it evenly divides
-        fa = F_AllocArray (level->frame, size / F_wordSize, escape);
+        // FIXME Frame module should not care about escaping, rename to onStack
+        fa = F_AllocArray (level->frame, size / F_wordSize, name ? name->name : NULL, escape);
     }
     else
     {
-        fa = F_Alloc (level->frame, escape);
+        fa = F_Alloc (level->frame, name ? name->name : NULL, escape);
     }
     Tr_access ta = Tr_Access (level, fa);
     LIST_PUSH (level->locals, ta);
@@ -299,7 +300,7 @@ Tr_access Tr_Alloc (Tr_level level, Ty_ty type, bool escape)
  *  Variables  *
  ***************/
 
-Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level)
+Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level, bool deref)
 {
     T_exp framePtr = T_Temp (F_FP());
     Tr_level current = level;
@@ -309,7 +310,7 @@ Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level)
         framePtr = T_Mem (framePtr);
         current = current->parent;
     }
-    return Tr_Ex (F_GetVar (access->access, framePtr));
+    return Tr_Ex (F_GetVar (access->access, framePtr, deref));
 }
 
 // FIXME codegen MUST detedct this pattern: add, add .. add, mem
@@ -486,7 +487,7 @@ Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty)
 
 Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 {
-    T_exp var = F_GetVar (access->access, T_Temp (F_FP()));
+    T_exp var = F_GetVar (access->access, T_Temp (F_FP()), TRUE);
     int ts = Ty_SizeOf (type->u.array.type);
 
     T_exp exp = T_Eseq (T_NoOp(), NULL);
@@ -523,7 +524,7 @@ Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 
 Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 {
-    T_exp base = F_GetVar (access->access, T_Temp (F_FP()));
+    T_exp base = F_GetVar (access->access, T_Temp (F_FP()), TRUE);
 
     T_exp exp = T_Eseq (T_NoOp(), NULL);
     T_exp tail = exp;
@@ -586,122 +587,6 @@ Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 
     return Tr_Ex (exp);
 }
-
-/* Tr_exp Tr_ArrayExp (Tr_exp size, Tr_exp init) */
-/* { */
-/*     Temp_temp l = Temp_NewTemp(); */
-/*     Temp_temp f = Temp_NewTemp(); */
-/*     Temp_temp r = Temp_NewTemp(); */
-/*  */
-/*     #<{(| */
-/*      * Calculating the size */
-/*      |)}># */
-/*     T_stm len = T_Move (T_Temp (l), T_Binop (T_mul, Tr_UnEx (size), T_Const (F_wordSize))); */
-/*     #<{(| */
-/*      * Filling data, it is either int value or a pointer an object(record or string) */
-/*      |)}># */
-/*     T_stm fill = T_Move (T_Temp (f), Tr_UnEx (init)); */
-/*     #<{(| */
-/*      * Malloc returns an address to a newly allocated mem block */
-/*      |)}># */
-/*     T_stm alloc = T_Move ( */
-/*                       T_Temp (r), */
-/*                       T_Call ( */
-/*                           // TODO stdlib? */
-/*                           T_Name (Temp_NamedLabel ("__malloc")), */
-/*                           T_ExpList (T_Temp (l), NULL))); */
-/*  */
-/*     Temp_label again = Temp_NewLabel(); */
-/*     Temp_label done = Temp_NewLabel(); */
-/*  */
-/*     printf ("Tr_ArrayExp again: %s, done: %s\n", again->name, done->name); */
-/*  */
-/*     T_exp loop = */
-/*         T_Eseq (len, T_Eseq (alloc, T_Eseq (fill, */
-/*         #<{(| */
-/*          * loop start */
-/*          |)}># */
-/*         T_Eseq (T_Label (again), */
-/*         #<{(| */
-/*          * decrement index */
-/*          |)}># */
-/*         T_Eseq (T_Move (T_Temp (l), T_Binop (T_minus, T_Temp (l), T_Const (F_wordSize))), */
-/*         #<{(| */
-/*          * copy init into the every array cell */
-/*          |)}># */
-/*         T_Eseq (T_Move (T_Mem (T_Binop (T_plus, T_Temp (r), T_Temp (l))), T_Temp (f)), */
-/*         #<{(| */
-/*          * if l < 0 then jump to end else continue */
-/*          |)}># */
-/*         T_Eseq (T_Cjump (T_eq, T_Temp (l), T_Const (0), done, again), */
-/*         #<{(| */
-/*          * loop end */
-/*          |)}># */
-/*         T_Eseq (T_Label (done), T_Temp (r))))))))); */
-/*  */
-/*     return Tr_Ex (loop); */
-/* } */
-
-/* Tr_exp Tr_RecordExp (Tr_expList list) */
-/* { */
-/*     Temp_temp l = Temp_NewTemp(); */
-/*     Temp_temp r = Temp_NewTemp(); */
-/*  */
-/*     #<{(| */
-/*      * Malloc returns an address to a newly allocated mem block */
-/*      |)}># */
-/*     T_stm alloc = T_Move ( */
-/*                       T_Temp (r), */
-/*                       T_Call ( */
-/*                           T_Name (Temp_NamedLabel ("__malloc")), */
-/*                           T_ExpList (T_Temp (l), NULL))); */
-/*  */
-/*     #<{(| */
-/*      * Init sequence */
-/*      |)}># */
-/*     T_stm init = NULL, last = NULL; */
-/*     size_t len = 0; */
-/*     LIST_FOREACH (ex, list) */
-/*     { */
-/*         T_stm stm = T_Move ( */
-/*                         T_Mem (T_Binop (T_plus, T_Temp (r), T_Const (len * F_wordSize))), */
-/*                         Tr_UnEx (ex)); */
-/*         if (last) */
-/*         { */
-/*             last = last->u.SEQ.right = T_Seq (stm, NULL); */
-/*         } */
-/*         else */
-/*         { */
-/*             init = last = T_Seq (stm, NULL); */
-/*         } */
-/*  */
-/*         len++; */
-/*     } */
-/*  */
-/*     last->u.SEQ.right = T_NoOp(); */
-/*  */
-/*     if (len) */
-/*     { */
-/*         T_stm size = T_Move (T_Temp (l), T_Const (len * F_wordSize)); */
-/*  */
-/*         return Tr_Ex (T_Eseq (size, */
-/*                               T_Eseq (alloc, */
-/*                                       T_Eseq (init, T_Temp (r))))); */
-/*  */
-/*     } */
-/*     #<{(| */
-/*      * if it is an empty record we still gonna allocate some memory (machine word size) */
-/*      * so the function will produce an empty record pointer result. By the standard two */
-/*      * empty records are different entities. */
-/*      |)}># */
-/*     else */
-/*     { */
-/*         T_stm size = T_Move (T_Temp (l), T_Const (F_wordSize)); */
-/*  */
-/*         return Tr_Ex (T_Eseq (size, */
-/*                               T_Eseq (alloc, T_Temp (r)))); */
-/*     } */
-/* } */
 
 Tr_exp Tr_Assign (Tr_exp left, Tr_exp right)
 {
@@ -801,16 +686,16 @@ Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done)
      * statements.
      */
     return Tr_Sx (T_Seq (T_Label (t),
-                         T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
-                                T_Seq (T_Label (b),
-                                       T_Seq (Tr_UnSx (body),
-                                               T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
-                                                       T_Label (done)))))));
+                  T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
+                  T_Seq (T_Label (b),
+                  T_Seq (Tr_UnSx (body),
+                  T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
+                  T_Label (done)))))));
 }
 
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label done)
 {
-    T_exp l = F_GetVar (iter->access, T_Temp (F_FP()));
+    T_exp l = F_GetVar (iter->access, T_Temp (F_FP()), TRUE);
     Temp_temp h = Temp_NewTemp();
     Temp_label c = Temp_NewLabel();
     Temp_label t = Temp_NewLabel();
@@ -828,16 +713,16 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label don
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (l, Tr_UnEx (lo)),
-                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-                                T_Seq (T_Label (c),
-                                       T_Seq (T_Cjump (T_le, l, T_Temp (h), t, done),
-                                               T_Seq (T_Label (t),
-                                                       T_Seq (Tr_UnSx (body),
-                                                               T_Seq (T_Cjump (T_eq, l, T_Temp (h), done, n),
-                                                                       T_Seq (T_Label (n),
-                                                                               T_Seq (T_Move (l, T_Binop (T_plus, l, T_Const (1))),
-                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-                                                                                               T_Label (done))))))))))));
+                  T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+                  T_Seq (T_Label (c),
+                  T_Seq (T_Cjump (T_le, l, T_Temp (h), t, done),
+                  T_Seq (T_Label (t),
+                  T_Seq (Tr_UnSx (body),
+                  T_Seq (T_Cjump (T_eq, l, T_Temp (h), done, n),
+                  T_Seq (T_Label (n),
+                  T_Seq (T_Move (l, T_Binop (T_plus, l, T_Const (1))),
+                  T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+                  T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)

@@ -100,7 +100,7 @@ static bool is_int_type (Ty_ty ty)
 
 static bool is_int (Semant_Exp exp)
 {
-    return exp.ty == Ty_Int() || GetActualType(exp.ty) == Ty_Int();
+    return exp.ty == Ty_Int() || GetActualType (exp.ty) == Ty_Int();
 }
 
 static bool is_string (Semant_Exp exp)
@@ -115,8 +115,8 @@ static bool same_type (Semant_Exp a, Semant_Exp b)
 
 static bool campatible_types (Ty_ty a, Ty_ty b)
 {
-    a = GetActualType(a);
-    b = GetActualType(b);
+    a = GetActualType (a);
+    b = GetActualType (b);
 
     return a == b;
 }
@@ -176,6 +176,16 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 
         return type;
     }
+    case A_pointerTy:
+    {
+        Ty_ty type = TransTyp (context, ty->u.pointer);
+        if (is_invalid (type))
+        {
+            type = Ty_Int();
+        }
+
+        return Ty_Pointer (type);
+    }
     case A_arrayTy:
     {
         struct A_arrayTy_t arrayTy = ty->u.array;
@@ -214,7 +224,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
         LIST_FOREACH (field, ty->u.record)
         {
             // check for field repetition
-            LIST_FOREACH(field_s, ty->u.record)
+            LIST_FOREACH (field_s, ty->u.record)
             {
                 if (field_s == field)
                 {
@@ -222,7 +232,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
                 }
                 else if (field_s->name == field->name)
                 {
-                    ERROR(
+                    ERROR (
                         &field_s->loc,
                         3002,
                         "Redefinition of field '%s'",
@@ -272,11 +282,11 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         }
 
         // check for typedef duplicate
-        Ty_ty def = (Ty_ty)S_Look(context->tenv, decType.name);
+        Ty_ty def = (Ty_ty)S_Look (context->tenv, decType.name);
 
         if (def)
         {
-            ERROR(
+            ERROR (
                 &dec->loc,
                 3014,
                 "Redefinition of type '%s'",
@@ -353,28 +363,35 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
             bool copy = decVar.init->kind == A_varExp && ity->meta.is_handle;
 
             /*
+             * Handle types are based on implicit pointer, upon taking the address of var of
+             * this kind the address is copied from the handle, so no need to push it to the
+             * stack.
+             *
+             * NOTE escape analysis cannot fully handle this because if type inferring.
+             */
+            bool escape = GetActualType (ity)->meta.is_handle ? FALSE : decVar.escape;
+
+            /*
              * The difference here is in the type size, if we copy the stack array we allocate full
              * size, if we just move handle we allocate word-size temp.
-             *
-             * HMM have no idea how this will impact floats
              */
             if (copy)
             {
-                access = Tr_Alloc (context->level, ity, decVar.escape);
-                Tr_exp left = Tr_SimpleVar (access, context->level);
+                access = Tr_Alloc (context->level, ity, decVar.var, escape);
+                Tr_exp left = Tr_SimpleVar (access, context->level, TRUE);
                 iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (ity) / F_wordSize);
             }
             else
             {
-                access = Tr_Alloc (context->level, Ty_Int(), decVar.escape);
-                iexp = Tr_Assign (Tr_SimpleVar (access, context->level), iexp);
+                access = Tr_Alloc (context->level, Ty_Int(), decVar.var, escape);
+                iexp = Tr_Assign (Tr_SimpleVar (access, context->level, TRUE), iexp);
             }
 
             /*
              * If provided initialization expression is not of the variable type, spawn an error
              * and drop initialization completely.
              */
-            if (dty && dty != ity && GetActualType(dty) != GetActualType(ity))
+            if (dty && dty != ity && GetActualType (dty) != GetActualType (ity))
             {
                 ERROR_UNEXPECTED_TYPE (loc, dty, ity);
                 iexp = Tr_Void();
@@ -397,7 +414,10 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         // We have only type supplied so no initialization is made.
         else if (dty)
         {
-            access = Tr_Alloc (context->level, GetActualType (dty), decVar.escape);
+            // same as above
+            bool escape = GetActualType (dty)->meta.is_handle ? FALSE : decVar.escape;
+            dty = GetActualType (dty);
+            access = Tr_Alloc (context->level, GetActualType (dty), decVar.var, escape);
             iexp = Tr_Void();
         }
         else
@@ -414,7 +434,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
         if (e && e->level == context->level)
         {
-            ERROR(
+            ERROR (
                 &dec->loc,
                 3014,
                 "Redefinition of '%s'",
@@ -484,7 +504,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
         if (entry && entry->level == context->level)
         {
-            ERROR(
+            ERROR (
                 &dec->loc,
                 3014,
                 "Redefinition of '%s'",
@@ -565,10 +585,16 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
         return Tr_Void();
     }
+    default:
+    {
+        assert (0);
+    }
     }
 }
 
-static Semant_Exp TransVar (Semant_Context context, A_var var)
+// FIXME deref thing is very unclear, i need a better approach
+// mb trace tree path via stack? -> meaning usage context
+static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 {
     A_loc loc = &var->loc;
     Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
@@ -602,9 +628,16 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
         }
         else if (e->kind == Env_varEntry)
         {
-            return Expression_New (
-                       Tr_SimpleVar (e->u.var.access, context->level),
-                       GetActualType (e->u.var.ty));
+            Ty_ty vty = GetActualType(e->u.var.ty);
+            // SHIT in case of handle i need the address which is the same routine as for
+            // non-address-of approach it is just handled differently in the context above, FUCK!!!
+            deref = vty->meta.is_handle ? TRUE : deref;
+            Tr_exp exp = Tr_SimpleVar (e->u.var.access, context->level, deref);
+            Ty_ty type = deref
+                         ? GetActualType (vty)
+                         : Ty_Pointer (GetActualType (e->u.var.ty));
+
+            return Expression_New (exp, type);
         }
         else
         {
@@ -617,7 +650,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
         struct A_varField_t varField = var->u.field;
 
         level++;
-        Semant_Exp vexp = TransVar (context, varField.var);
+        Semant_Exp vexp = TransVar (context, varField.var, deref);
         level--;
 
         if (is_invalid (vexp.ty))
@@ -650,7 +683,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
                  * current instance so the whole offset has been computed in form of base+offset
                  * and that the type of the instance we are parsing is primitive(single word size).
                  */
-                bool deref = level == 0 && !ty->meta.is_handle;
+                deref = deref && level == 0 && !ty->meta.is_handle;
                 Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, deref);
                 return Expression_New (exp, ty);
             }
@@ -670,7 +703,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
         struct A_varSubscript_t varSubscript = var->u.subscript;
 
         level++;
-        Semant_Exp vexp = TransVar (context, varSubscript.var);
+        Semant_Exp vexp = TransVar (context, varSubscript.var, deref);
         level--;
 
         if (is_invalid (vexp.ty))
@@ -711,7 +744,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var)
          * instance so the whole offset has been computed in form of base+offset and that the type
          * of the instance we are parsing is primitive(single word size).
          */
-        bool deref = level == 0 && !ty->meta.is_handle;
+        deref = deref && level == 0 && !ty->meta.is_handle;
 
         Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, deref);
         return Expression_New (exp, ty);
@@ -795,7 +828,16 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_varExp:
     {
-        return TransVar (context, exp->u.var);
+        return TransVar (context, exp->u.var, TRUE);
+    }
+    case A_addressOf:
+    {
+        Semant_Exp sexp = TransVar (context, exp->u.addressOf, FALSE);
+        if (is_invalid (sexp.ty))
+        {
+            sexp.ty = Ty_Int();
+        }
+        return sexp;
     }
     case A_asmExp:
     {
@@ -895,10 +937,10 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         A_oper oper = opExp.oper;
 
         Semant_Exp left = TransExp (context, opExp.left);
-        left.ty = GetActualType(left.ty);
+        left.ty = GetActualType (left.ty);
 
         Semant_Exp right = TransExp (context, opExp.right);
-        right.ty = GetActualType(right.ty);
+        right.ty = GetActualType (right.ty);
 
         // do type checks
         if (!is_int (left) && !is_int (right))
@@ -1009,7 +1051,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
              * so we create a virtual access point(base), later it will be updated with the
              * real type information.
              */
-            access = Tr_AllocVirtual (context->level);
+            access = Tr_AllocVirtual (context->level, NULL);
         }
 
         if (exp->kind == A_arrayExp)
@@ -1069,9 +1111,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
              * Array always yields anonymous array type. It is done for consistency sake, so the
              * equal expressions will get the same(instance address wise) type.
              */
-            struct String_t ty_id = String("");
+            struct String_t ty_id = String ("");
             GetQTypeName (ty, &ty_id);
-            S_symbol symbol = S_Symbol(ty_id.data);
+            S_symbol symbol = S_Symbol (ty_id.data);
 
             Ty_ty type = (Ty_ty)S_Look (context->tenv, symbol);
 
@@ -1102,7 +1144,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
                     return e_invalid;
                 }
-                else if (GetActualType(ty)->kind != Ty_record)
+                else if (GetActualType (ty)->kind != Ty_record)
                 {
                     ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
                     return e_invalid;
@@ -1122,9 +1164,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     {
                         break;
                     }
-                    else if ( exp_field_s->name == exp_field->name)
+                    else if (exp_field_s->name == exp_field->name)
                     {
-                        ERROR(
+                        ERROR (
                             &exp_field->loc,
                             3002,
                             "Redefinition of field '%s'",
@@ -1150,7 +1192,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 if (valid && ty)
                 {
                     Ty_field ty_field = NULL;
-                    LIST_FOREACH (type_field, GetActualType(ty)->u.record)
+                    LIST_FOREACH (type_field, GetActualType (ty)->u.record)
                     {
                         if (type_field->name == exp_field->name)
                         {
@@ -1162,7 +1204,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     // init expression contains a field that does not belong to the specified type
                     if (!ty_field)
                     {
-                        ERROR(
+                        ERROR (
                             &exp_field->loc,
                             3002,
                             "Unknown to type '%s' field '%s' of type '%s'",
@@ -1173,7 +1215,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                         valid = FALSE;
                     }
                     // types of init expression and type field mismatch
-                    else if (GetActualType(ty_field->ty) != GetActualType(sexp.ty))
+                    else if (GetActualType (ty_field->ty) != GetActualType (sexp.ty))
                     {
                         ERROR_UNEXPECTED_TYPE (&exp_field->loc, ty_field->ty, sexp.ty);
                         valid = FALSE;
@@ -1204,7 +1246,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 // We need to rearrange the init expression list in type order and fill the gaps
                 Tr_expList ael = NULL;
                 nextOffset = 0;
-                LIST_FOREACH (type_field, GetActualType(ty)->u.record)
+                LIST_FOREACH (type_field, GetActualType (ty)->u.record)
                 {
                     Tr_expList iel = el;
                     Tr_exp ie = NULL;
@@ -1252,7 +1294,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                 ty = Ty_Record (fl);
             }
 
-            ex = Tr_RecordExp (access, GetActualType(ty), el, thisOffset);
+            ex = Tr_RecordExp (access, GetActualType (ty), el, thisOffset);
         }
 
 
@@ -1271,11 +1313,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         struct A_assignExp_t assignExp = exp->u.assign;
 
-        Semant_Exp lexp = TransVar (context, assignExp.var);
-        lexp.ty = GetActualType(lexp.ty);
+        Semant_Exp lexp = TransVar (context, assignExp.var, TRUE);
+        lexp.ty = GetActualType (lexp.ty);
 
         Semant_Exp rexp = TransExp (context, assignExp.exp);
-        rexp.ty = GetActualType(rexp.ty);
+        rexp.ty = GetActualType (rexp.ty);
 
         // no way to recover from this
         if (is_invalid (lexp.ty) && is_invalid (rexp.ty))
@@ -1427,7 +1469,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         // store the iterator within the new scope
         Env_Entry entry = Env_VarEntryNew (
                               context->level,
-                              Tr_Alloc (context->level, Ty_Int(), forExp.escape),
+                              Tr_Alloc (context->level, Ty_Int(), forExp.var, forExp.escape),
                               Ty_Int());
         S_Enter (context->venv, forExp.var, entry);
 

@@ -40,6 +40,7 @@ struct Ty_ty_
 
     union
     {
+        Ty_ty pointer;
         Ty_fieldList record;
         struct
         {
@@ -69,6 +70,7 @@ Ty_ty Ty_Int (void);
 Ty_ty Ty_String (void);
 Ty_ty Ty_Void (void);
 
+Ty_ty Ty_Pointer (Ty_ty type);
 Ty_ty Ty_Record (Ty_fieldList fields);
 Ty_ty Ty_Array (Ty_ty type, int size);
 Ty_ty Ty_Name (S_symbol sym, Ty_ty ty);

@@ -97,4 +97,33 @@ here, b must be fetched again after assignment, but a should not. Though, clever
 follow def/use graph and delte all the shit.
 
 
+Pointers:
 
+    let a = { x = 0, y = 10 };
+    let b = &a;
+
+    b:x = 10;
+
+    b..x = 10;
+
+    b->x = 10;
+
+    let c = &b;
+
+    c::x = 10;
+
+    c...x = 10;
+
+    c->>x = 10;
+    c-->x = 10;
+
+References:
+
+    let a = { x = 0, y = 10 };
+    let ref b = &a;
+
+    b.x = 10;
+
+';'
+Follow RUST approach: if the last exp in function is not followed by the ';' it is interpreted as
+ret exp;

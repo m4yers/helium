@@ -257,11 +257,20 @@ static void main__return (void ** state)
         /*     let a = Point{ x = 10, y = 20 };\n\ */
         /* }", */
 
-        "fn blah\n\
+        "fn main\n\
         {\n\
-            fn blah () { ret 0; }\n\
-            fn blah () { ret 0; } //~ ERROR 3014\n\
+            def Point = { x: int, y: int }\n\
+            let a = Point{ x = 11, y = 12 };\n\
+            let c = &a;\n\
         }",
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     let a = 10;\n\ */
+        /*     let b = &a;\n\ */
+        /*     let c = b;\n\ */
+        /* }", */
+
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

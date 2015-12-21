@@ -919,7 +919,7 @@ static ASM_lineList Rewrite (Workspace w)
     size_t accessNum = LIST_SIZE (w->accessList);
     while (accessNum < spilledNum)
     {
-        LIST_PUSH (w->accessList, F_AllocFrame (w->frame));
+        LIST_PUSH (w->accessList, F_AllocFrame (w->frame, "SPILL"));
         accessNum++;
     }
 
@@ -983,7 +983,7 @@ static ASM_lineList Rewrite (Workspace w)
                 }
 
                 T_stmList stms = NULL;
-                LIST_PUSH (stms, T_Move (T_Temp (v), F_GetVar (access, T_Temp (F_FP()))));
+                LIST_PUSH (stms, T_Move (T_Temp (v), F_GetVar (access, T_Temp (F_FP()), TRUE)));
 
                 ASM_lineList fll = F_CodeGen (w->frame, stms);
 
@@ -1022,7 +1022,7 @@ static ASM_lineList Rewrite (Workspace w)
                 }
 
                 T_stmList stms = NULL;
-                LIST_PUSH (stms, T_Move (F_GetVar (access, T_Temp (F_FP())), T_Temp (v)));
+                LIST_PUSH (stms, T_Move (F_GetVar (access, T_Temp (F_FP()), TRUE), T_Temp (v)));
                 ASM_lineList sll = F_CodeGen (w->frame, stms);
 
                 LIST_JOIN (sll, cur->tail);

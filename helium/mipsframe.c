@@ -5,7 +5,7 @@
 #include "ext/util.h"
 #include "ext/mem.h"
 
-#define LOG_LEVEL LOG_LEVEL_WARNING
+#define LOG_LEVEL LOG_LEVEL_DEBUG
 #include "ext/log.h"
 
 #include "mipsmachine.h"
@@ -110,6 +110,12 @@ struct F_access_
     } kind;
 
     /*
+     * If not null handles the name of the variable that relies on this access point.
+     * TODO make it more generic, e.g. meta record and special printer passed from outside
+     */
+    const char * name;
+
+    /*
      * If not NULL this current access point is a handle and points to this access points which
      * is usually an array of words.
      */
@@ -175,18 +181,20 @@ static char * Access_ToString (F_access access, char * buffer)
     {
     case FA_virtual:
     {
-        current += sprintf (current, "kind: virtual");
+        current += sprintf (current, "name: %s, kind: virtual", access->name);
         break;
     }
     case FA_reg:
     {
-        current += sprintf (current, "kind: regWord, handles: %p",
+        current += sprintf (current, "name: %s, kind: regWord, handles: %p",
+                            access->name,
                             access->access);
         break;
     }
     case FA_stackWord:
     {
-        current += sprintf (current, "kind: stackWord, offset: %d, handles: %p",
+        current += sprintf (current, "name: %s, kind: stackWord, offset: %d, handles: %p",
+                            access->name,
                             access->u.stackWord.offset,
                             access->access);
         break;
@@ -322,7 +330,7 @@ F_accessList F_Formals (F_frame frame)
     return frame->formals;
 }
 
-F_access F_Alloc (F_frame frame, bool escape)
+F_access F_Alloc (F_frame frame, const char * name, bool escape)
 {
     F_access access;
 
@@ -341,20 +349,23 @@ F_access F_Alloc (F_frame frame, bool escape)
 
     LIST_PUSH (frame->words, access);
 
-    DBG ("F_Alloc %p for <%s>, escapes: %s\n",
+    access->name = name;
+
+    DBG ("F_Alloc %p named as <%s> for <%s>, escapes: %s\n",
          access,
+         name,
          frame->name->name,
          BOOL_TO_STRING (escape))
 
     return access;
 }
 
-F_access F_AllocFrame (F_frame frame)
+F_access F_AllocFrame (F_frame frame, const char * name)
 {
-    return F_Alloc (frame, TRUE);
+    return F_Alloc (frame, name, TRUE);
 }
 
-F_access F_AllocArray (F_frame frame, int words, bool escape)
+F_access F_AllocArray (F_frame frame, int words, const char * name, bool escape)
 {
     /*
      * updating the couter to the actual array size;
@@ -380,9 +391,11 @@ F_access F_AllocArray (F_frame frame, int words, bool escape)
 
     LIST_PUSH (frame->words, access);
 
-    DBG ("F_AllocArray %p for <%s>, words: %d, handle: %p, escapes: %s\n",
+    access->name = name;
+    DBG ("F_AllocArray %p for <%s>, name: %s, words: %d, handle: %p, escapes: %s\n",
          array,
          frame->name->name,
+         name,
          words,
          access,
          BOOL_TO_STRING (escape))
@@ -390,10 +403,14 @@ F_access F_AllocArray (F_frame frame, int words, bool escape)
     return access;
 }
 
-F_access F_AllocVirtual (F_frame frame)
+F_access F_AllocVirtual (F_frame frame, const char * name)
 {
     F_access v = VirtualNew();
-    DBG ("F_AllocVirtual %p for <%s>\n", v, frame->name->name);
+    v->name = name;
+    DBG ("F_AllocVirtual %p named as <%s> for <%s>\n",
+         v,
+         name,
+         frame->name->name);
     LIST_PUSH (frame->virtuals, v);
     return v;
 }
@@ -430,7 +447,7 @@ F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, boo
 
     LIST_FOREACH (c, containers)
     {
-        c->u.ESEQ.exp = F_GetVar (access, c->u.ESEQ.exp);
+        c->u.ESEQ.exp = F_GetVar (access, c->u.ESEQ.exp, TRUE);
     }
 
     access->access = array;
@@ -956,15 +973,21 @@ Temp_temp F_RV (void)
     return v0;
 }
 
-T_exp F_GetVar (F_access access, T_exp framePtr)
+T_exp F_GetVar (F_access access, T_exp framePtr, bool deref)
 {
     if (access->kind == FA_stackWord)
     {
-        // TODO factor out this out of here somehow
-        return T_Mem (T_Binop (T_plus, framePtr, T_Const (access->u.stackWord.offset)));
+        T_exp exp = T_Binop (T_plus, framePtr, T_Const (access->u.stackWord.offset));
+        return deref
+               ? T_Mem (exp)
+               : exp;
     }
     else if (access->kind == FA_reg)
     {
+        /*
+         * You cannot get pointer from a regeister based variable
+         */
+        assert (deref);
         /*
          * FIXME this is a bit tricky, when translation asks for the actual access location
          * inside the frame it might give the function not frame pointer but some offset from it
@@ -979,6 +1002,7 @@ T_exp F_GetVar (F_access access, T_exp framePtr)
     }
     else if (access->kind == FA_virtual)
     {
+        assert (deref);
         T_exp dummy = T_Eseq (T_NoOp(), framePtr);
         LIST_PUSH (access->u.virtual.containers, dummy);
         return dummy;

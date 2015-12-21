@@ -30,14 +30,14 @@ Temp_label F_Ret (F_frame frame);
  * otherwise the variable will reside in a register if there is one free at the moment and pushed
  * to stack only if spilled.
  */
-F_access F_Alloc (F_frame frame, bool escape);
+F_access F_Alloc (F_frame frame, const char * name, bool escape);
 
 /**
  * Allocates word size variable stored on stack(escapes by default)
  *
  * @frame Current stack frame
  */
-F_access F_AllocFrame (F_frame frame);
+F_access F_AllocFrame (F_frame frame, const char * name);
 
 /**
  * The method allocates specified number of bytes and returns handle(pointer) to this stack based
@@ -74,9 +74,9 @@ F_access F_AllocFrame (F_frame frame);
  * HMM still not sure about escaping here
  * TODO what about alignment?
  */
-F_access F_AllocArray (F_frame frame, int words, bool escape);
+F_access F_AllocArray (F_frame frame, int words, const char * name, bool escape);
 
-F_access F_AllocVirtual (F_frame frame);
+F_access F_AllocVirtual (F_frame frame, const char * name);
 F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, bool escape);
 
 bool F_AllocIsVirtual (F_access access);
@@ -138,7 +138,7 @@ Temp_temp F_FP (void);
 Temp_temp F_RA (void);
 Temp_temp F_RV (void);
 
-T_exp F_GetVar (F_access access, T_exp framePtr);
+T_exp F_GetVar (F_access access, T_exp framePtr, bool deref);
 T_exp F_ExternalCall (const char * name, T_expList args);
 
 void F_Init (void);

@@ -48,7 +48,7 @@ void Tr_ProcEntryExit (struct Semant_ContextType * c, Tr_level level, Tr_exp bod
  *  Variables  *
  ***************/
 
-Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level);
+Tr_exp Tr_SimpleVar (Tr_access access, Tr_level level, bool deref);
 Tr_exp Tr_FieldVar (Tr_exp var, Ty_ty type, S_symbol field, bool deref);
 Tr_exp Tr_SubscriptVar (Tr_exp var, Ty_ty type, Tr_exp subscript, bool deref);
 
@@ -85,8 +85,8 @@ Temp_label Tr_ScopedLabel (Tr_level level, const char * name);
 
 Tr_accessList Tr_Formals (Tr_level level);
 
-Tr_access Tr_AllocVirtual (Tr_level level);
+Tr_access Tr_AllocVirtual (Tr_level level, S_symbol name);
 Tr_access Tr_AllocMaterialize (Tr_access access, Tr_level level, Ty_ty type, bool escape);
-Tr_access Tr_Alloc (Tr_level level, Ty_ty type, bool escape);
+Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape);
 
 #endif /* end of include guard: TRANSLATE_H_ZDIHRPIG */
