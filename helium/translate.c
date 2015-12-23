@@ -339,6 +339,11 @@ Tr_exp Tr_FieldVar (Tr_exp var, Ty_ty type, S_symbol field, bool deref)
     return Tr_Ex (exp);
 }
 
+Tr_exp Tr_DerefExp (Tr_exp exp)
+{
+    return Tr_Ex (T_Mem (Tr_UnEx (exp)));
+}
+
 Tr_exp Tr_SubscriptVar (Tr_exp var, Ty_ty type, Tr_exp subscript, bool deref)
 {
     // TODO: what about range checks?
@@ -545,13 +550,13 @@ Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
             case T_TEMP:
             {
                 Tr_exp copy = Tr_Memcpy (
-                                  Tr_Ex(T_Binop (
-                                            T_plus,
-                                            base,
-                                            T_Const (offset))),
+                                  Tr_Ex (T_Binop (
+                                             T_plus,
+                                             base,
+                                             T_Const (offset))),
                                   list->head,
                                   Ty_SizeOf (ft) / F_wordSize);
-                tail = tail->u.ESEQ.exp = T_Eseq (Tr_UnSx(copy), NULL);
+                tail = tail->u.ESEQ.exp = T_Eseq (Tr_UnSx (copy), NULL);
                 break;
             }
             case T_ESEQ:
@@ -590,15 +595,15 @@ Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
 
 Tr_exp Tr_Assign (Tr_exp left, Tr_exp right)
 {
-    T_exp l = Tr_UnEx(left);
-    T_exp r = Tr_UnEx(right);
+    T_exp l = Tr_UnEx (left);
+    T_exp r = Tr_UnEx (right);
     return Tr_Sx (T_Move (l, r));
 }
 
 Tr_exp Tr_Memcpy (Tr_exp dst, Tr_exp src, size_t words)
 {
-    T_exp d = Tr_UnEx(dst);
-    T_exp s = Tr_UnEx(src);
+    T_exp d = Tr_UnEx (dst);
+    T_exp s = Tr_UnEx (src);
     T_stm r = T_NoOp();
 
     while (words--)
@@ -617,7 +622,7 @@ Tr_exp Tr_Memcpy (Tr_exp dst, Tr_exp src, size_t words)
                    r);
     }
 
-    return Tr_Sx(r);
+    return Tr_Sx (r);
 }
 
 Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
@@ -638,12 +643,12 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
          * the 'true' branch. In the end we return the result in 'r' register
          */
         return Tr_Ex (T_Eseq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), f, t),
-                      T_Eseq (T_Label (t),
-                      T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
-                      T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
-                      T_Eseq (T_Label (f),
-                      T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
-                      T_Eseq (T_Label (e), T_Temp (r)))))))));
+                              T_Eseq (T_Label (t),
+                                      T_Eseq (T_Move (T_Temp (r), Tr_UnEx (te)),
+                                              T_Eseq (T_Jump (T_Name (e), Temp_LabelList (e, NULL)),
+                                                      T_Eseq (T_Label (f),
+                                                              T_Eseq (T_Move (T_Temp (r), Tr_UnEx (fe)),
+                                                                      T_Eseq (T_Label (e), T_Temp (r)))))))));
     }
     else
     {
@@ -653,17 +658,17 @@ Tr_exp Tr_If (Tr_exp test, Tr_exp te, Tr_exp fe)
          * an r-value; though TODO: RTFM
          */
         return Tr_Sx (
-                  // campare whatever Tr_UnEx(test) temp containts with zero
-                  T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), e, f),
+                   // campare whatever Tr_UnEx(test) temp containts with zero
+                   T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), e, f),
 
-                  // we always campare to zero so the FALSE is actually TRUE
-                  T_Seq (T_Label (f),
-    
-                  // if not zero execute the TRUE branch
-                  T_Seq (Tr_UnSx (te),
-    
-                  // if equals to zero go to the end
-                  T_Label (e)))));
+                          // we always campare to zero so the FALSE is actually TRUE
+                          T_Seq (T_Label (f),
+
+                                 // if not zero execute the TRUE branch
+                                 T_Seq (Tr_UnSx (te),
+
+                                        // if equals to zero go to the end
+                                        T_Label (e)))));
     }
 }
 
@@ -686,11 +691,11 @@ Tr_exp Tr_While (Tr_exp test, Tr_exp body, Temp_label done)
      * statements.
      */
     return Tr_Sx (T_Seq (T_Label (t),
-                  T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
-                  T_Seq (T_Label (b),
-                  T_Seq (Tr_UnSx (body),
-                  T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
-                  T_Label (done)))))));
+                         T_Seq (T_Cjump (T_eq, Tr_UnEx (test), T_Const (0), done, b),
+                                T_Seq (T_Label (b),
+                                       T_Seq (Tr_UnSx (body),
+                                               T_Seq (T_Jump (T_Name (t), Temp_LabelList (t, NULL)),
+                                                       T_Label (done)))))));
 }
 
 Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label done)
@@ -713,16 +718,16 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label don
      * thus we escape possible overflow increment of the left bound.
      */
     return Tr_Sx (T_Seq (T_Move (l, Tr_UnEx (lo)),
-                  T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
-                  T_Seq (T_Label (c),
-                  T_Seq (T_Cjump (T_le, l, T_Temp (h), t, done),
-                  T_Seq (T_Label (t),
-                  T_Seq (Tr_UnSx (body),
-                  T_Seq (T_Cjump (T_eq, l, T_Temp (h), done, n),
-                  T_Seq (T_Label (n),
-                  T_Seq (T_Move (l, T_Binop (T_plus, l, T_Const (1))),
-                  T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
-                  T_Label (done))))))))))));
+                         T_Seq (T_Move (T_Temp (h), Tr_UnEx (hi)),
+                                T_Seq (T_Label (c),
+                                       T_Seq (T_Cjump (T_le, l, T_Temp (h), t, done),
+                                               T_Seq (T_Label (t),
+                                                       T_Seq (Tr_UnSx (body),
+                                                               T_Seq (T_Cjump (T_eq, l, T_Temp (h), done, n),
+                                                                       T_Seq (T_Label (n),
+                                                                               T_Seq (T_Move (l, T_Binop (T_plus, l, T_Const (1))),
+                                                                                       T_Seq (T_Jump (T_Name (c), Temp_LabelList (c, NULL)),
+                                                                                               T_Label (done))))))))))));
 }
 
 Tr_exp Tr_Break (Temp_label done)

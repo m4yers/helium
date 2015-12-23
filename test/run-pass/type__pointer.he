@@ -1,0 +1,70 @@
+fn test_primitives
+{
+    /** var init */
+
+    let a = 10;
+    let b = &a;
+    let c = *b;
+
+    assert! (&a <> &c);
+    assert! (a == c && a == 10);
+
+
+    /** assignment */
+
+    let d = 12;
+    let e = &d;
+    let f: int;
+    f = *e;
+
+    assert! (&d <> &f);
+    assert! (d == f && d == 12);
+}
+
+fn test_records
+{
+    def Point = { x: int, y: int }
+
+    /** field access */
+
+    let a = Point{ x = 11, y = 12 };
+    let b = &a;
+    let c = b:x;
+
+    assert! (&a == b);
+    assert! (b:x == a.x);
+    assert! (b:y == a.y);
+
+    /** var init */
+
+    let d = Point{x = 13, y = 15};
+    let e = &d;
+    let f = *e; // copy
+
+    assert! (&d <> &f);
+    assert! (d.x == f.x);
+    assert! (d.y == f.y);
+
+    /** assignment */
+
+    let g = Point{x = 16, y = 17};
+    let h = &g;
+    let i: Point;
+    i = *h; // copy
+
+    assert! (&g <> &i);
+    assert! (g.x == i.x);
+    assert! (g.y == i.y);
+}
+
+fn test_arrays
+{
+    1;
+}
+
+fn main
+{
+    test_primitives();
+    test_records();
+    // test_arrays();
+}

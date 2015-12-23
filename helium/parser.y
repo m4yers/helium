@@ -180,6 +180,10 @@ expression:               literals
                           {
                               $$ = A_AddressOfExp(&(@$), $2);
                           }
+                        | STAR expression
+                          {
+                              $$ = A_ValueAtExp(&(@$), $2);
+                          }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }
                         | INT     { $$ = A_IntExp (&(@$), $1);    }
@@ -214,7 +218,11 @@ lvalue:                   ID
                         /*   } */
                         | lvalue DOT ID
                           {
-                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3));
+                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 0);
+                          }
+                        | lvalue COLON ID
+                          {
+                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 1);
                           }
                         | lvalue LBRACK expression RBRACK
                           {

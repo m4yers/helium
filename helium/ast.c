@@ -60,13 +60,14 @@ A_var A_SimpleVar (A_loc loc, S_symbol sym)
     return p;
 }
 
-A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym)
+A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym, int jumps)
 {
     A_var p = checked_malloc (sizeof (*p));
     p->kind = A_fieldVar;
     p->loc = *loc;
     p->u.field.var = var;
     p->u.field.sym = sym;
+    p->u.field.jumps = jumps;
     return p;
 }
 
@@ -91,6 +92,15 @@ A_exp A_AddressOfExp (A_loc loc, A_var var)
     p->kind = A_addressOf;
     p->loc = *loc;
     p->u.addressOf = var;
+    return p;
+}
+
+A_exp A_ValueAtExp (A_loc loc, A_exp exp)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_valueAt;
+    p->loc = *loc;
+    p->u.valueAt = exp;
     return p;
 }
 

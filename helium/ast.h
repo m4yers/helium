@@ -55,7 +55,7 @@ typedef enum
     A_typeDec, A_functionDec, A_varDec, 
 
     /** Exp */
-    A_retExp, A_addressOf,
+    A_retExp, A_addressOf, A_valueAt,
     A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
     A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
     A_whileExp, A_forExp, A_breakExp, A_arrayExp,
@@ -97,6 +97,7 @@ struct A_varField_t
 {
     A_var var;
     S_symbol sym;
+    int jumps;
 };
 
 struct A_varSubscript_t
@@ -120,7 +121,7 @@ struct A_var_t
 };
 
 A_var A_SimpleVar (A_loc loc, S_symbol sym);
-A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym);
+A_var A_FieldVar (A_loc loc, A_var var, S_symbol sym, int jumps);
 A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp);
 
 /*****************
@@ -204,6 +205,7 @@ struct A_exp_t
         /* break - need only the pos */
         /* nil; - needs only the pos */
         A_var addressOf;
+        A_exp valueAt;
         A_expList seq;
         A_var var;
         A_exp ret;
@@ -223,6 +225,7 @@ struct A_exp_t
 };
 
 A_exp A_AddressOfExp (A_loc loc, A_var var);
+A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 
 // TODO parse it for real
 A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList src, U_stringList dst);

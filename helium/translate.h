@@ -56,6 +56,7 @@ Tr_exp Tr_SubscriptVar (Tr_exp var, Ty_ty type, Tr_exp subscript, bool deref);
  *  Expressions  *
  *****************/
 
+Tr_exp Tr_DerefExp (Tr_exp exp);
 Tr_exp Tr_Seq (Tr_exp seq, Tr_exp current);
 Tr_exp Tr_Call (Temp_label label, Tr_level encolosing, Tr_level own, Tr_expList args);
 Tr_exp Tr_Nil (void);

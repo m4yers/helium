@@ -360,7 +360,8 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              */
 
             // If the rhs is a variable and the value it yields is handle we copy the whole array.
-            bool copy = decVar.init->kind == A_varExp && ity->meta.is_handle;
+            bool copy = (decVar.init->kind == A_varExp || decVar.init->kind == A_valueAt)
+                        && ity->meta.is_handle;
 
             /*
              * Handle types are based on implicit pointer, upon taking the address of var of
@@ -628,7 +629,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         }
         else if (e->kind == Env_varEntry)
         {
-            Ty_ty vty = GetActualType(e->u.var.ty);
+            Ty_ty vty = GetActualType (e->u.var.ty);
             Ty_ty type = deref
                          ? GetActualType (vty)
                          : Ty_Pointer (GetActualType (e->u.var.ty));
@@ -658,7 +659,15 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         {
             return e_invalid;
         }
-        else if (vexp.ty->kind != Ty_record)
+
+        int jumps = varField.jumps;
+
+        while (jumps--)
+        {
+            vexp.ty = vexp.ty->u.pointer;
+        }
+
+        if (vexp.ty->kind != Ty_record)
         {
             ERROR (
                 &var->loc,
@@ -837,6 +846,39 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         if (is_invalid (sexp.ty))
         {
             sexp.ty = Ty_Int();
+        }
+        return sexp;
+    }
+    case A_valueAt:
+    {
+        Semant_Exp sexp = TransExp (context, exp->u.valueAt);
+
+        // no point to try recrover here
+        if (is_invalid (sexp.ty))
+        {
+            return sexp;
+        }
+
+        if (!sexp.ty->meta.is_pointer)
+        {
+            ERROR_UNEXPECTED_TYPE (&exp->loc, Ty_Pointer (NULL), sexp.ty)
+        }
+        /*
+         * Handle internally passed as address and using value or pointer is based on context of
+         * the expression, so we just change the type and return whatever is there.
+         */
+        else if (sexp.ty->u.pointer->meta.is_handle)
+        {
+            printf ("handle deref\n");
+            sexp.ty = sexp.ty->u.pointer;
+        }
+        /*
+         * Primitive values on the other hand must be dereferenced explicitly
+         */
+        else
+        {
+            sexp.ty = sexp.ty->u.pointer;
+            sexp.exp = Tr_DerefExp (sexp.exp);
         }
         return sexp;
     }
@@ -1368,7 +1410,8 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         /*
          * If the rhs is a variable and the value it yields is handle we copy the whole array.
          */
-        bool copy = assignExp.exp->kind == A_varExp && rexp.ty->meta.is_handle;
+        bool copy = (assignExp.exp->kind == A_varExp || assignExp.exp->kind == A_valueAt)
+                    && rexp.ty->meta.is_handle;
 
         /*
          * The difference here is in the type size, if we copy the stack array we allocate full

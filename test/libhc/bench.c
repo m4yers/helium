@@ -257,20 +257,38 @@ static void main__return (void ** state)
         /*     let a = Point{ x = 10, y = 20 };\n\ */
         /* }", */
 
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     let a = Point{ x = 11, y = 12 };\n\ */
+        /*     let c = a;\n\ */
+        /*     1;\n\ */
+        /* }", */
+
         "fn main\n\
         {\n\
             def Point = { x: int, y: int }\n\
             let a = Point{ x = 11, y = 12 };\n\
             let b = &a;\n\
-            let c = &b;\n\
-            let d = &c;\n\
+            let c:Point;\n\
+            c = *b;\n\
+            1;\n\
         }",
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     let a = Point{ x = 11, y = 12 };\n\ */
+        /*     let c = a.y;\n\ */
+        /*     c;\n\ */
+        /* }", */
 
         /* "fn main\n\ */
         /* {\n\ */
         /*     let a = 10;\n\ */
         /*     let b = &a;\n\ */
-        /*     let c = b;\n\ */
+        /*     let c = *b;\n\ */
+        /*     let d = *b;\n\ */
         /* }", */
 
     };
