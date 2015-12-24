@@ -1,22 +1,45 @@
 fn primitives__init
 {
+    /** single indirect */
+
     let a = 10;
     let b = &a;
     let c = *b;
 
     assert! (&a <> &c);
     assert! (a == c && a == 10);
+
+    /** multi indirect */
+
+    let d = 11;
+    let e = &d;
+    let f = &e;
+    let g = **f;
+
+    assert! (d == g && g == 11);
 }
 
 fn primitives__assingment
 {
-    let d = 12;
-    let e = &d;
-    let f: int;
-    f = *e;
+    /** single indirect */
 
-    assert! (&d <> &f);
-    assert! (d == f && d == 12);
+    let a = 10;
+    let b = &a;
+    let c: int;
+    c = *b;
+
+    assert! (&a <> &c);
+    assert! (a == c && a == 10);
+
+    /** multi indirect */
+
+    let d = 11;
+    let e = &d;
+    let f = &e;
+    let g: int;
+    g = **f;
+
+    assert! (d == g && g == 11);
 }
 
 def Point = { x: int, y: int }
@@ -64,8 +87,8 @@ fn records__fields
     let m = &l;
 
     assert! (&j == **m);
-    /* assert! (b:x == a.x); */
-    /* assert! (b:y == a.y); */
+    assert! (m:::x == j.x);
+    assert! (m:::y == j.y);
 }
 
 /* fn test_arrays */

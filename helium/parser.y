@@ -105,6 +105,7 @@
 %type <efieldList> record_field_comma
 %type <field> typed_field
 %type <fieldList> typed_field_comma
+%type <ival> lvalue_jumps
 
 %precedence   REDUCE
 %precedence   TYPE
@@ -220,14 +221,17 @@ lvalue:                   ID
                           {
                               $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 0);
                           }
-                        | lvalue COLON ID
+                        | lvalue lvalue_jumps ID
                           {
-                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 1);
+                              $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), $2);
                           }
                         | lvalue LBRACK expression RBRACK
                           {
                               $$ = A_SubscriptVar (&(@$), $1, $3);
                           }
+                        ;
+lvalue_jumps:             COLON              { $$ = 1;      }
+                        | lvalue_jumps COLON { $$ = $1 + 1; }
                         ;
 call_function:            lvalue LPAREN exp_list_comma RPAREN
                           {

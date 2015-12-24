@@ -22,6 +22,12 @@ fn record__fields
 
     let a = 10;
     a:x;            //~ ERROR 3001
+
+    let b = Point{};
+    let c = &b;
+    let d = &c;
+
+    d:x;            //~ ERROR 3012
 }
 
 fn main

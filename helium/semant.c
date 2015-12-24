@@ -660,7 +660,22 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
             return e_invalid;
         }
 
+        /*
+         * Jumps(or dereference) for records is a bit tricky, first indirection level is basically
+         * the same as normal field access:
+         *
+         *  def Point = {x: int, y: int}
+         *  a = Point{};
+         *  b = &a;
+         *
+         * Internal representation for a and b is the same the only difference is pointer type of b,
+         * which just accents the records implementation as stack array plus handle(which is pointer).
+         *
+         * Thus on very first indirection level we MUST NOT derefence the value.
+         */
+
         int jumps = varField.jumps;
+        bool first = TRUE;
 
         while (jumps--)
         {
@@ -670,7 +685,12 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
                 return e_invalid;
             }
 
+            if (!first)
+            {
+                vexp.exp = Tr_DerefExp (vexp.exp);
+            }
             vexp.ty = vexp.ty->u.pointer;
+            first = FALSE;
         }
 
         if (vexp.ty->kind != Ty_record)
