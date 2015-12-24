@@ -394,6 +394,7 @@ Tr_exp Tr_Call (Temp_label label, Tr_level encolosing, Tr_level own, Tr_expList 
     T_exp link = T_Temp (F_FP());
     while (encolosing != own->parent)
     {
+        printf("static offset\n");
         assert (encolosing);
         link = T_Mem (link);
         encolosing = encolosing->parent;

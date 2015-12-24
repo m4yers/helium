@@ -265,14 +265,10 @@ static void main__return (void ** state)
         /*     1;\n\ */
         /* }", */
 
-        "fn main\n\
+        "fn blah { ret 0; }\n\
+        fn main\n\
         {\n\
-            def Point = { x: int, y: int }\n\
-            let a = Point{ x = 11, y = 12 };\n\
-            let b = &a;\n\
-            let c:Point;\n\
-            c = *b;\n\
-            1;\n\
+            blah();\n\
         }",
 
         /* "fn main\n\ */

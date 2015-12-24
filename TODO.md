@@ -127,3 +127,7 @@ References:
 ';'
 Follow RUST approach: if the last exp in function is not followed by the ';' it is interpreted as
 ret exp;
+
+Error handling:
+i need to skip whole statement if an error is encountered but continue parse definitions, since they
+affect next statements

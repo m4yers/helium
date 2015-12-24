@@ -1,0 +1,35 @@
+fn address_of__unknown_var
+{
+    let a = &b;     //~ ERROR 3005
+    let c = a;      //~ ERROR 3005
+}
+
+fn value_at__unknown_var
+{
+    let a = *b;     //~ ERROR 3005
+    let c = a;      //~ ERROR 3005
+}
+
+fn value_at__non_pointer
+{
+    let a = *1;     //~ ERROR 3001
+    let c = a;      //~ ERROR 3005
+}
+
+fn record__fields
+{
+    def Point = { x: int, y: int }
+
+    let a = 10;
+    a:x;            //~ ERROR 3001
+}
+
+fn main
+{
+    address_of__unknown_var();
+    value_at__unknown_var();
+    value_at__non_pointer();
+    record__fields();
+
+    ret 0;
+}

@@ -1,0 +1,85 @@
+fn primitives__init
+{
+    let a = 10;
+    let b = &a;
+    let c = *b;
+
+    assert! (&a <> &c);
+    assert! (a == c && a == 10);
+}
+
+fn primitives__assingment
+{
+    let d = 12;
+    let e = &d;
+    let f: int;
+    f = *e;
+
+    assert! (&d <> &f);
+    assert! (d == f && d == 12);
+}
+
+def Point = { x: int, y: int }
+
+fn records__init
+{
+    let d = Point{x = 13, y = 15};
+    let e = &d;
+    let f = *e; // copy
+
+    assert! (&d <> &f);
+    assert! (d.x == f.x);
+    assert! (d.y == f.y);
+}
+
+fn records__assignment
+{
+    let g = Point{x = 16, y = 17};
+    let h = &g;
+    let i: Point;
+    i = *h; // copy
+
+    assert! (&g <> &i);
+    assert! (g.x == i.x);
+    assert! (g.y == i.y);
+}
+
+fn records__fields
+{
+    /** single indirect */
+
+    let a = Point{ x = 11, y = 12 };
+    let b = &a;
+    let c = b:x;
+
+    assert! (&a == b);
+    assert! (b:x == a.x);
+    assert! (b:y == a.y);
+
+    /** multi inderect */
+
+    let j = Point{x = 18, y = 19};
+    let k = &j;
+    let l = &k;
+    let m = &l;
+
+    assert! (&j == **m);
+    /* assert! (b:x == a.x); */
+    /* assert! (b:y == a.y); */
+}
+
+/* fn test_arrays */
+/* { */
+/*     1; */
+/* } */
+
+fn main
+{
+    primitives__assingment();
+    records__init();
+    records__assignment();
+    records__fields();
+    // test_arrays();
+
+    ret 0;
+}

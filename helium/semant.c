@@ -664,6 +664,12 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 
         while (jumps--)
         {
+            if (vexp.ty->kind != Ty_pointer)
+            {
+                ERROR_UNEXPECTED_TYPE (&var->loc, Ty_Pointer (NULL), vexp.ty);
+                return e_invalid;
+            }
+
             vexp.ty = vexp.ty->u.pointer;
         }
 
@@ -842,12 +848,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_addressOf:
     {
-        Semant_Exp sexp = TransVar (context, exp->u.addressOf, FALSE);
-        if (is_invalid (sexp.ty))
-        {
-            sexp.ty = Ty_Int();
-        }
-        return sexp;
+        return TransVar (context, exp->u.addressOf, FALSE);
     }
     case A_valueAt:
     {
@@ -861,7 +862,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         if (!sexp.ty->meta.is_pointer)
         {
-            ERROR_UNEXPECTED_TYPE (&exp->loc, Ty_Pointer (NULL), sexp.ty)
+            ERROR_UNEXPECTED_TYPE (&exp->loc, Ty_Pointer (NULL), sexp.ty);
+            sexp.ty = Ty_Invalid();
+            return sexp;
         }
         /*
          * Handle internally passed as address and using value or pointer is based on context of
@@ -957,7 +960,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         return Expression_New (Tr_Call (
                                    fnEntry.label,
                                    context->level,
-                                   entry->level,
+                                   fnEntry.level,
                                    tral),
                                fnEntry.result);
     }
