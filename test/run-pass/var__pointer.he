@@ -1,0 +1,50 @@
+fn test_primitives
+{
+    /** init */
+
+    let a = 10;
+    let b: &int = &a;
+
+    assert! (a == *b && *b == 10);
+
+    /** assignment */
+
+    let c: &int;
+    c = &a;
+    /* *c = 11; */
+
+    assert! (a == *c && *c == 10);
+}
+
+def Point = { x: int, y: int }
+
+fn test_records
+{
+    /** init */
+
+    let a = Point{ x = 10, y = 11 };
+    let b: &Point = &a;
+    let c: Point = *b;
+
+    assert! (&a <> &c);
+    assert! (a.x == c.x);
+    assert! (a.y == c.y);
+
+    /** assignment */
+
+    let d = Point{ x = 12, y = 13 };
+    let e: &Point;
+    e = &d;
+    let f: Point;
+    f = *e;
+
+    assert! (&d <> &f);
+    assert! (d.x == f.x);
+    assert! (d.y == f.y);
+}
+
+fn main
+{
+    test_primitives();
+    test_records();
+}

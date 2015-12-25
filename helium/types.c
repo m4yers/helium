@@ -196,7 +196,7 @@ String GetQTypeName (Ty_ty ty, String str)
 {
     if (!str)
     {
-        str = String_New ("$");
+        str = String_New ("");
     }
 
     switch (ty->kind)
@@ -230,6 +230,12 @@ String GetQTypeName (Ty_ty ty, String str)
         String_Append (str, ty->u.name.sym->name);
         String_Append (str, "__");
         GetQTypeName (ty->u.name.ty, str);
+        break;
+    }
+    case Ty_pointer:
+    {
+        String_Append (str, "&");
+        GetQTypeName (ty->u.pointer, str);
         break;
     }
     default:

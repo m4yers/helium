@@ -6,6 +6,7 @@
 #include "ext/table.h"
 #include "ext/list.h"
 
+#include "types.h"
 #include "semant.h"
 #include "ast.h"
 #include "types.h"
@@ -26,8 +27,8 @@
         loc,                                                             \
         3001,                                                            \
         "Expected '%s', got '%s'",                                       \
-        expected->meta.name,                                             \
-        actual->meta.name);                                              \
+        GetQTypeName(expected, NULL)->data,                              \
+        GetQTypeName(actual, NULL)->data);                               \
 
 #define ERROR_MALFORMED_EXP(loc, text)                                   \
     ERROR(                                                               \
@@ -129,6 +130,28 @@ static Semant_Exp Expression_New (Tr_exp exp, Ty_ty ty)
     return r;
 }
 
+/*
+ * The method retrieves fully qualified type name and tries to retrieve its instance from the
+ * environment context, if it is there the instance will be resturned as result, if not, the passed
+ * type instance will be used to create new type entry and the same instance will be used as result.
+ */
+static Ty_ty GetOrCreateTypeEntry (Semant_Context context, Ty_ty ty)
+{
+    struct String_t ty_id = String ("");
+    GetQTypeName (ty, &ty_id);
+    S_symbol symbol = S_Symbol (ty_id.data);
+
+    Ty_ty ety = (Ty_ty)S_Look (context->tenv, symbol);
+
+    if (!ety)
+    {
+        S_Enter (context->tenv, symbol, ty);;
+        ety = ty;
+    }
+
+    return ety;
+}
+
 static Semant_Exp TransExp (Semant_Context context, A_exp exp);
 static Tr_exp TransDec (Semant_Context context, A_dec dec);
 
@@ -184,7 +207,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
             type = Ty_Int();
         }
 
-        return Ty_Pointer (type);
+        return GetOrCreateTypeEntry(context, Ty_Pointer (type));
     }
     case A_arrayTy:
     {
@@ -341,6 +364,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_access access = NULL;
         if (iexp)
         {
+            Ty_ty aity = GetActualType(ity);
             /*
              * There are three possible init scenarios:
              *
@@ -361,7 +385,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
             // If the rhs is a variable and the value it yields is handle we copy the whole array.
             bool copy = (decVar.init->kind == A_varExp || decVar.init->kind == A_valueAt)
-                        && ity->meta.is_handle;
+                        && aity->meta.is_handle;
 
             /*
              * Handle types are based on implicit pointer, upon taking the address of var of
@@ -370,7 +394,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              *
              * NOTE escape analysis cannot fully handle this because if type inferring.
              */
-            bool escape = GetActualType (ity)->meta.is_handle ? FALSE : decVar.escape;
+            bool escape = aity->meta.is_handle ? FALSE : decVar.escape;
 
             /*
              * The difference here is in the type size, if we copy the stack array we allocate full
@@ -378,9 +402,9 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              */
             if (copy)
             {
-                access = Tr_Alloc (context->level, ity, decVar.var, escape);
+                access = Tr_Alloc (context->level, aity, decVar.var, escape);
                 Tr_exp left = Tr_SimpleVar (access, context->level, TRUE);
-                iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (ity) / F_wordSize);
+                iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (aity) / F_wordSize);
             }
             else
             {
@@ -392,7 +416,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              * If provided initialization expression is not of the variable type, spawn an error
              * and drop initialization completely.
              */
-            if (dty && dty != ity && GetActualType (dty) != GetActualType (ity))
+            if (dty && dty != ity && GetActualType (dty) != aity)
             {
                 ERROR_UNEXPECTED_TYPE (loc, dty, ity);
                 iexp = Tr_Void();
@@ -632,7 +656,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
             Ty_ty vty = GetActualType (e->u.var.ty);
             Ty_ty type = deref
                          ? GetActualType (vty)
-                         : Ty_Pointer (GetActualType (e->u.var.ty));
+                         : GetOrCreateTypeEntry(context, Ty_Pointer (e->u.var.ty));
             // SHIT order here matters
             // in case of handle i need the address which is the same routine as for non-address-of
             // approach it is just handled differently in the context above, FUCK!!!
@@ -681,7 +705,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         {
             if (vexp.ty->kind != Ty_pointer)
             {
-                ERROR_UNEXPECTED_TYPE (&var->loc, Ty_Pointer (NULL), vexp.ty);
+                ERROR_UNEXPECTED_TYPE (&var->loc, Ty_Pointer (vexp.ty), vexp.ty);
                 return e_invalid;
             }
 
@@ -693,6 +717,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
             first = FALSE;
         }
 
+        vexp.ty = GetActualType(vexp.ty);
         if (vexp.ty->kind != Ty_record)
         {
             ERROR (
@@ -880,9 +905,11 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             return sexp;
         }
 
-        if (!sexp.ty->meta.is_pointer)
+        Ty_ty aty = GetActualType(sexp.ty);
+
+        if (!aty->meta.is_pointer)
         {
-            ERROR_UNEXPECTED_TYPE (&exp->loc, Ty_Pointer (NULL), sexp.ty);
+            ERROR_UNEXPECTED_TYPE (&exp->loc, Ty_Pointer (sexp.ty), sexp.ty);
             sexp.ty = Ty_Invalid();
             return sexp;
         }
@@ -890,7 +917,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
          * Handle internally passed as address and using value or pointer is based on context of
          * the expression, so we just change the type and return whatever is there.
          */
-        else if (sexp.ty->u.pointer->meta.is_handle)
+        else if (GetActualType(aty->u.pointer)->meta.is_handle)
         {
             printf ("handle deref\n");
             sexp.ty = sexp.ty->u.pointer;
@@ -900,6 +927,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
          */
         else
         {
+            printf("non handle deref\n");
             sexp.ty = sexp.ty->u.pointer;
             sexp.exp = Tr_DerefExp (sexp.exp);
         }
@@ -1177,20 +1205,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
              * Array always yields anonymous array type. It is done for consistency sake, so the
              * equal expressions will get the same(instance address wise) type.
              */
-            struct String_t ty_id = String ("");
-            GetQTypeName (ty, &ty_id);
-            S_symbol symbol = S_Symbol (ty_id.data);
-
-            Ty_ty type = (Ty_ty)S_Look (context->tenv, symbol);
-
-            if (type)
-            {
-                ty = type;
-            }
-            else
-            {
-                S_Enter (context->tenv, symbol, ty);;
-            }
+            ty = GetOrCreateTypeEntry (context,ty);
 
             ex = Tr_ArrayExp (access, ty, el, thisOffset);
         }

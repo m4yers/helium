@@ -29,13 +29,3 @@ fn record__fields
 
     d:x;            //~ ERROR 3012
 }
-
-fn main
-{
-    address_of__unknown_var();
-    value_at__unknown_var();
-    value_at__non_pointer();
-    record__fields();
-
-    ret 0;
-}
