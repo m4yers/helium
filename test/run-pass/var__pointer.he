@@ -43,8 +43,35 @@ fn test_records
     assert! (d.y == f.y);
 }
 
+fn test_arrays
+{
+    /** init */
+
+    let a = [1,2,3];
+    let b: &[int;3] = &a;
+    let c: [int;3] = *b;
+
+    assert! (&a <> &c);
+    assert! (a[0] == c[0]);
+    assert! (a[1] == c[1]);
+    assert! (a[2] == c[2]);
+
+    /** assignment */
+
+    let d = [1,2,3];
+    let e: &[int;3] = &d;
+    let f: [int;3];
+    f = *e;
+
+    assert! (&d <> &f);
+    assert! (d[0] == f[0]);
+    assert! (d[1] == f[1]);
+    assert! (d[2] == f[2]);
+}
+
 fn main
 {
     test_primitives();
     test_records();
+    test_arrays();
 }
