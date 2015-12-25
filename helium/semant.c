@@ -1108,15 +1108,46 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
          */
         else if (!is_int (left) || !is_int (right))
         {
-            if (!is_int (left))
+            // TODO constant expression if int was literal
+            if (left.ty->meta.is_pointer || right.ty->meta.is_pointer)
             {
-                ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
-                left.ty = Ty_Int();
+                /*
+                 * Only addition and substitution is allowed for pointers, if something else was
+                 * passed we correct it and proceed parsing.
+                 */
+                if (oper != A_plusOp && oper != A_minusOp)
+                {
+                    ERROR_INVALID_EXPRESSION (&exp->loc);
+                    oper = A_plusOp;
+                }
+
+                if (left.ty->meta.is_pointer)
+                {
+                    right.exp = Tr_Op (A_timesOp,
+                                       right.exp,
+                                       Tr_Int (Ty_SizeOf (left.ty->u.pointer)),
+                                       Ty_Int());
+                }
+                else
+                {
+                    left.exp = Tr_Op (A_timesOp,
+                                      left.exp,
+                                      Tr_Int (Ty_SizeOf (right.ty->u.pointer)),
+                                      Ty_Int());
+                }
             }
-            if (!is_int (right))
+            else
             {
-                ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
-                right.ty = Ty_Int();
+                if (!is_int (left))
+                {
+                    ERROR_UNEXPECTED_TYPE (&opExp.left->loc, Ty_Int(), left.ty);
+                    left.ty = Ty_Int();
+                }
+                if (!is_int (right))
+                {
+                    ERROR_UNEXPECTED_TYPE (&opExp.right->loc, Ty_Int(), right.ty);
+                    right.ty = Ty_Int();
+                }
             }
         }
 
