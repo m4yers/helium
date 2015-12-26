@@ -78,20 +78,19 @@ static struct S_symbol_ marksym = {.name = "<mark>", .next = NULL};
 
 const void * S_LookTop (const S_table t, const S_symbol s)
 {
-    return S_Look(t, s);
-    /* TAB_FOREACH(k, v, t) */
-    /* { */
-    /*     if (k == &marksym) */
-    /*     { */
-    /*         return NULL; */
-    /*     } */
-    /*     else if (k == s) */
-    /*     { */
-    /*         return v; */
-    /*     } */
-    /* } */
-    /*  */
-    /* return NULL; */
+    TAB_FOREACH(k, v, t)
+    {
+        if (k == &marksym)
+        {
+            return NULL;
+        }
+        else if (k == s)
+        {
+            return v;
+        }
+    }
+
+    return NULL;
 }
 
 void S_BeginScope (S_table t)

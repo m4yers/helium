@@ -5,13 +5,13 @@
 #include "mem.h"
 #include "table.h"
 
-static binder Binder (const void * key, const void * value, binder next, const void * prevtop)
+static record Record (const void * key, const void * value, record next, record prev_added)
 {
-    binder b = checked_malloc (sizeof (*b));
+    record b = checked_malloc (sizeof (*b));
     b->key = key;
     b->value = value;
     b->next = next;
-    b->prevtop = prevtop;
+    b->prev_added = prev_added;
     return b;
 }
 
@@ -40,18 +40,19 @@ TAB_table TAB_Empty (void)
 
 void TAB_Enter (TAB_table t, const void * key, const void * value)
 {
-    int index;
     assert (t);
     assert (key);
-    index = ((unsigned)key) % TABSIZE;
-    t->table[index] = Binder (key, value, t->table[index], t->top);
+
+    int index = ((unsigned)key) % TABSIZE;
+    record prev_added = t->top ? t->table[ ((unsigned)t->top) % TABSIZE] : NULL;
+    t->table[index] = Record (key, value, t->table[index], prev_added);
     t->top = key;
 }
 
 const void * TAB_Look (TAB_table t, const void * key)
 {
     int index;
-    binder b;
+    record b;
     assert (t);
     assert (key);
     index = ((unsigned)key) % TABSIZE;
@@ -68,7 +69,7 @@ const void * TAB_Look (TAB_table t, const void * key)
 void * TAB_Pop (TAB_table t)
 {
     const void * k;
-    binder b;
+    record b;
     int index;
     assert (t);
     k = t->top;
@@ -77,7 +78,7 @@ void * TAB_Pop (TAB_table t)
     b = t->table[index];
     assert (b);
     t->table[index] = b->next;
-    t->top = b->prevtop;
+    t->top = b->prev_added ? b->prev_added->key : NULL;
     return (void *)b->key;
 }
 
@@ -90,7 +91,7 @@ void ** TAB_Keys (TAB_table t)
     while (hash)
     {
         int index = ((unsigned)hash) % TABSIZE;
-        binder b = t->table[index];
+        record b = t->table[index];
         if (i == size)
         {
             size *= 2;
@@ -106,7 +107,7 @@ void TAB_Dump (TAB_table t, void (*show) (const void * key, const void * value))
 {
     const void * k = t->top;
     int index = ((unsigned)k) % TABSIZE;
-    binder b = t->table[index];
+    record b = t->table[index];
 
     if (b == NULL)
     {
@@ -114,10 +115,10 @@ void TAB_Dump (TAB_table t, void (*show) (const void * key, const void * value))
     }
 
     t->table[index] = b->next;
-    t->top = b->prevtop;
+    t->top = b->prev_added ? b->prev_added->key : NULL;
     show (b->key, b->value);
     TAB_Dump (t, show);
-    assert (t->top == b->prevtop && t->table[index] == b->next);
+    assert (t->top == b->prev_added->key && t->table[index] == b->next);
     t->top = k;
     t->table[index] = b;
 }

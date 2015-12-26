@@ -1,0 +1,11 @@
+fn main
+{
+    let a = 10;
+    let x = 1111;
+    let a = 11;         //~ ERROR 3014
+
+    def Point = { x: int, y: int }
+    let b = Point{};
+    let x = 1111;       //~ ERROR 3014
+    let b = Point{};    //~ ERROR 3014
+}

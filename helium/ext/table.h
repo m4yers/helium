@@ -1,19 +1,28 @@
 #ifndef TABLE_H_WONFRLUQ
 #define TABLE_H_WONFRLUQ
 
+// SHIT this must be rewritten into something more suitable
+
 #define TABSIZE 127
 
-typedef struct binder_t
+typedef struct record_t
 {
     const void * key;
     const void * value;
-    struct binder_t * next;
-    const void * prevtop;
-} * binder;
+    /*
+     * next item in the current slot
+     */
+    struct record_t * next;
+
+    /*
+     * thread that leads to the previously added record
+     */
+    struct record_t * prev_added;
+} * record;
 
 typedef struct TAB_table_t
 {
-    binder table[TABSIZE];
+    record table[TABSIZE];
     const void * top;
 } * TAB_table;
 
@@ -44,19 +53,17 @@ void TAB_Dump (TAB_table t, void (*show) (const void * key, const void * value))
  * it reaches the very first added pair.
  *
  * DARK MAGIC: since C(or rather certain compilers) does not allow to declare anonymous structs
- * inside for loop i had to add two additional loops to scope additional variables. First loop
- * runs only once declaring index iterator, next loop stores table binder(record), the third one
- * splits record into key and value pair.
+ * inside for loop i had to add one additional loop to obtain the very top record in the table,
+ * after this only the second loop is used to iterate over table records.
  */
-#define TAB_FOREACH(k, v, t)                                                            \
-    for (int __i = ((unsigned)t->top) % TABSIZE; __i != 0; __i = 0)                     \
-        for (binder __b = t->table[__i]; __b != NULL; __b = NULL)                       \
-            for (                                                                       \
-                const void * k = __b->key, * v = __b->value;                            \
-                k != NULL;                                                              \
-                __i = ((unsigned)__b->prevtop) % TABSIZE,                               \
-                __b = __i != 0 ? t->table[__i] : NULL,                                  \
-                k = NULL,                                                               \
-                v = NULL)
+#define TAB_FOREACH(k, v, t)\
+    for (record __r = t->top ? t->table[((unsigned)t->top) % TABSIZE] : NULL; __r; __r = NULL)   \
+        for (const void                                                                          \
+                * k = __r->key,                                                                  \
+                * v = __r->value;                                                                \
+                k != NULL;                                                                       \
+                __r = __r->prev_added,                                                           \
+                k = __r ? __r->key : NULL,                                                       \
+                v = __r ? __r->value : NULL)
 
 #endif /* end of include guard: TABLE_H_WONFRLUQ */

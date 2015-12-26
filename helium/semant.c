@@ -654,7 +654,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         else if (e->kind == Env_varEntry)
         {
             Ty_ty vty = e->u.var.ty;
-            Ty_ty avty = GetActualType(vty);
+            Ty_ty avty = GetActualType (vty);
             Ty_ty type = deref
                          ? vty
                          : GetOrCreateTypeEntry (context, Ty_Pointer (e->u.var.ty));
@@ -1012,6 +1012,18 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
                     GetQTypeName (ety, NULL)->data);
             }
         }
+        /*
+         * Others casts are not permitted
+         */
+        else
+        {
+            ERROR (
+                &exp->loc, 3015,
+                "Cannot cast '%s' to '%s'",
+                GetQTypeName (ety, NULL)->data,
+                GetQTypeName (cty, NULL)->data);
+        }
+        // primitives?
 
         sexp.ty = cty;
         return sexp;
