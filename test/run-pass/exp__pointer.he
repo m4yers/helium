@@ -116,6 +116,33 @@ fn arrays__assignment
     assert! (d[2] == f[2]);
 }
 
+fn pointers_math
+{
+    let a = [Point{x = 10, y = 11}, Point{x = 12, y = 13}];
+    let b = a as &int;
+
+    assert! (&a == b);
+    assert! (*b == a[0].x);
+
+    b = b + 1;
+    assert! (*b == a[0].y);
+
+    b = b + 1;
+    assert! (*b == a[1].x);
+
+    b = b + 1;
+    assert! (*b == a[1].y);
+
+    b = b - 1;
+    assert! (*b == a[1].x);
+
+    b = b - 1;
+    assert! (*b == a[0].y);
+
+    b = b - 1;
+    assert! (*b == a[0].x);
+}
+
 fn main
 {
     primitives__assingment();
@@ -123,6 +150,7 @@ fn main
     records__assignment();
     records__fields();
     arrays__init();
+    pointers_math();
 
     ret 0;
 }
