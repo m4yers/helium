@@ -89,6 +89,7 @@ macro            { return MACRO; }
 ret              { return RET; }
 let              { return LET; }
 def              { return DEF; }
+as               { return AS; }
 if               { return IF; }
 then             { return THEN; }
 else             { return ELSE; }

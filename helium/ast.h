@@ -55,7 +55,7 @@ typedef enum
     A_typeDec, A_functionDec, A_varDec, 
 
     /** Exp */
-    A_retExp, A_addressOf, A_valueAt,
+    A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
     A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
     A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
     A_whileExp, A_forExp, A_breakExp, A_arrayExp,
@@ -194,6 +194,12 @@ struct A_recordExp_t
     A_efieldList fields;
 };
 
+struct A_typeCastExp_t
+{
+    A_ty type;
+    A_exp exp;
+};
+
 struct A_exp_t
 {
     struct A_loc_t loc;
@@ -204,6 +210,7 @@ struct A_exp_t
     {
         /* break - need only the pos */
         /* nil; - needs only the pos */
+        struct A_typeCastExp_t typeCast;
         A_var addressOf;
         A_exp valueAt;
         A_expList seq;
@@ -224,6 +231,7 @@ struct A_exp_t
     } u;
 };
 
+A_exp A_TypeCastExp(A_loc loc, A_ty type, A_exp exp);
 A_exp A_AddressOfExp (A_loc loc, A_var var);
 A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 

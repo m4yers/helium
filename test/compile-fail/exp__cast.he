@@ -1,0 +1,18 @@
+fn record_to_record__size_mismatch
+{
+    def Point = { x: int, y: int }
+    def Vector = { x: int, y: int, z: int }
+
+    let a = Point{};
+    let b = a as Vector;             //~ ERROR 3015
+
+    let d = Vector{};
+    let e = d as Point;              //~ ERROR 3015
+
+    ret 0;
+}
+
+fn main
+{
+    record_to_record__size_mismatch();
+}

@@ -653,14 +653,15 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         }
         else if (e->kind == Env_varEntry)
         {
-            Ty_ty vty = GetActualType (e->u.var.ty);
+            Ty_ty vty = e->u.var.ty;
+            Ty_ty avty = GetActualType(vty);
             Ty_ty type = deref
-                         ? GetActualType (vty)
+                         ? vty
                          : GetOrCreateTypeEntry (context, Ty_Pointer (e->u.var.ty));
             // SHIT order here matters
             // in case of handle i need the address which is the same routine as for non-address-of
             // approach it is just handled differently in the context above, FUCK!!!
-            deref = vty->meta.is_handle ? TRUE : deref;
+            deref = avty->meta.is_handle ? TRUE : deref;
             Tr_exp exp = Tr_SimpleVar (e->u.var.access, context->level, deref);
 
             return Expression_New (exp, type);
@@ -931,6 +932,88 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
             sexp.ty = sexp.ty->u.pointer;
             sexp.exp = Tr_DerefExp (sexp.exp);
         }
+        return sexp;
+    }
+    case A_typeCastExp:
+    {
+        Ty_ty cty = TransTyp (context, exp->u.typeCast.type);
+        Ty_ty acty = GetActualType (cty);
+        Semant_Exp sexp = TransExp (context, exp->u.typeCast.exp);
+        Ty_ty ety = sexp.ty;
+        Ty_ty aety = GetActualType (ety);
+
+        /*
+         * If types match we do nothing
+         */
+        if (ety == cty)
+        {
+            return sexp;
+        }
+
+        /*
+         * Types do not match but both are handle type so we just verify the sizes match and replace
+         * current expression type with requested.
+         */
+        else if (acty->meta.is_handle && aety->meta.is_handle)
+        {
+            size_t size_cty = Ty_SizeOf (cty);
+            size_t size_ety = Ty_SizeOf (ety);
+
+            if (size_ety != size_cty)
+            {
+                ERROR (
+                    &exp->loc, 3015,
+                    "Cannot cast '%s' to '%s'",
+                    GetQTypeName (ety, NULL)->data,
+                    GetQTypeName (cty, NULL)->data);
+            }
+
+            sexp.ty = cty;
+            return sexp;
+        }
+        /*
+         * Pointers and handles are treated interchangeably if underlying pointer type is the same
+         * as handle
+         */
+        else if ((acty->meta.is_pointer && aety->meta.is_pointer)
+                 || (acty->meta.is_pointer && aety->meta.is_handle)
+                 || (acty->meta.is_handle && aety->meta.is_pointer))
+        {
+            double size_cty = cty->meta.is_pointer ? Ty_SizeOf (cty->u.pointer) : Ty_SizeOf (cty);
+            double size_ety = ety->meta.is_pointer ? Ty_SizeOf (ety->u.pointer) : Ty_SizeOf (ety);
+
+            /*
+             * Ideally this would divide evenly in range [1;N]. If this is the case pointer math
+             * will work correctly on the resulting expression.
+             */
+            double diff = size_ety / size_cty;
+
+            /*
+             * This means the type cast type points to is bigger than the expression pointer type,
+             * so we cannot allow this cast
+             */
+            if (diff < 1.0)
+            {
+                ERROR (
+                    &exp->loc, 3015,
+                    "Cannot cast '%s' to bigger pointer type '%s'",
+                    GetQTypeName (ety, NULL)->data,
+                    GetQTypeName (cty, NULL)->data);
+            }
+            /*
+             * This means the underlying pointer types mismatch completely
+             */
+            else if ((((double) (uint64_t)diff) - diff) != 0.0)
+            {
+                ERROR (
+                    &exp->loc, 3015,
+                    "Cannot cast '%s' to unmatched pointer type '%s'",
+                    GetQTypeName (cty, NULL)->data,
+                    GetQTypeName (ety, NULL)->data);
+            }
+        }
+
+        sexp.ty = cty;
         return sexp;
     }
     case A_asmExp:

@@ -278,6 +278,7 @@ int Ty_SizeOf (Ty_ty type)
         return Ty_SizeOf (type->u.name.ty);
     }
     default:
+        // HMM... is this correct behaviour?
         return -1;
     }
 }

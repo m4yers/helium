@@ -1,0 +1,102 @@
+def Vector2D = { x: int, y: int }
+def Vector3D = { x: int, y: int, z: int }
+def Point = { x: int, y: int }
+def Rect = { tl: Point, tr: Point }
+
+fn same_type
+{
+    let a = Point{ x = 10, y = 11 };
+    let b = a as Point; // basically this creates alias insted of copy
+
+    assert! (&a == &b);
+    assert! (a.x == b.x && a.x == 10);
+    assert! (a.y == b.y && a.y == 11);
+}
+
+fn record_to_record
+{
+    let a = Point{ x = 10, y = 11 };
+    let b = a as Vector2D;
+
+    assert! (&a == &b);
+    assert! (a.x == b.x && a.x == 10);
+    assert! (a.y == b.y && a.y == 11);
+
+    b.x = 12;
+    b.y = 13;
+
+    assert! (&a == &b);
+    assert! (a.x == b.x && a.x == 12);
+    assert! (a.y == b.y && a.y == 13);
+}
+
+fn record_to_record_pointer
+{
+    let a = Point{ x = 10, y = 11 };
+    let b = a as &Vector2D;
+
+    assert! (&a == b);
+    assert! (a.x == b:x && b:x == 10);
+    assert! (a.y == b:y && b:y == 11);
+
+    b:x = 12;
+    b:y = 13;
+
+    assert! (&a == b);
+    assert! (a.x == 12);
+    assert! (a.y == 13);
+}
+
+fn array_to_array
+{
+    let a = [Vector3D{x = 10, y = 11, z = 12}, Vector3D{x = 13, y = 14, z = 15}];
+    let b = a as [Vector2D;3];
+
+    assert! (&a == &b);
+
+    assert! (a[0].x = b[0].x);
+    assert! (a[0].y = b[0].y);
+    assert! (a[0].z = b[1].x);
+
+    assert! (a[1].x = b[1].y);
+    assert! (a[1].y = b[2].x);
+    assert! (a[1].z = b[2].y);
+}
+
+fn array_to_record_pointer
+{
+    let a = [Point{x = 10, y = 11}, Point{x = 12, y = 13}];
+    let b = a as &Point;
+
+    assert! (b:x == a[0].x);
+    assert! (b:y == a[0].y);
+
+    b = b + 1;
+
+    assert! (b:x == a[1].x);
+    assert! (b:y == a[1].y);
+
+    b:x = 14;
+    b:y = 15;
+
+    assert! (14 == a[1].x);
+    assert! (15 == a[1].y);
+}
+
+fn test_record_to_array
+{
+    let a = Point{ x = 10, y = 11 };
+    let b = a as [Point;1];
+
+    assert! (a.x == b[0].x);
+    assert! (a.y == b[0].y);
+}
+
+fn main
+{
+    same_type();
+    record_to_record();
+    record_to_record_pointer();
+    array_to_array();
+    array_to_record_pointer();
+}

@@ -52,8 +52,8 @@
     A_expList expList;
     A_ty ty;
     A_literal literal;
-    A_spec spec;
-    A_specList specList;
+    /* A_spec spec; */
+    /* A_specList specList; */
     A_dec dec;
     A_decList decList;
     A_field field;
@@ -72,7 +72,7 @@
   COMMA COLON SEMICOLON LPAREN RPAREN LBRACK RBRACK
   LBRACE RBRACE DOT
   EMARK PLUS MINUS STAR DIVIDE EQ NEQ LT LE GT GE
-  AND OR EQEQ
+  AND OR EQEQ AS
   IF THEN ELSE WHILE FOR TO DO IN END OF
   FN MACRO LET DEF RET
   BREAK AMP NIL
@@ -89,8 +89,8 @@
             assignment
             controls
 %type <scope> scope
-%type <spec> spec
-%type <specList> spec_comma specs
+/* %type <spec> spec */
+/* %type <specList> spec_comma specs */
 %type <stm> stm
 %type <stmlist> stm_list stm_semi
 %type <var> lvalue
@@ -107,7 +107,9 @@
 %type <fieldList> typed_field_comma
 %type <ival> lvalue_jumps
 
-%precedence   REDUCE
+%precedence   LOWEST
+
+%precedence   AS
 %precedence   TYPE
 
 %precedence   THEN
@@ -123,6 +125,8 @@
 %precedence   LBRACK
 %precedence   LBRACE
 %precedence   LPAREN
+
+%precedence   HIGHEST
 
 %start program
 
@@ -170,9 +174,55 @@ stm:                      expression SEMICOLON
                               $$ = A_StmDec($1);
                           }
                         ;
+type:                     AMP type
+                          {
+                              $$ = A_PointerTy(&(@$), $2);
+                          }
+                        | LBRACE typed_field typed_field_comma RBRACE
+                          {
+                              $$ = A_RecordTy (&(@$), A_FieldList ($2, $3));
+                          }
+                        | LBRACK type SEMICOLON expression RBRACK
+                          {
+                              $$ = A_ArrayTy (&(@$), $2, $4);
+                          }
+                        /* | ID specs */
+                        /*   { */
+                        /*       $$ = A_NameTy (&(@$), S_Symbol($1), $2); */
+                        /*   } */
+                        | ID
+                          {
+                              $$ = A_NameTy (&(@$), S_Symbol($1), NULL);
+                          }
+                        ;
+typed_field_comma:         %empty { $$ = NULL; }
+                        | typed_field_comma COMMA typed_field
+                          {
+                              if ($1)
+                              {
+                                  A_fieldList current = $1;
+                                  while (current && current->tail)
+                                  {
+                                    current = current->tail;
+                                  }
+                                  current->tail = A_FieldList ($3, NULL);
+                                  $$ = $1;
+                              }
+                              else
+                              {
+                                  $$ = A_FieldList ($3, NULL);
+                              }
+                          }
+                        ;
+typed_field:              ID COLON type
+                          {
+                              // id: type
+                              $$ = A_Field (&(@$), S_Symbol($1), $3);
+                          }
+                        ;
 expression:               literals
                         | creation
-                        | lvalue %prec REDUCE { $$ = A_VarExp (&(@$), $1); }
+                        | lvalue %prec LOWEST { $$ = A_VarExp (&(@$), $1); }
                         | call_function
                         | call_macro
                         | operations
@@ -184,6 +234,10 @@ expression:               literals
                         | STAR expression
                           {
                               $$ = A_ValueAtExp(&(@$), $2);
+                          }
+                        | expression AS type
+                          {
+                              $$ = A_TypeCastExp(&(@$), $3, $1);
                           }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }
@@ -213,10 +267,6 @@ lvalue:                   ID
                           {
                               $$ = A_SimpleVar (&(@$), S_Symbol ($1));
                           }
-                        /* | ID LBRACK expression RBRACK */
-                        /*   { */
-                        /*       $$ = A_SubscriptVar (0, A_SimpleVar (0, S_Symbol ($1)), $3); */
-                        /*   } */
                         | lvalue DOT ID
                           {
                               $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 0);
@@ -330,7 +380,7 @@ controls:                 IF LPAREN expression RPAREN scope
                               $$ = A_ForExp (&(@$), S_Symbol ($3), $5, $7, $9);
                           }
                         | BREAK { $$ = A_BreakExp (&(@$)); }
-                        | RET expression SEMICOLON %prec REDUCE { $$ = A_RetExp (&(@$), $2); }
+                        | RET expression SEMICOLON %prec LOWEST { $$ = A_RetExp (&(@$), $2); }
                         ;
 scope:                    LBRACE stm_list RBRACE
                           {
@@ -390,43 +440,43 @@ exp_comma:                %empty { $$ = NULL; }
                               }
                           }
                         ;
-spec:                     type
-                          {
-                              $$ = A_SpecType(&(@$), $1);
-                          }
-                        | INT
-                          {
-                              $$ = A_SpecLiteral(&(@$), A_LiteralInt(&(@$), $1));
-                          }
-                        | STRING
-                          {
-                              $$ = A_SpecLiteral(&(@$), A_LiteralString(&(@$), $1));
-                          }
-                        ;
-spec_comma:                %empty { $$ = NULL; }
-                        | spec_comma COMMA spec
-                          {
-                              if ($1)
-                              {
-                                  A_specList current = $1;
-                                  while (current && current->tail)
-                                  {
-                                    current = current->tail;
-                                  }
-                                  current->tail = A_SpecList ($3, NULL);
-                                  $$ = $1;
-                              }
-                              else
-                              {
-                                  $$ = A_SpecList ($3, NULL);
-                              }
-                          }
-                        ;
-specs:                    LT spec spec_comma GT
-                          {
-                              $$ = A_SpecList($2, $3);
-                          }
-                        ;
+/* spec:                     type */
+/*                           { */
+/*                               $$ = A_SpecType(&(@$), $1); */
+/*                           } */
+/*                         | INT */
+/*                           { */
+/*                               $$ = A_SpecLiteral(&(@$), A_LiteralInt(&(@$), $1)); */
+/*                           } */
+/*                         | STRING */
+/*                           { */
+/*                               $$ = A_SpecLiteral(&(@$), A_LiteralString(&(@$), $1)); */
+/*                           } */
+/*                         ; */
+/* spec_comma:                %empty { $$ = NULL; } */
+/*                         | spec_comma COMMA spec */
+/*                           { */
+/*                               if ($1) */
+/*                               { */
+/*                                   A_specList current = $1; */
+/*                                   while (current && current->tail) */
+/*                                   { */
+/*                                     current = current->tail; */
+/*                                   } */
+/*                                   current->tail = A_SpecList ($3, NULL); */
+/*                                   $$ = $1; */
+/*                               } */
+/*                               else */
+/*                               { */
+/*                                   $$ = A_SpecList ($3, NULL); */
+/*                               } */
+/*                           } */
+/*                         ; */
+/* specs:                    LT spec spec_comma GT */
+/*                           { */
+/*                               $$ = A_SpecList($2, $3); */
+/*                           } */
+/*                         ; */
 declarations:             %empty { $$ = NULL; }
                         | declarations declaration
                           {
@@ -521,52 +571,6 @@ decl_function:            FN ID scope
                                   A_FieldList ($4, $5),
                                   $8,
                                   $9);
-                          }
-                        ;
-type:                     AMP type
-                          {
-                              $$ = A_PointerTy(&(@$), $2);
-                          }
-                        | LBRACE typed_field typed_field_comma RBRACE
-                          {
-                              $$ = A_RecordTy (&(@$), A_FieldList ($2, $3));
-                          }
-                        | LBRACK type SEMICOLON expression RBRACK
-                          {
-                              $$ = A_ArrayTy (&(@$), $2, $4);
-                          }
-                        | ID specs
-                          {
-                              $$ = A_NameTy (&(@$), S_Symbol($1), $2);
-                          }
-                        | ID
-                          {
-                              $$ = A_NameTy (&(@$), S_Symbol($1), NULL);
-                          }
-                        ;
-typed_field_comma:         %empty { $$ = NULL; }
-                        | typed_field_comma COMMA typed_field
-                          {
-                              if ($1)
-                              {
-                                  A_fieldList current = $1;
-                                  while (current && current->tail)
-                                  {
-                                    current = current->tail;
-                                  }
-                                  current->tail = A_FieldList ($3, NULL);
-                                  $$ = $1;
-                              }
-                              else
-                              {
-                                  $$ = A_FieldList ($3, NULL);
-                              }
-                          }
-                        ;
-typed_field:              ID COLON type
-                          {
-                              // id: type
-                              $$ = A_Field (&(@$), S_Symbol($1), $3);
                           }
                         ;
 
