@@ -1,4 +1,4 @@
-fn main : string //~ ERROR 3001
+fn main : &str //~ ERROR 3001
 {
     ret 0;
 }

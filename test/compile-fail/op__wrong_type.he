@@ -1,12 +1,12 @@
 fn main
 {
-    1 + "blah";      //~ ERROR 3001
-    "blah" + 1;      //~ ERROR 3001
-    "blah" + "blah"; //~ ERROR 3001
+    1 * "blah";      //~ ERROR 3009 -> no multiply for pointers
+    "blah" * 1;      //~ ERROR 3009 -> no multiply for pointers
+    "blah" + "blah"; //~ ERROR 3001 -> cannot add two pointers
            //^ ERROR 3001
 
     // only one error because the paren exp recovers to int type
-    1 + ( 1 + "blah" );      //~ ERROR 3001
+    1 + ( 1 * "blah" );      //~ ERROR 3009
 
     def Point = { x: int, y: int }
     let b: Point;
