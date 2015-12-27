@@ -877,7 +877,7 @@ static void Colorify (Workspace w)
         BITARRAY_FOREACH_SET (i, freeColors)
         {
             color = GetTemp (i, w->regs);
-            DBG ("temp %d colored as %s\n", sf.index, Temp_Look (w->results, color));
+            DBG ("temp %d colored as %s\n", sf->index, Temp_Look (w->results, color));
             BitArray_Set (colored, sf->index);
             LIST_PUSH_UNIQUE (w->colors, color);
             TAB_Enter (w->coloring, temp, color);
@@ -923,7 +923,7 @@ static ASM_lineList Rewrite (Workspace w)
         accessNum++;
     }
 
-    DBG ("additional stack space: %d\n", accessNum);
+    DBG ("additional stack space: %lu\n", accessNum);
 
     ASM_lineList result = w->asmll;
     F_access access = NULL;
