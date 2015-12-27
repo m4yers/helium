@@ -4,12 +4,15 @@
 #include <assert.h>
 
 #include "ext/mem.h"
+#include "ext/str.h"
 #include "symbol.h"
 #include "ast.h"
 #include "temp.h"
 #include "tree.h"
 #include "asm.h"
 #include "frame.h"
+
+// TODO get rid of malloc
 
 ASM_targets ASM_Targets (Temp_labelList labels)
 {
@@ -200,20 +203,15 @@ char * ASM_LineToString (ASM_line l, Temp_map m)
 
 char * ASM_LineListToString (ASM_lineList list, Temp_map m)
 {
-    char * r = checked_malloc (1);
-    r[0] = '\0';
-    int rl = 0;
-    char * l = NULL;
-    for (; list; list = list->tail)
+    struct String_t str = String ("");
+    LIST_FOREACH (l, list)
     {
-        l = ASM_LineToString (list->head, m);
-        rl += strlen (l) + 1;
-        r = realloc (r, rl);
-        strcat (r, l);
-        r[rl - 1] = '\n';
-        r[rl] = '\0';
+        const char * line = ASM_LineToString (l, m);
+        String_Append (&str, line);
+        String_Append (&str, '\n');
     }
-    return r;
+
+    return str.data;
 }
 
 void ASM_PrintLine (FILE * out, ASM_line i, Temp_map m)
@@ -222,14 +220,14 @@ void ASM_PrintLine (FILE * out, ASM_line i, Temp_map m)
     switch (i->kind)
     {
     case I_LABEL:
-        {
+    {
         ASM_Format (r, i->u.LABEL.assem, NULL, NULL, NULL, m);
         fprintf (out, "%s\n", r);
         /* i->u.LABEL->label); */
         break;
-        }
+    }
     case I_OPER:
-        {
+    {
         if (strlen (i->u.OPER.assem) == 0)
         {
             break;
@@ -237,19 +235,19 @@ void ASM_PrintLine (FILE * out, ASM_line i, Temp_map m)
         ASM_Format (r, i->u.OPER.assem, i->u.OPER.dst, i->u.OPER.src, i->u.OPER.jumps, m);
         fprintf (out, "  %s\n", r);
         break;
-        }
+    }
     case I_MOVE:
-        {
+    {
         ASM_Format (r, i->u.MOVE.assem, i->u.MOVE.dst, i->u.MOVE.src, NULL, m);
         fprintf (out, "  %s\n", r);
         break;
-        }
+    }
     case I_META:
-        {
+    {
         if (i->u.META.kind == I_META_COMMENT)
         {
             fprintf (out, ";%s\n", i->u.META.COMMENT);
         }
-        }
+    }
     }
 }

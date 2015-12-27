@@ -64,10 +64,7 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
     return list;
 }
 
-#define LIST_AT(list, pos)                                                          \
-    List_Size_((U_voidList)list) <= pos                                             \
-        ? 0                                                                         \
-        : (((__typeof__(list))List_At_((U_voidList)list,pos))->head)
+#define LIST_AT(list, pos) (((__typeof__(list))List_At_((U_voidList)list,pos))->head)
 
 #define LIST_PUSH(list, item)                                                       \
     {                                                                               \

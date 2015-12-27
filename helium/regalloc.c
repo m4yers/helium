@@ -369,7 +369,7 @@ static char * Workspace_ToString (Workspace w)
     {
         length += sprintf (&r[length], " %d", Temp_GetTempIndex (l->head));
     }
-    length += sprintf (&r[length], "\ninterference graph:\n%s", BitMatrix_ToString (w->interference));
+    /* length += sprintf (&r[length], "\ninterference graph:\n%s", BitMatrix_ToString (w->interference)); */
     length += sprintf (&r[length], "\nprecolored: %s", BitArray_ToString (w->precolored));
     length += sprintf (&r[length], "\ninitial:    %s", BitArray_ToString (w->initial));
     length += sprintf (&r[length], "\nsimplify:   %s", BitArray_ToString (w->simplify));
@@ -858,7 +858,7 @@ static void Colorify (Workspace w)
                     BitArray_UnSet (freeColors, index);
                 }
             }
-            DBG ("interference: %s; %d alias to %d\n", BitArray_ToString (interference), a, i);
+            /* DBG ("interference: %s; %d alias to %d\n", BitArray_ToString (interference), a, i); */
             /* #<{(|* */
             /*  * Check whether current node has an edge with the processed node and */
             /*  * is colored. If so, we will get the index of the color and remove it */
@@ -900,9 +900,17 @@ static void Colorify (Workspace w)
         int a = GetAlias (w, c);
         Temp_temp at = GetTemp (a, w->temps);
         Temp_temp color = (Temp_temp)TAB_Look (w->coloring, at);
-        TAB_Enter (w->coloring, ct, color);
-        Temp_Enter (w->results, ct, (char *)Temp_Look (w->results, color));
-        DBG ("coalesced temp %d colored as %s\n", c, Temp_Look (w->results, color));
+        if (!color && BitArray_IsSet (w->spilled, a))
+        {
+            // HMM is it the right place to solve spilled coalesce?
+            // looks like no action here
+        }
+        else
+        {
+            TAB_Enter (w->coloring, ct, color);
+            Temp_Enter (w->results, ct, (char *)Temp_Look (w->results, color));
+            DBG ("coalesced temp %d colored as %s\n", c, Temp_Look (w->results, color));
+        }
     }
 }
 
@@ -913,7 +921,7 @@ static ASM_lineList Rewrite (Workspace w)
 
     /*
      * We need to allocate space on stack to store the spilled temps.
-     * TODO stack space coloring, like for tegisters
+     * TODO stack space coloring, like for registers
      */
     size_t spilledNum = BitArray_GetDegree (w->spilled);
     size_t accessNum = LIST_SIZE (w->accessList);
@@ -935,14 +943,15 @@ static ASM_lineList Rewrite (Workspace w)
 
         Temp_temp temp = GetTemp (index, w->temps);
 
-        access = LIST_AT (w->accessList, --accessNum);
+        accessNum--;
+        access = LIST_AT (w->accessList, accessNum);
 
         ASM_lineList pre = NULL;
         ASM_lineList cur = w->asmll;
         for (; cur; pre = cur, cur = cur->tail)
         {
             ASM_line line = cur->head;
-            if (line->kind == I_LABEL)
+            if (line->kind == I_LABEL || line->kind == I_META)
             {
                 continue;
             }
