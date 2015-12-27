@@ -104,9 +104,9 @@ static bool is_int (Semant_Exp exp)
     return exp.ty == Ty_Int() || GetActualType (exp.ty) == Ty_Int();
 }
 
-static bool is_string (Semant_Exp exp)
+static bool is_str (Semant_Exp exp)
 {
-    return exp.ty == Ty_String();
+    return exp.ty == Ty_Str();
 }
 
 static bool same_type (Semant_Exp a, Semant_Exp b)
@@ -1117,7 +1117,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_stringExp:
     {
-        return Expression_New (Tr_String (context, exp->u.stringg), Ty_String());
+        return Expression_New (Tr_String (context, exp->u.stringg), Ty_Pointer (Ty_Str()));
     }
     case A_opExp:
     {

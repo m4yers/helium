@@ -67,7 +67,7 @@ Ty_ty Ty_Auto (void);
 Ty_ty Ty_Invalid (void);
 Ty_ty Ty_Nil (void);
 Ty_ty Ty_Int (void);
-Ty_ty Ty_String (void);
+Ty_ty Ty_Str (void);
 Ty_ty Ty_Void (void);
 
 Ty_ty Ty_Pointer (Ty_ty type);

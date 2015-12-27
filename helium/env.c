@@ -33,7 +33,7 @@ void Env_Init (Semant_Context c)
     S_Enter (tenv, S_Symbol ("void"), Ty_Void());
     S_Enter (tenv, S_Symbol ("nil"), Ty_Nil());
     S_Enter (tenv, S_Symbol ("int"), Ty_Int());
-    S_Enter (tenv, S_Symbol ("string"), Ty_String());
+    S_Enter (tenv, S_Symbol ("str"), Ty_Str());
 
     c->tenv = tenv;
     c->venv = S_Empty();

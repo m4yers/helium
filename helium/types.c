@@ -73,20 +73,20 @@ Ty_ty Ty_Int (void)
     return &tyint;
 }
 
-static struct Ty_ty_ tystring =
+static struct Ty_ty_ tystr =
 {
     .kind = Ty_string,
     .meta = {
-        .name = "string",
+        .name = "str",
         .is_internal = FALSE,
         .is_pointer = FALSE,
         .is_handle = FALSE
     },
     .u = {NULL}
 };
-Ty_ty Ty_String (void)
+Ty_ty Ty_Str (void)
 {
-    return &tystring;
+    return &tystr;
 }
 
 static struct Ty_ty_ tyvoid =
