@@ -162,7 +162,7 @@ static Temp_temp munchExp (T_exp e)
 
             return r;
         }
-        assert(0);
+        assert (0);
     }
     case T_BINOP:
     {
@@ -344,9 +344,14 @@ static void munchStm (T_stm s)
         Temp_tempList dl = s->u.ASSEMBLY.dst;
         Temp_tempList sl = s->u.ASSEMBLY.src;
 
+        // the can be max 2 sources
         if (!sl && data)
         {
             sl = L (munchExp (data), NULL);
+        }
+        else if (data)
+        {
+            sl->tail = L (munchExp (data), NULL);
         }
 
         emit (ASM_Oper (s->u.ASSEMBLY.code, dl, sl, NULL));

@@ -85,6 +85,8 @@ bool F_AllocIsVirtual (F_access access);
  *  Fragments  *
  ***************/
 
+typedef enum { F_lps, F_sz } F_stringType;
+
 typedef struct F_frag_ * F_frag;
 struct F_frag_
 {
@@ -100,6 +102,7 @@ struct F_frag_
         {
             Temp_label label;
             const char * str;
+            F_stringType type;
         } str;
 
         struct
@@ -111,7 +114,7 @@ struct F_frag_
     } u;
 };
 
-F_frag F_StringFrag (Temp_label label, const char * str);
+F_frag F_StringFrag (Temp_label label, const char * str, F_stringType type);
 F_frag F_ProcFrag (T_stm body, F_frame frame);
 
 LIST_DEFINE (F_fragList, F_frag)

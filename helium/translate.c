@@ -394,7 +394,6 @@ Tr_exp Tr_Call (Temp_label label, Tr_level encolosing, Tr_level own, Tr_expList 
     T_exp link = T_Temp (F_FP());
     while (encolosing != own->parent)
     {
-        printf("static offset\n");
         assert (encolosing);
         link = T_Mem (link);
         encolosing = encolosing->parent;
@@ -421,7 +420,7 @@ Tr_exp Tr_Int (int value)
 Tr_exp Tr_String (Semant_Context c, const char * value)
 {
     Temp_label label = Temp_NewLabel();
-    Program_AddFragment (c->module, F_StringFrag (label, value));
+    Program_AddFragment (c->module, F_StringFrag (label, value, F_lps));
     return Tr_Ex (T_Name (label));
 }
 

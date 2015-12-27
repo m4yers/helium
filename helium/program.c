@@ -134,7 +134,7 @@ static error_t parse_opt (int key, char * arg, struct argp_state * state)
     }
     case 'o':
     {
-        m->options.output = String_New(arg);
+        m->options.output = String_New (arg);
         break;
     }
     case ARGP_KEY_ARG:
@@ -220,10 +220,47 @@ void Program_PrintAssembly (FILE * file, Program_Module p)
         fprintf (file, ".data\n");
         LIST_FOREACH (fragment, p->fragments.strings)
         {
-            fprintf (file,
-                     "%s: .asciiz \"%s\"\n",
-                     fragment->u.str.label->name,
-                     fragment->u.str.str);
+            switch (fragment->u.str.type)
+            {
+            /*
+             * NOTE string length endianness matters because it will be read with word length
+             * instruction, but the string bytes order MUST be in the direct order as written in
+             * spoken language, because it will be read byte by byte and endianness is of no
+             * concern here
+             */
+            case F_lps:
+            {
+                fprintf (file, "%s: .byte", fragment->u.str.label->name);
+
+                // TODO check for 32-bit overflow?
+                // TODO little-endian vs big-endian 'if'?
+                int size = (int)strlen (fragment->u.str.str);
+                fprintf (file, " 0x%02x", (size >> 0x00) & 0xFF);
+                fprintf (file, ",0x%02x", (size >> 0x08) & 0xFF);
+                fprintf (file, ",0x%02x", (size >> 0x10) & 0xFF);
+                fprintf (file, ",0x%02x", (size >> 0x18) & 0xFF);
+
+                const char * str = fragment->u.str.str;
+
+                while (*str)
+                {
+                    fprintf (file, ",'%c'", *str);
+                    str++;
+                }
+
+                fprintf (file, "\n");
+
+                break;
+            }
+            case F_sz:
+            {
+                fprintf (file,
+                         "%s: .asciiz \"%s\"\n",
+                         fragment->u.str.label->name,
+                         fragment->u.str.str);
+                break;
+            }
+            }
         }
         fprintf (file, "\n");
     }

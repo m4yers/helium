@@ -216,7 +216,7 @@ def test(options):
                         COMPILER_ERROR,
                         False))
                 test.add_runner(
-                    Runner("spim -f {}".format(output_fullname),
+                    Runner("spim -mapped_io -f {}".format(output_fullname),
                            RUNTIME_ERROR,
                            True))
 
@@ -228,7 +228,7 @@ def test(options):
                         COMPILER_ERROR,
                         False))
                 test.add_runner(
-                    Runner("spim -f {}".format(output_fullname),
+                    Runner("spim -mapped_io -f {}".format(output_fullname),
                            RUNTIME_ERROR,
                            False))
 

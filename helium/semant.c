@@ -1117,7 +1117,9 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_stringExp:
     {
-        return Expression_New (Tr_String (context, exp->u.stringg), Ty_Pointer (Ty_Str()));
+        return Expression_New (
+                   Tr_String (context, exp->u.stringg),
+                   GetOrCreateTypeEntry (context, Ty_Pointer (Ty_Str())));
     }
     case A_opExp:
     {

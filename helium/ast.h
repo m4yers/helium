@@ -236,7 +236,8 @@ A_exp A_AddressOfExp (A_loc loc, A_var var);
 A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 
 // TODO parse it for real
-A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList src, U_stringList dst);
+// TODO data must be and exp
+A_exp A_AsmExp (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data);
 
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);

@@ -113,7 +113,7 @@ A_exp A_ValueAtExp (A_loc loc, A_exp exp)
     return p;
 }
 
-A_exp A_AsmExp (A_loc loc, const char * code, const char * data, U_stringList dst, U_stringList src)
+A_exp A_AsmExp (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_asmExp;
