@@ -756,7 +756,7 @@ Tr_exp Tr_Exit (Tr_exp exp)
     return Tr_Sx (T_Exit (Tr_UnEx (exp)));
 }
 
-Tr_exp Tr_Asm (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
+Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
 {
     // HMM... is it the right place?
     Temp_tempList dl = NULL;
@@ -783,7 +783,7 @@ Tr_exp Tr_Asm (const char * code, Tr_exp data, U_stringList dst, U_stringList sr
         LIST_PUSH (sl, t);
     }
 
-    return Tr_Sx (T_Asm (code, data ? Tr_UnEx (data) : NULL, dl, sl));
+    return Tr_Sx (T_AsmOld (code, data ? Tr_UnEx (data) : NULL, dl, sl));
 }
 
 void Tr_Init (Semant_Context c)

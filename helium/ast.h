@@ -32,6 +32,7 @@ LIST_DEFINE (A_stmList, A_stm)
  *  Location  *
  **************/
 
+// TODO move to top level ast header
 typedef struct A_loc_t
 {
     int first_line;
@@ -52,12 +53,12 @@ typedef enum
     A_simpleVar, A_fieldVar, A_subscriptVar,
 
     /** Dec */
-    A_typeDec, A_functionDec, A_varDec, 
+    A_typeDec, A_functionDec, A_varDec,
 
     /** Exp */
-    A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
+    A_retExp, A_addressOf, A_valueAt, A_typeCastExp, A_asmExp,
     A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
-    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExp,
+    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExpOld,
     A_whileExp, A_forExp, A_breakExp, A_arrayExp,
 
     /** Types */
@@ -174,12 +175,19 @@ struct A_forExp_t
     bool escape;
 };
 
-struct A_asmExp_t
+struct A_asmExpOld_t
 {
     const char * code;
     const char * data;
     U_stringList dst;
     U_stringList src;
+};
+
+struct A_AsmExp_t
+{
+    const char * code;
+    A_expList out;
+    A_expList in;
 };
 
 struct A_macroExp_t
@@ -218,7 +226,8 @@ struct A_exp_t
         A_exp ret;
         int intt;
         const char * stringg;
-        struct A_asmExp_t  assembly;
+        struct A_asmExpOld_t  asmOld;
+        struct A_AsmExp_t assembly;
         struct A_callExp_t call;
         struct A_macroExp_t macro;
         struct A_opExp_t op;
@@ -237,7 +246,8 @@ A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 
 // TODO parse it for real
 // TODO data must be and exp
-A_exp A_AsmExp (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data);
+A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data);
+A_exp A_AsmExp (A_loc loc, const char * code, A_expList out, A_expList in);
 
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);

@@ -26,18 +26,29 @@ include (cmocka)
 find_package (FLEX)
 find_package (BISON)
 
-FLEX_TARGET (Lexer
+FLEX_TARGET (HeliumLexer
     ${CMAKE_SOURCE_DIR}/helium/helium.ll
     ${CMAKE_CURRENT_BINARY_DIR}/helium.ll.c
     COMPILE_FLAGS "--prefix=yy_helium_")
 
-BISON_TARGET (Parser
+BISON_TARGET (HeliumParser
     ${CMAKE_SOURCE_DIR}/helium/helium.yy
     ${CMAKE_CURRENT_BINARY_DIR}/helium.yy.c
     VERBOSE helium.yy.output
     COMPILE_FLAGS "-Dapi.prefix={yy_helium_}")
 
-ADD_FLEX_BISON_DEPENDENCY (Lexer Parser)
+FLEX_TARGET (MIPSLexer
+    ${CMAKE_SOURCE_DIR}/helium/mips.ll
+    ${CMAKE_CURRENT_BINARY_DIR}/mips.ll.c
+    COMPILE_FLAGS "--prefix=yy_mips_")
+
+BISON_TARGET (MIPSParser
+    ${CMAKE_SOURCE_DIR}/helium/mips.yy
+    ${CMAKE_CURRENT_BINARY_DIR}/mips.yy.c
+    VERBOSE mips.yy.output
+    COMPILE_FLAGS "-Dapi.prefix={yy_mips_}")
+
+ADD_FLEX_BISON_DEPENDENCY (HeliumLexer HeliumParser)
 
 include_directories (/usr/local/include)
 include_directories (${CMAKE_SOURCE_DIR}/helium)
@@ -80,8 +91,10 @@ add_subdirectory (test/libhc)
 
 add_executable (Helium_Compiler ${CMAKE_SOURCE_DIR}/helium/main.c
     ${HELIUM_SOURCES}
-    ${BISON_Parser_OUTPUTS}
-    ${FLEX_Lexer_OUTPUTS})
+    ${BISON_HeliumParser_OUTPUTS}
+    ${FLEX_HeliumLexer_OUTPUTS}
+    ${BISON_MIPSParser_OUTPUTS}
+    ${FLEX_MIPSLexer_OUTPUTS})
 
 target_link_libraries(Helium_Compiler /usr/local/lib/libargp.a)
 set_target_properties (Helium_Compiler PROPERTIES OUTPUT_NAME "helium")

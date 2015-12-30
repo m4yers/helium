@@ -38,7 +38,7 @@ static A_scope TransScope (PreProc_Context context, A_scope scope)
     return scope;
 }
 
-#define ASM(code,dst,src,data) { LIST_PUSH (l, A_AsmExp (&exp->loc,code,dst,src,data)); }
+#define ASM(code,dst,src,data) { LIST_PUSH (l, A_AsmExpOld (&exp->loc,code,dst,src,data)); }
 #define SL(head,tail) U_StringList(head,tail)
 
 static A_exp TransExp (PreProc_Context context, A_exp exp)

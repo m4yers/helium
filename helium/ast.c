@@ -113,15 +113,26 @@ A_exp A_ValueAtExp (A_loc loc, A_exp exp)
     return p;
 }
 
-A_exp A_AsmExp (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data)
+A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmExpOld;
+    p->loc = *loc;
+    p->u.asmOld.code = code;
+    p->u.asmOld.data = data;
+    p->u.asmOld.dst = dst;
+    p->u.asmOld.src = src;
+    return p;
+}
+
+A_exp A_AsmExp (A_loc loc, const char * code, A_expList out, A_expList in)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_asmExp;
     p->loc = *loc;
     p->u.assembly.code = code;
-    p->u.assembly.data = data;
-    p->u.assembly.dst = dst;
-    p->u.assembly.src = src;
+    p->u.assembly.out = out;
+    p->u.assembly.in = in;
     return p;
 }
 
@@ -679,10 +690,10 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     switch (v->kind)
     {
-    case A_asmExp:
+    case A_asmExpOld:
         fprintf (out, "AsmExp(%s, %s",
-                 v->u.assembly.code,
-                 v->u.assembly.data);
+                 v->u.asmOld.code,
+                 v->u.asmOld.data);
         break;
 
     case A_retExp:

@@ -338,7 +338,7 @@ static void munchStm (T_stm s)
 
     switch (s->kind)
     {
-    case T_ASM:
+    case T_ASMOLD:
     {
         T_exp data = s->u.ASSEMBLY.data;
         Temp_tempList dl = s->u.ASSEMBLY.dst;

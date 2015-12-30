@@ -1030,13 +1030,16 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_asmExp:
     {
-        const char * data = exp->u.assembly.data;
-        U_stringList dst = exp->u.assembly.dst;
-        U_stringList src = exp->u.assembly.src;
+    }
+    case A_asmExpOld:
+    {
+        const char * data = exp->u.asmOld.data;
+        U_stringList dst = exp->u.asmOld.dst;
+        U_stringList src = exp->u.asmOld.src;
 
         return Expression_New (
-                   Tr_Asm (
-                       exp->u.assembly.code,
+                   Tr_AsmOld (
+                       exp->u.asmOld.code,
                        data == NULL ? NULL : Tr_String (context, data),
                        dst,
                        src),

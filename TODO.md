@@ -24,15 +24,17 @@
 - [x] tests for list.h/.c
 - [ ] ir printer
 - [ ] language features
-    - [ ] pointers
-    - [ ] strings
+    - [x] pointers
+    - [x] type cast
+    - [x] strings
+    - [ ] asm
+    - [ ] proper macro
     - [ ] boolean
+    - [ ] ranges
     - [ ] various loops
     - [ ] tuples
     - [ ] unions
     - [ ] packages
-    - [ ] asm
-    - [ ] macro
     - [ ] static storage
     - [ ] proper int ranges
     - [ ] array and record function results
@@ -96,27 +98,6 @@ general do deside whether a value must be fetched e.g.:
 here, b must be fetched again after assignment, but a should not. Though, clever asm optimizer can
 follow def/use graph and delte all the shit.
 
-
-Pointers:
-
-    let a = { x = 0, y = 10 };
-    let b = &a;
-
-    b:x = 10;
-
-    b..x = 10;
-
-    b->x = 10;
-
-    let c = &b;
-
-    c::x = 10;
-
-    c...x = 10;
-
-    c->>x = 10;
-    c-->x = 10;
-
 References:
 
     let a = { x = 0, y = 10 };
@@ -131,3 +112,15 @@ ret exp;
 Error handling:
 i need to skip whole statement if an error is encountered but continue parse definitions, since they
 affect next statements
+
+Array pointers:
+
+    let a = [1,2,3];
+    let b = &a;
+    let c = *b;
+
+    let d = b:0;
+
+** remove difference between var and exp, though i need keep in mind lhs and rhs differences
+
+Liternals -> remove old stuff and do convertion in semant
