@@ -4,7 +4,7 @@
     #include "ext/vector.h"
     #include "ext/mem.h"
 
-    #include "parser.h"
+    #include "helium.yy.h"
 
     #define YY_USER_ACTION adjust();
 
@@ -98,7 +98,7 @@ for              { return FOR; }
 to               { return TO; }
 do               { return DO; }
 in               { return IN; }
-end              { return END; }
+asm              { return ASM; }
 of               { return OF; }
 break            { return BREAK; }
 nil              { return NIL; }

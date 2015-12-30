@@ -73,8 +73,8 @@
   LBRACE RBRACE DOT
   EMARK PLUS MINUS STAR DIVIDE EQ NEQ LT LE GT GE
   AND OR EQEQ AS
-  IF THEN ELSE WHILE FOR TO DO IN END OF
-  FN MACRO LET DEF RET
+  IF THEN ELSE WHILE FOR TO DO IN OF
+  FN MACRO LET DEF RET ASM
   BREAK AMP NIL
   AUTO TYPE NEW CLASS EXTENDS METHOD PRIMITIVE IMPORT
 
@@ -88,6 +88,7 @@
             operations
             assignment
             controls
+            asm
 %type <scope> scope
 /* %type <spec> spec */
 /* %type <specList> spec_comma specs */
@@ -109,8 +110,10 @@
 
 %precedence   LOWEST
 
-%precedence   AS
-%precedence   TYPE
+%precedence   EMARK
+%precedence   ASM
+
+%precedence   AS TYPE
 
 %precedence   THEN
 %precedence   ELSE DO OF
@@ -121,10 +124,11 @@
 %left         MINUS PLUS
 %left         STAR DIVIDE
 %left         UMINUS
+%left         DOT COLON
 %precedence   ID
 %precedence   LBRACK
 %precedence   LBRACE
-%precedence   LPAREN
+%precedence   LPAREN RPAREN
 
 %precedence   HIGHEST
 
@@ -227,6 +231,7 @@ expression:               literals
                         | call_macro
                         | operations
                         | assignment
+                        | asm
                         | AMP lvalue
                           {
                               $$ = A_AddressOfExp(&(@$), $2);
@@ -238,6 +243,19 @@ expression:               literals
                         | expression AS type
                           {
                               $$ = A_TypeCastExp(&(@$), $3, $1);
+                          }
+                        ;
+asm:                      ASM LBRACE STRING RBRACE
+                          {
+                              $$ = A_AsmExp(&(@$), $3, NULL, NULL);
+                          }
+                        | ASM LPAREN
+                                  SEMICOLON exp_list_comma
+                                  SEMICOLON exp_list_comma
+                              RPAREN
+                            LBRACE STRING RBRACE
+                          {
+                              $$ = A_AsmExp(&(@$), $9, $4, $6);
                           }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }
