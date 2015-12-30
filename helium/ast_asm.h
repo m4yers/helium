@@ -8,6 +8,7 @@
 #include "ext/bool.h"
 
 #include "ast.h"
+#include "ast_asm.h"
 #include "symbol.h"
 
 /********************
@@ -27,6 +28,7 @@ typedef enum
 
 typedef enum
 {
+    A_asmOpImm,
     A_asmOpRegNum,
     A_asmOpRegName,
 } A_asmOpKind;
@@ -37,6 +39,7 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
+        int imm;
         int num;
         const char * name;
     } u;
@@ -45,6 +48,7 @@ typedef struct A_asmOp_t
 LIST_DEFINE (A_asmOpList, A_asmOp)
 LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
+A_asmOp A_AsmOpImm (A_loc loc, int imm);
 A_asmOp A_AsmOpRegNum (A_loc loc, int num);
 A_asmOp A_AsmOpRegName (A_loc loc, const char * name);
 
@@ -69,7 +73,7 @@ typedef struct A_asmStm_t
     A_asmStmKind kind;
     union
     {
-        A_asmStmInst inst;
+        struct A_asmStmInst_t inst;
     } u;
 } * A_asmStm;
 

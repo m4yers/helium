@@ -64,7 +64,8 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/ext/pair.c
     ${CMAKE_SOURCE_DIR}/helium/ext/vector.c
     ${CMAKE_SOURCE_DIR}/helium/asm.c
-    ${CMAKE_SOURCE_DIR}/helium/ast.c
+    ${CMAKE_SOURCE_DIR}/helium/ast_helium.c
+    ${CMAKE_SOURCE_DIR}/helium/ast_asm.c
     ${CMAKE_SOURCE_DIR}/helium/canon.c
     ${CMAKE_SOURCE_DIR}/helium/env.c
     ${CMAKE_SOURCE_DIR}/helium/error.c

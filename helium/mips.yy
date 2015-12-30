@@ -15,7 +15,7 @@
 
     #define YY_MIPS_LTYPE struct A_loc_t
 
-    extern Program_Module module;
+    extern A_asmStmList yy_mips_result;
 
     int yy_mips_lex (void);
 
@@ -24,22 +24,23 @@
 
 %code
 {
-    Program_Module module = NULL;
+    //TODO make it accept different type of parse trees
+    // Program_Module module = NULL;
 
-    int Parse (Program_Module m)
+    int MIPSParse ()
     {
-        module = m;
         return yy_mips_parse();
     }
 
     void yy_mips_error (const char * message)
     {
-        Vector_PushBack(&module->errors.parser,
-            Error_New(
-                &yy_mips_lloc,
-                2100,
-                "%s",
-                message));
+        printf("MIPS Parser error %s\n", message);
+        // Vector_PushBack(&module->errors.parser,
+        //     Error_New(
+        //         &yy_mips_lloc,
+        //         2100,
+        //         "%s",
+        //         message));
     }
 }
 
@@ -62,13 +63,17 @@
 %token <sval> ID STRING
 %token <ival> INT
 
-%token DOLLAR COMMA
+%token DOLLAR COMMA NEWLINE
+
+%precedence   LOWEST
+
+%precedence   HIGHEST
 
 %start program
 
 %%
 
-program:              statement_list { module->ast = $1; }
+program:              statement statement_list { yy_mips_result = A_AsmStmList($1, $2); }
                     ;
 statement_list:       %empty { $$ = NULL; }
                     | statement_list statement
@@ -89,9 +94,9 @@ statement_list:       %empty { $$ = NULL; }
                           }
                       }
                     ;
-statement:            ID operand_list
+statement:            ID operand operand_list
                       {
-                          $$ = A_AsmStmInst(&(@$), $1, $2);
+                          $$ = A_AsmStmInst(&(@$), $1, A_AsmOpList($2, $3));
                       }
                     ;
 operand_list:         %empty { $$ = NULL; }
@@ -104,10 +109,7 @@ operand_list:         %empty { $$ = NULL; }
                               {
                                 current = current->tail;
                               }
-                              if($3)
-                              {
-                                  current->tail = A_AsmOpList ($3, NULL);
-                              }
+                              current->tail = A_AsmOpList ($3, NULL);
                               $$ = $1;
                           }
                           else if($3)
@@ -123,6 +125,10 @@ operand:              DOLLAR INT
                     | DOLLAR ID
                       {
                           $$ = A_AsmOpRegName(&(@$), $2);
+                      }
+                    | INT
+                      {
+                          $$ = A_AsmOpImm(&(@$), $1);
                       }
 %%
 

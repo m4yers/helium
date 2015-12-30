@@ -28,15 +28,17 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
+" "|\t           { continue; }
+\n               { yy_mips_column = 1; return NEWLINE; }
 "$"              { return DOLLAR; }
 ","              { return COMMA; }
 {DIGIT}+         { yy_mips_lval.ival = atoi(yy_mips_text);    return INT; }
 {ID}             { yy_mips_lval.sval = strdup (yy_mips_text); return ID;  }
 .                {
-                    Vector_PushBack(&module->errors.lexer,
-                        Error_New(
-                            &yy_helium_lloc,
-                            1000,
-                            "Unknown token %s",
-                            yy_helium_lloc.token));
+                    // Vector_PushBack(&module->errors.lexer,
+                    //     Error_New(
+                    //         &yy_mips_lloc,
+                    //         1100,
+                    //         "Unknown token %s",
+                    //         yy_mips_lloc.token));
                  }

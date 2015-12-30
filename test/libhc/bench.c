@@ -134,15 +134,16 @@ static void main__return (void ** state)
 {
     const char * cases[] =
     {
-        /* "fn main\n\ */
-        /* {\n\ */
-        /*     asm { addi $a0, $zero, 1 }\n\ */
-        /* }", */
-
         "fn main\n\
         {\n\
+            asm { addi $a0, $zero, 1 };\n\
             1;\n\
         }",
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     1;\n\ */
+        /* }", */
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

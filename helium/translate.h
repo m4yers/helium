@@ -1,7 +1,7 @@
 #ifndef TRANSLATE_H_ZDIHRPIG
 #define TRANSLATE_H_ZDIHRPIG
 
-#include "ast.h"
+#include "ast_helium.h"
 #include "temp.h"
 #include "frame.h"
 #include "types.h"

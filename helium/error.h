@@ -1,7 +1,7 @@
 #ifndef ERROR_H_AVNIWZ7O
 #define ERROR_H_AVNIWZ7O
 
-#include "ast.h"
+#include "ast_helium.h"
 
 struct Error
 {

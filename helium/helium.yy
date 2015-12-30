@@ -11,10 +11,12 @@
     #include "program.h"
     #include "error.h"
     #include "ast.h"
+    #include "ast_asm.h"
 
     #define YY_HELIUM_LTYPE struct A_loc_t
 
     extern Program_Module module;
+    extern A_asmStmList ParseAsm(const char * input);
 
     int yy_helium_lex (void);
 
@@ -25,7 +27,7 @@
 {
     Program_Module module = NULL;
 
-    int Parse (Program_Module m)
+    int HeliumParse (Program_Module m)
     {
         module = m;
         return yy_helium_parse();
@@ -33,6 +35,7 @@
 
     void yy_helium_error (const char * message)
     {
+    printf("string: '%s'\n", yy_helium_lval.sval);
         Vector_PushBack(&module->errors.parser,
             Error_New(
                 &yy_helium_lloc,
@@ -199,7 +202,7 @@ type:                     AMP type
                               $$ = A_NameTy (&(@$), S_Symbol($1), NULL);
                           }
                         ;
-typed_field_comma:         %empty { $$ = NULL; }
+typed_field_comma:        %empty { $$ = NULL; }
                         | typed_field_comma COMMA typed_field
                           {
                               if ($1)
@@ -247,7 +250,7 @@ expression:               literals
                         ;
 asm:                      ASM LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), $3, NULL, NULL);
+                              $$ = A_AsmExp(&(@$), ParseAsm($3), NULL, NULL);
                           }
                         | ASM LPAREN
                                   SEMICOLON exp_list_comma
@@ -255,7 +258,7 @@ asm:                      ASM LBRACE STRING RBRACE
                               RPAREN
                             LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), $9, $4, $6);
+                              $$ = A_AsmExp(&(@$), ParseAsm($9), $4, $6);
                           }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }

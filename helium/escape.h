@@ -1,7 +1,7 @@
 #ifndef ESCAPE_H_EX5A2SOF
 #define ESCAPE_H_EX5A2SOF
 
-#include "ast.h"
+#include "ast_helium.h"
 
 void Escape_Find (A_decList list);
 

@@ -6,7 +6,7 @@
 #include "ext/list.h"
 
 #include "frame.h"
-#include "ast.h"
+#include "ast_helium.h"
 
 struct Program_Option_t
 {

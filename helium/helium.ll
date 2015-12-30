@@ -23,37 +23,46 @@
 %option noyywrap
 %option yylineno
 
-%x block_comment
-%x line_comment
-%x string
+%s STATE_ASM
+%x STATE_BLOCK_COMMENT
+%x STATE_LINE_COMMENT
+%x STATE_STRING
 
 DIGIT    [0-9]
 ID       [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-"/*"             BEGIN(block_comment);
-<block_comment>
+"/*"             BEGIN(STATE_BLOCK_COMMENT);
+<STATE_BLOCK_COMMENT>
 {
                  /** HMM does this preserve \n in the sval?*/
-    \n           { yy_helium_column = 1; continue; }
+    \n           { yy_helium_column = 1; continue;                                      }
     [^*]*        /** eat anything that's not a '*' */
     "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
     "*"+"/"      BEGIN(INITIAL);
 }
 
-"//"             BEGIN(line_comment);
-<line_comment>
+"//"             BEGIN(STATE_LINE_COMMENT);
+<STATE_LINE_COMMENT>
 {
     .*           /** eat up all characters */
-    "\n"         { yy_helium_column = 1; BEGIN(INITIAL); }
+    "\n"         { yy_helium_column = 1; BEGIN(INITIAL);                                }
 }
 
-\"               BEGIN(string);
-<string>
+\"               BEGIN(STATE_STRING);
+<STATE_STRING>
 {
-    [^"]*        { yy_helium_lval.sval = strdup (yy_helium_text); }
-    \"           { BEGIN(INITIAL); return STRING; }
+    [^"]*        { yy_helium_lval.sval = strdup (yy_helium_text);                       }
+    \"           { BEGIN(INITIAL); return STRING;                                       }
+}
+
+asm              { BEGIN(STATE_ASM); return ASM;                                        }
+<STATE_ASM>
+{
+    " "|\t       { continue;                                                            }
+    [^\{\}]*     { yy_helium_lval.sval = strdup (yy_helium_text); return STRING;        }
+    "}"          { BEGIN(INITIAL); return RBRACE;                                       }
 }
 
 " "|\t           { continue; }
@@ -98,7 +107,6 @@ for              { return FOR; }
 to               { return TO; }
 do               { return DO; }
 in               { return IN; }
-asm              { return ASM; }
 of               { return OF; }
 break            { return BREAK; }
 nil              { return NIL; }

@@ -4,17 +4,30 @@
 #include "ext/vector.h"
 
 #include "symbol.h"
-#include "parse.h"
 #include "program.h"
-#include "ast.h"
+
+#include "parse.h"
 
 extern FILE * yy_helium_in;
 extern void * yy_helium__scan_string (const char * str);
-extern int Parse (Program_Module m);
+extern void * yy_helium__get_current_buffer();
+extern int HeliumParse (Program_Module m);
+
+A_asmStmList yy_mips_result;
+extern void * yy_mips__scan_string (const char * str);
+extern int MIPSParse ();
+
+// HMM... ca we make it parse from the same buffer as helium parser. Do we need this?
+A_asmStmList ParseAsm(const char * input)
+{
+    yy_mips__scan_string (input);
+    int status = MIPSParse();
+    return status ? yy_mips_result : NULL;
+}
 
 int Parse_File (Program_Module m, String filename)
 {
-    yy_helium_in = fopen (String_Data(filename), "r");
+    yy_helium_in = fopen (String_Data (filename), "r");
 
     if (!yy_helium_in)
     {
@@ -22,7 +35,7 @@ int Parse_File (Program_Module m, String filename)
         return 1;
     }
 
-    return Parse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
+    return HeliumParse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
 }
 
 int Parse_String (Program_Module m, const char * input)
@@ -35,5 +48,5 @@ int Parse_String (Program_Module m, const char * input)
 
     yy_helium__scan_string (input);
 
-    return Parse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
+    return HeliumParse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
 }

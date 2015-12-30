@@ -6,7 +6,8 @@
 #include "ext/bool.h"
 
 #include "symbol.h"
-#include "ast.h"
+
+#include "ast_helium.h"
 
 /************
  *  Fields  *
@@ -125,7 +126,7 @@ A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList 
     return p;
 }
 
-A_exp A_AsmExp (A_loc loc, const char * code, A_expList out, A_expList in)
+A_exp A_AsmExp (A_loc loc, A_asmStmList code, A_expList out, A_expList in)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_asmExp;
