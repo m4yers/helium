@@ -8,15 +8,15 @@
 #include "program.h"
 #include "ast.h"
 
-extern FILE * yyin;
-extern void * yy_scan_string (const char * str);
+extern FILE * yy_helium_in;
+extern void * yy_helium__scan_string (const char * str);
 extern int Parse (Program_Module m);
 
 int Parse_File (Program_Module m, String filename)
 {
-    yyin = fopen (String_Data(filename), "r");
+    yy_helium_in = fopen (String_Data(filename), "r");
 
-    if (!yyin)
+    if (!yy_helium_in)
     {
         Vector_PushBack (&m->errors.lexer, "Could not open file");
         return 1;
@@ -33,7 +33,7 @@ int Parse_String (Program_Module m, const char * input)
         return 1;
     }
 
-    yy_scan_string (input);
+    yy_helium__scan_string (input);
 
     return Parse (m) || !Vector_Empty (&m->errors.lexer) || !Vector_Empty (&m->errors.parser);
 }

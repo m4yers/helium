@@ -8,15 +8,15 @@
 
     #define YY_USER_ACTION adjust();
 
-    int yycolumn = 1;
+    int yy_helium_column = 1;
 
     static void adjust (void)
     {
-        yylloc.token = strdup(yytext);
-        yylloc.first_line = yylloc.last_line = yylineno;
-        yylloc.first_column = yycolumn;
-        yylloc.last_column = yycolumn + yyleng - 1;
-        yycolumn += yyleng;
+        yy_helium_lloc.token = strdup(yytext);
+        yy_helium_lloc.first_line = yy_helium_lloc.last_line = yylineno;
+        yy_helium_lloc.first_column = yy_helium_column;
+        yy_helium_lloc.last_column = yy_helium_column + yyleng - 1;
+        yy_helium_column += yyleng;
     }
 %}
 
@@ -36,7 +36,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 <block_comment>
 {
                  /** HMM does this preserve \n in the sval?*/
-    \n           { yycolumn = 1; continue; }
+    \n           { yy_helium_column = 1; continue; }
     [^*]*        /** eat anything that's not a '*' */
     "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
     "*"+"/"      BEGIN(INITIAL);
@@ -46,18 +46,18 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 <line_comment>
 {
     .*           /** eat up all characters */
-    "\n"         { yycolumn = 1; BEGIN(INITIAL); }
+    "\n"         { yy_helium_column = 1; BEGIN(INITIAL); }
 }
 
 \"               BEGIN(string);
 <string>
 {
-    [^"]*        { yylval.sval = strdup (yytext); }
+    [^"]*        { yy_helium_lval.sval = strdup (yy_helium_text); }
     \"           { BEGIN(INITIAL); return STRING; }
 }
 
 " "|\t           { continue; }
-\n               { yycolumn = 1; continue; }
+\n               { yy_helium_column = 1; continue; }
 "!"              { return EMARK; }
 ","              { return COMMA; }
 ":"              { return COLON; }
@@ -83,7 +83,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "&&"             { return AND; }
 "||"             { return OR; }
 "&"              { return AMP; }
-{DIGIT}+         { yylval.ival=atoi(yytext); return INT; }
+{DIGIT}+         { yy_helium_lval.ival=atoi(yy_helium_text); return INT; }
 fn               { return FN; }
 macro            { return MACRO; }
 ret              { return RET; }
@@ -110,12 +110,12 @@ extends          { return EXTENDS; }
 method           { return METHOD; }
 promitive        { return PRIMITIVE; }
 import           { return IMPORT; }
-{ID}             { yylval.sval = strdup (yytext); return ID;}
+{ID}             { yy_helium_lval.sval = strdup (yy_helium_text); return ID;}
 .                {
                     Vector_PushBack(&module->errors.lexer,
                         Error_New(
-                            &yylloc,
+                            &yy_helium_lloc,
                             1000,
                             "Unknown token %s",
-                            yylloc.token));
+                            yy_helium_lloc.token));
                  }

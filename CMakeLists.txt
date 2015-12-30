@@ -27,13 +27,15 @@ find_package (FLEX)
 find_package (BISON)
 
 FLEX_TARGET (Lexer
-    ${CMAKE_SOURCE_DIR}/helium/lexer.lex
-    ${CMAKE_CURRENT_BINARY_DIR}/lexer.c)
+    ${CMAKE_SOURCE_DIR}/helium/helium.ll
+    ${CMAKE_CURRENT_BINARY_DIR}/helium.ll.c
+    COMPILE_FLAGS "--prefix=yy_helium_")
 
 BISON_TARGET (Parser
-    ${CMAKE_SOURCE_DIR}/helium/parser.y
-    ${CMAKE_CURRENT_BINARY_DIR}/parser.c
-    VERBOSE parser.output)
+    ${CMAKE_SOURCE_DIR}/helium/helium.yy
+    ${CMAKE_CURRENT_BINARY_DIR}/helium.yy.c
+    VERBOSE helium.yy.output
+    COMPILE_FLAGS "-Dapi.prefix={yy_helium_}")
 
 ADD_FLEX_BISON_DEPENDENCY (Lexer Parser)
 

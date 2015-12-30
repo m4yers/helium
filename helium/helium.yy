@@ -12,13 +12,13 @@
     #include "error.h"
     #include "ast.h"
 
-    #define YYLTYPE struct A_loc_t
+    #define YY_HELIUM_LTYPE struct A_loc_t
 
     extern Program_Module module;
 
-    int yylex (void);
+    int yy_helium_lex (void);
 
-    void yyerror (const char * s);
+    void yy_helium_error (const char * s);
 }
 
 %code
@@ -28,14 +28,14 @@
     int Parse (Program_Module m)
     {
         module = m;
-        return yyparse();
+        return yy_helium_parse();
     }
 
-    void yyerror (const char * message)
+    void yy_helium_error (const char * message)
     {
         Vector_PushBack(&module->errors.parser,
             Error_New(
-                &yylloc,
+                &yy_helium_lloc,
                 2000,
                 "%s",
                 message));
