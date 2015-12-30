@@ -27,6 +27,15 @@
         type head;                                                                  \
     } * name;                                                                       \
 
+#define LIST_CONST_DEFINE(name,list,item)                                           \
+    static inline list name (item head, list tail)                                  \
+    {                                                                               \
+        list p = checked_malloc (sizeof (*p));                                      \
+        p->head = head;                                                             \
+        p->tail = tail;                                                             \
+        return p;                                                                   \
+    }
+
 LIST_DEFINE (U_voidList, void *)
 
 static inline size_t List_Size_ (U_voidList list)
