@@ -131,7 +131,7 @@ operand:              DOLLAR INT
                       }
                     | INT
                       {
-                          $$ = A_AsmOpImm(&(@$), $1);
+                          $$ = A_AsmOpInt(&(@$), $1);
                       }
 newlines:             %empty
                     | newlines NEWLINE

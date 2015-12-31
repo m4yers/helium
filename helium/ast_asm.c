@@ -13,12 +13,12 @@
 *  Operands  *
 **************/
 
-A_asmOp A_AsmOpImm (A_loc loc, int imm)
+A_asmOp A_AsmOpInt (A_loc loc, int integer)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmOpImmKind;
+    p->kind = A_asmOpIntKind;
     p->loc = *loc;
-    p->u.imm = imm;
+    p->u.integer = integer;
     return p;
 }
 
@@ -44,12 +44,12 @@ A_asmOp A_AsmOpRegName (A_loc loc, const char * name)
 *  Instructions  *
 ******************/
 
-A_asmStm A_AsmStmInst (A_loc loc, const char * code, A_asmOpList opList)
+A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
 {
     A_asmStm p = checked_malloc (sizeof (*p));
     p->loc = *loc;
     p->kind = A_asmStmInstKind;
-    p->u.inst.code = code;
+    p->u.inst.opcode = opcode;
     p->u.inst.opList = opList;
     return p;
 }
@@ -103,7 +103,7 @@ void PrintInst (FILE * out, A_asmStmInst inst, int d)
 {
     PrintIndent (out, d);
 
-    fprintf (out, "Inst(%s", inst->code);
+    fprintf (out, "Inst(%s", inst->opcode);
 
     LIST_FOREACH (op, inst->opList)
     {
@@ -120,9 +120,9 @@ void PrintOp (FILE * out, A_asmOp op, int d)
 
     switch (op->kind)
     {
-    case A_asmOpImmKind:
+    case A_asmOpIntKind:
     {
-        fprintf (out, "Imm(%d)", op->u.imm);
+        fprintf (out, "Imm(%d)", op->u.integer);
         break;
     }
     case A_asmOpRegNumKind:

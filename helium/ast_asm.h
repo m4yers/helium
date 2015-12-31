@@ -28,7 +28,7 @@ typedef enum
 
 typedef enum
 {
-    A_asmOpImmKind,
+    A_asmOpIntKind,
     A_asmOpRegNumKind,
     A_asmOpRegNameKind,
 } A_asmOpKind;
@@ -39,7 +39,7 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
-        int imm;
+        int integer;
         int num;
         const char * name;
     } u;
@@ -48,7 +48,7 @@ typedef struct A_asmOp_t
 LIST_DEFINE (A_asmOpList, A_asmOp)
 LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
-A_asmOp A_AsmOpImm (A_loc loc, int imm);
+A_asmOp A_AsmOpInt (A_loc loc, int imm);
 A_asmOp A_AsmOpRegNum (A_loc loc, int num);
 A_asmOp A_AsmOpRegName (A_loc loc, const char * name);
 
@@ -63,7 +63,7 @@ typedef enum
 
 typedef struct A_asmStmInst_t
 {
-    const char * code;
+    const char * opcode;
     A_asmOpList opList;
 } * A_asmStmInst;
 
@@ -80,7 +80,7 @@ typedef struct A_asmStm_t
 LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
-A_asmStm A_AsmStmInst(A_loc loc, const char * code, A_asmOpList opList);
+A_asmStm A_AsmStmInst(A_loc loc, const char * opcode, A_asmOpList opList);
 
 /*************
 *  Printer  *
