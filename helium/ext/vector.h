@@ -5,6 +5,8 @@
 
 #include "bool.h"
 
+#define VECTOR_START_ALLOC 4
+
 typedef void (*VectorElementDestructor) (void * value);
 
 typedef struct Vector_t * Vector;
@@ -42,10 +44,10 @@ struct Vector_t
 };
 
 #define Vector(t) {\
-    .data = checked_malloc(sizeof(t) * 4),\
-    .allocated = sizeof(t) * 4,\
+    .data = checked_malloc(sizeof(t) * VECTOR_START_ALLOC),\
+    .allocated = sizeof(t) * VECTOR_START_ALLOC,\
     .type_size = sizeof(t),\
-    .capacity = 4,\
+    .capacity = VECTOR_START_ALLOC,\
     .size = 0,\
     .dest = NULL}
 
@@ -57,7 +59,8 @@ struct Vector_t
  */
 Vector _Vector_Init (Vector v, size_t type_size, size_t n);
 
-#define Vector_Init(vector, type) _Vector_Init (vector, sizeof (type), 4);
+// HMM should it empty at the begining?
+#define Vector_Init(vector, type) _Vector_Init (vector, sizeof (type), VECTOR_START_ALLOC);
 
 /*
  * Frees all memory allocated for the vector.
@@ -69,7 +72,7 @@ void Vector_Fini (Vector v);
  */
 Vector _Vector_New (size_t type_size, size_t n);
 
-#define Vector_New(type) _Vector_New (sizeof (type), 4);
+#define Vector_New(type) _Vector_New (sizeof (type), VECTOR_START_ALLOC);
 /*
  * Same as Vector_Fini plus the instance is freed and assigned to NULL.
  */
