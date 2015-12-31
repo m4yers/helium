@@ -66,23 +66,23 @@ String String_New (const char * data);
  * If the String instance references static string this method will force it to allocate new
  * memory block and copy the string there.
  */
-void String_NoStatic (String s);
+void String_NoStatic (const struct String_t * s);
 
 /*
  * Checks whether String instance references static string.
  */
-bool String_IsStatic (String s);
+bool String_IsStatic (const struct String_t * s);
 
 /*
  * Returns whether the string is empty (i.e. whether its size is 0). This function does not
  * modify the container in any way. To clear the content of a string, see String_Clear.
  */
-bool String_Empty (const String s);
+bool String_Empty (const struct String_t * s);
 
 /*
  * Erases the contents of the string, which becomes an empty string (with a length of 0 characters)
  */
-void String_Clear (String s);
+void String_Clear (const struct String_t * s);
 
 /*
  * Requests that the string capacity be at least enough to contain n chars.
@@ -113,10 +113,10 @@ void String_Reserve (String s, size_t n);
  * If n is also greater than the current container capacity, an automatic reallocation of the
  * allocated storage space takes place.
  */
-void String_Resize (String s, size_t n, char c);
+void String_Resize (const struct String_t * s, size_t n, char c);
 
-int String_Diff_s (String a, String b);
-int String_Diff_cp (String a, const char * b);
+int String_Diff_s (const struct String_t * a, const struct String_t * b);
+int String_Diff_cp (const struct String_t * a, const char * b);
 
 /*
  * Compares String and the second operand including nul charactesrs and returns -1 if two String
@@ -130,8 +130,8 @@ int String_Diff_cp (String a, const char * b);
             struct String_t *: String_Diff_s                         \
             )(a,b)
 
-bool String_Equal_s (String a, String b);
-bool String_Equal_c (String a, const char * b);
+bool String_Equal_s (const struct String_t * a, const struct String_t * b);
+bool String_Equal_c (const struct String_t * a, const char * b);
 
 /*
  * Returns True if a c char sequance is equal to the one in the String instance
@@ -143,7 +143,7 @@ bool String_Equal_c (String a, const char * b);
             struct String_t *: String_Equal_s                        \
             )(a,b)
 
-void String_Assign_s (String s, String o);
+void String_Assign_s (String s, const struct String_t * o);
 void String_Assign_cp (String s, const char * c);
 
 /*
@@ -157,7 +157,7 @@ void String_Assign_cp (String s, const char * c);
             struct String_t *: String_Assign_s                       \
             )(a,b)
 
-void String_Insert_s (String s, size_t pos, String o);
+void String_Insert_s (String s, size_t pos, const struct String_t * o);
 void String_Insert_cp (String s, size_t pos, const char * c);
 
 /*
@@ -173,7 +173,7 @@ void String_Insert_cp (String s, size_t pos, const char * c);
 /*
  * Calls strcmp on Strings content
  */
-int String_Cmp (String a, String b);
+int String_Cmp (const struct String_t * a, const struct String_t * b);
 
 /*
  * Appends character c to the end of the string, increasing its length by one.
@@ -195,7 +195,7 @@ void String_Append_cp (String s, const char * c);
 /*
  * Extends the String by appending content of another String instance
  */
-void String_Append_s (String s, String o);
+void String_Append_s (String s, const struct String_t * o);
 
 void String_Append_l (String s, long n);
 
@@ -212,19 +212,19 @@ void String_Append_l (String s, long n);
  * Returns a reference to the first character in the string. Essentially the same as String_Data
  * but does additional check for size.
  */
-const char * String_Front (const String s);
+const char * String_Front (const struct String_t * s);
 
 /*
  * Returns a reference to the last character in the string.
  */
-const char * String_Back (const String s);
+const char * String_Back (const struct String_t * s);
 
 /*
  * Returns the number of characters in the string.
  * This is the number of actual objects held in the string, which is not necessarily equal to
  * its storage capacity.
  */
-size_t String_Size (const String s);
+size_t String_Size (const struct String_t * s);
 
 /*
  * Returns the size of the storage space currently allocated for the string, expressed in terms
@@ -240,7 +240,7 @@ size_t String_Size (const String s);
  *
  * The capacity of a string can be explicitly altered by calling String_Reserve.
  */
-size_t String_Capacity (const String s);
+size_t String_Capacity (const struct String_t * s);
 
 /*
  * Returns a reference to the character at position n in the string.
@@ -248,7 +248,7 @@ size_t String_Capacity (const String s);
  * The function automatically checks whether n is within the bounds of valid characters in
  * the string.
  */
-const char * String_At (const String s, size_t pos);
+const char * String_At (const struct String_t * s, size_t pos);
 
 /*
  * Returns a direct pointer to the memory array used internally by the string to store its owned
@@ -258,7 +258,7 @@ const char * String_At (const String s, size_t pos);
  * in the same order as represented by the string, the pointer retrieved can be offset to access
  * any character in the array.
  */
-void * String_Data (const String s);
+void * String_Data (const struct String_t * s);
 
 #define String_PrintF(s, ...) printf(s->data, __VA_ARGS__);
 
