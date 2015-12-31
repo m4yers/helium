@@ -211,13 +211,14 @@ void String_Append_l (String s, long n);
             long: String_Append_l                                    \
             )(a,b)
 
-Vector String_Split_s (const struct String_t * s, const struct String_t * o);
-Vector String_Split_c (const struct String_t * s, char c);
-Vector String_Split_cp (const struct String_t * s, const char * c);
+Vector String_Split_s (const struct String_t * s, const struct String_t * d);
+Vector String_Split_c (const struct String_t * s, char d);
+Vector String_Split_cp (const struct String_t * s, const char * d);
 
+// HMM... char didn't work, i've used int is that correct?
 #define String_Split(a,b)                                            \
     _Generic ((0,b),                                                 \
-            char: String_Split_c,                                    \
+            int: String_Split_c,                                     \
             char *: String_Split_cp,                                 \
             const char *: String_Split_cp,                           \
             const struct String_t *: String_Split_s,                 \

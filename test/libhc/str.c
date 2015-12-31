@@ -9,6 +9,7 @@
 #include <cmocka.h>
 
 #include "ext/str.h"
+#include "ext/vector.h"
 
 static const char * a_string = "This is a string";
 
@@ -453,6 +454,108 @@ static void string_at_ok (void ** state)
     (void) state;
 }
 
+static void string_split_ok (void ** state)
+{
+    String str = NULL;
+    Vector split = NULL;
+    size_t c = 0;
+
+    /** empty string */
+    str = String_New ("");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 0);
+
+    /** many seps */
+    str = String_New (",,,");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 4);
+
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, ""));
+    }
+
+    /** 3 items separated by , */
+    const char * strs[] = {"one", "two", "three"};
+    str = String_New ("one,two,three");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 3);
+
+    c = 0;
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, strs[c++]));
+    }
+
+    /** 3 items separated by sep and one preceding sep */
+    const char * strs4[] = {"", "one", "two", "three"};
+    str = String_New (",one,two,three");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 4);
+
+    c = 0;
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, strs4[c++]));
+    }
+
+    /** 3 items separated by sep and one following sep */
+    const char * strs5[] = {"one", "two", "three", ""};
+    str = String_New ("one,two,three,");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 4);
+
+    c = 0;
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, strs5[c++]));
+    }
+
+    /** one item */
+    str = String_New ("one");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 1);
+
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, "one"));
+    }
+
+    /** one item with separator at the front */
+    const char * strs2[] = {"", "one"};
+    str = String_New (",one");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 2);
+
+    c = 0;
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, strs2[c++]));
+    }
+
+    /** one item with separator at the back */
+    const char * strs3[] = {"one", ""};
+    str = String_New ("one,");
+    split = String_Split (str, ',');
+
+    assert_true (Vector_Size (split) == 2);
+
+    c = 0;
+    VECTOR_FOREACH (struct String_t, s, split)
+    {
+        assert_true (String_Equal (s, strs3[c++]));
+    }
+
+    (void) state;
+}
+
 static void string_foreach_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -503,6 +606,7 @@ int main (void)
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),
+        cmocka_unit_test (string_split_ok),
         cmocka_unit_test (string_foreach_ok),
     };
     return cmocka_run_group_tests (tests, NULL, NULL);

@@ -248,16 +248,50 @@ void String_Append_l (String s, long n)
     String_Append_cp (s, str);
 }
 
-Vector String_Split_s (const struct String_t * s, const struct String_t * o);
-
-Vector String_Split_c (const struct String_t * s, char c)
+Vector String_Split_s (const struct String_t * s, const struct String_t * d)
 {
     assert (s);
-    Vector vec = Vector_New(struct String_t);
-    struct String_t str;
+    assert (d);
+    assert (0);
 }
 
-Vector String_Split_cp (const struct String_t * s, const char * c);
+Vector String_Split_c (const struct String_t * s, char d)
+{
+    assert (s);
+
+    Vector vec = Vector_New (struct String_t);
+
+    if (String_Size (s) == 0)
+    {
+        return vec;
+    }
+
+    struct String_t str = String ("");
+
+    STRING_FOREACH (c, s)
+    {
+        if (c == d)
+        {
+            Vector_Push (vec, &str);
+            String_Init (&str, "");
+        }
+        else
+        {
+            String_PushBack (&str, c);
+        }
+    }
+
+    Vector_Push (vec, &str);
+
+    return vec;
+}
+
+Vector String_Split_cp (const struct String_t * s, const char * d)
+{
+    assert (s);
+    assert (d);
+    assert (0);
+}
 
 void String_Assign_s (String s, const struct String_t * o)
 {
