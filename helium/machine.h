@@ -7,18 +7,13 @@
 
 #include "temp.h"
 
-typedef enum
-{
-    M_opCode_R, M_opCode_I, M_opCode_J, M_opCode_CI
-} M_opCodeKind;
-
 struct M_opCode_t
 {
-    struct String_t code;
-    M_opCodeKind kind;
+    struct String_t name;
+    struct String_t format;
 } * M_opCode;
 
-#define M_OpCode(c,k) { .code = String(c), .kind = k }
+#define M_OpCode(c,f) { .name = String(c), .format = String(f) }
 
 extern const int F_wordSize;
 
