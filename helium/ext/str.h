@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "ext/bool.h"
+#include "ext/vector.h"
 
 typedef struct String_t * String;
 
@@ -210,6 +211,19 @@ void String_Append_l (String s, long n);
             long: String_Append_l                                    \
             )(a,b)
 
+Vector String_Split_s (const struct String_t * s, const struct String_t * o);
+Vector String_Split_c (const struct String_t * s, char c);
+Vector String_Split_cp (const struct String_t * s, const char * c);
+
+#define String_Split(a,b)                                            \
+    _Generic ((0,b),                                                 \
+            char: String_Split_c,                                    \
+            char *: String_Split_cp,                                 \
+            const char *: String_Split_cp,                           \
+            const struct String_t *: String_Split_s,                 \
+            struct String_t *: String_Split_s                        \
+            )(a,b)
+
 /*
  * Returns a reference to the first character in the string. Essentially the same as String_Data
  * but does additional check for size.
@@ -261,6 +275,20 @@ const char * String_At (const struct String_t * s, size_t pos);
  * any character in the array.
  */
 void * String_Data (const struct String_t * s);
+
+/*
+ * Iterate over String
+ */
+#define STRING_FOREACH(item, string)                                                          \
+    for (char item = string->data[0]; item; item = 0)                                         \
+    for (size_t __i = 0; __i < string->size; ++__i, item = string->data[__i])
+
+/*
+ * Iterater over String chars, same as above but the item is a pointer to the current char
+ */
+#define STRING_FOREACH_PTR(item, string)                                                      \
+    for (char * item = string->data; item; item = 0)                                          \
+    for (size_t __i = 0; __i < string->size; ++__i, item = string->data + __i)
 
 #define String_PrintF(s, ...) printf(s->data, __VA_ARGS__);
 

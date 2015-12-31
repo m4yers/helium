@@ -267,12 +267,12 @@ static void string_append_integer_ok (void ** state)
     String str = String_New ("13");
 
     assert_true (String_IsStatic (str));
-    assert_true (String_Equal(str, "13"));
+    assert_true (String_Equal (str, "13"));
 
     String_Append (str, 37);
 
     assert_false (String_IsStatic (str));
-    assert_true (String_Equal(str, "1337"));
+    assert_true (String_Equal (str, "1337"));
 
     (void) state;
 }
@@ -453,6 +453,29 @@ static void string_at_ok (void ** state)
     (void) state;
 }
 
+static void string_foreach_ok (void ** state)
+{
+    String str = String_New (a_string);
+
+    size_t offset = 0;
+    STRING_FOREACH (c, str)
+    {
+        assert_true (c == a_string[offset++]);
+    }
+
+    assert_true (offset == strlen (a_string));
+
+    offset = 0;
+    STRING_FOREACH_PTR (c, str)
+    {
+        assert_true (*c == a_string[offset++]);
+    }
+
+    assert_true (offset == strlen (a_string));
+
+    (void) state;
+}
+
 int main (void)
 {
     const struct CMUnitTest tests[] =
@@ -480,6 +503,7 @@ int main (void)
         cmocka_unit_test (string_front_ok),
         cmocka_unit_test (string_back_ok),
         cmocka_unit_test (string_at_ok),
+        cmocka_unit_test (string_foreach_ok),
     };
     return cmocka_run_group_tests (tests, NULL, NULL);
 }

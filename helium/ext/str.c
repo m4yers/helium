@@ -244,9 +244,20 @@ void String_Append_l (String s, long n)
 {
     assert (s);
     char str[256];
-    sprintf(str, "%lu", n);
+    sprintf (str, "%lu", n);
     String_Append_cp (s, str);
 }
+
+Vector String_Split_s (const struct String_t * s, const struct String_t * o);
+
+Vector String_Split_c (const struct String_t * s, char c)
+{
+    assert (s);
+    Vector vec = Vector_New(struct String_t);
+    struct String_t str;
+}
+
+Vector String_Split_cp (const struct String_t * s, const char * c);
 
 void String_Assign_s (String s, const struct String_t * o)
 {
