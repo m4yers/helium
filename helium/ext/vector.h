@@ -204,14 +204,14 @@ void * Vector_Data (const Vector v);
 /*
  * Ternary operator used to break string literal(array) to char pointer
  */
-#define Vector_PushBack(vector, value) \
-    {\
-        __typeof__(TRUE ? value : value) __value = value;\
-        Vector_Push (vector, &__value);\
-    }\
+#define Vector_PushBack(vector, value)                                                        \
+{                                                                                             \
+    __typeof__(TRUE ? value : value) __value = value;                                         \
+    Vector_Push (vector, &__value);                                                           \
+}
 
-#define VECTOR_FOREACH(type, item, vector) \
-    for (size_t __index = 0, __size = Vector_Size(vector); __index < __size; ++__index)\
-    for (type * item = Vector_At(vector, __index); item; item = NULL)\
+#define VECTOR_FOREACH(type, item, vector)                                                    \
+    for (size_t __index = 0, __size = Vector_Size(vector); __index < __size; ++__index)       \
+    for (type * item = Vector_At(vector, __index); item; item = NULL)
 
 #endif /* end of include guard: VECTOR_H_O3R2FVGL */
