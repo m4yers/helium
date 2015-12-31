@@ -20,9 +20,10 @@ extern int MIPSParse ();
 // HMM... ca we make it parse from the same buffer as helium parser. Do we need this?
 A_asmStmList ParseAsm(const char * input)
 {
+    printf("parse asm: '%s'\n", input);
     yy_mips__scan_string (input);
     int status = MIPSParse();
-    return status ? yy_mips_result : NULL;
+    return status ? NULL : yy_mips_result;
 }
 
 int Parse_File (Program_Module m, String filename)

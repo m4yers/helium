@@ -55,8 +55,8 @@ static void run_cases (void ** state, const char * cases[], size_t len)
 
         assert_true (m->ast);
 
-        /* AST_Print (stdout, m->ast, 0); */
-        /* exit(0); */
+        AST_Print (stdout, m->ast, 0);
+        exit(0);
 
         if (PreProc_Translate (m) != 0)
         {

@@ -8,6 +8,7 @@
 #include "symbol.h"
 
 #include "ast_helium.h"
+#include "ast_asm.h"
 
 /************
  *  Fields  *
@@ -572,9 +573,7 @@ static void PrintScope (FILE * out, A_scope scope, int d)
         }
         }
 
-        size--;
-
-        if (size)
+        if (--size)
         {
             fprintf (out, ",\n");
         }
@@ -692,9 +691,14 @@ static void PrintExp (FILE * out, A_exp v, int d)
     switch (v->kind)
     {
     case A_asmExpOld:
-        fprintf (out, "AsmExp(%s, %s",
+        fprintf (out, "AsmExpOld(%s, %s",
                  v->u.asmOld.code,
                  v->u.asmOld.data);
+        break;
+    case A_asmExp:
+        fprintf (out, "AsmExp(");
+        AST_AsmPrint(out, v->u.assembly.code, d + 1);
+        fprintf (out, ")");
         break;
 
     case A_retExp:

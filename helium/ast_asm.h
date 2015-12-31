@@ -28,9 +28,9 @@ typedef enum
 
 typedef enum
 {
-    A_asmOpImm,
-    A_asmOpRegNum,
-    A_asmOpRegName,
+    A_asmOpImmKind,
+    A_asmOpRegNumKind,
+    A_asmOpRegNameKind,
 } A_asmOpKind;
 
 typedef struct A_asmOp_t
@@ -81,5 +81,11 @@ LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
 A_asmStm A_AsmStmInst(A_loc loc, const char * code, A_asmOpList opList);
+
+/*************
+*  Printer  *
+*************/
+
+void AST_AsmPrint (FILE * out, A_asmStmList list, int d);
 
 #endif /* end of include guard: AST_ASM_H_FEXZ1H5P */
