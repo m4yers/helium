@@ -73,10 +73,13 @@
 
 %%
 
-program:              statement statement_list { yy_mips_result = A_AsmStmList($1, $2); }
+program:              newlines statement statement_list newlines
+                      {
+                          yy_mips_result = A_AsmStmList($2, $3);
+                      }
                     ;
 statement_list:       %empty { $$ = NULL; }
-                    | statement_list statement
+                    | statement_list newlines statement
                       {
                           if ($1)
                           {
@@ -85,12 +88,12 @@ statement_list:       %empty { $$ = NULL; }
                               {
                                 current = current->tail;
                               }
-                              current->tail = A_AsmStmList ($2, NULL);
+                              current->tail = A_AsmStmList ($3, NULL);
                               $$ = $1;
                           }
                           else
                           {
-                              $$ = A_AsmStmList ($2, NULL);
+                              $$ = A_AsmStmList ($3, NULL);
                           }
                       }
                     ;
@@ -130,6 +133,8 @@ operand:              DOLLAR INT
                       {
                           $$ = A_AsmOpImm(&(@$), $1);
                       }
+newlines:             %empty
+                    | newlines NEWLINE
 %%
 
 int yydebug = 0;

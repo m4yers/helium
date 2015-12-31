@@ -87,7 +87,7 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp)
  *  Expressions  *
  *****************/
 
-A_exp A_TypeCastExp(A_loc loc, A_ty type, A_exp exp)
+A_exp A_TypeCastExp (A_loc loc, A_ty type, A_exp exp)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_typeCastExp;
@@ -127,12 +127,13 @@ A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList 
     return p;
 }
 
-A_exp A_AsmExp (A_loc loc, A_asmStmList code, A_expList out, A_expList in)
+A_exp A_AsmExp (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in)
 {
     A_exp p = checked_malloc (sizeof (*p));
     p->kind = A_asmExp;
     p->loc = *loc;
     p->u.assembly.code = code;
+    p->u.assembly.options = options;
     p->u.assembly.out = out;
     p->u.assembly.in = in;
     return p;
@@ -697,7 +698,17 @@ static void PrintExp (FILE * out, A_exp v, int d)
         break;
     case A_asmExp:
         fprintf (out, "AsmExp(");
-        AST_AsmPrint(out, v->u.assembly.code, d + 1);
+        size_t opt_size = LIST_SIZE (v->u.assembly.options);
+        LIST_FOREACH (opt, v->u.assembly.options)
+        {
+            fprintf (out, "%s", opt);
+            if (--opt_size)
+            {
+                fprintf (out, ",");
+            }
+        }
+        fprintf (out, "\n");
+        AST_AsmPrint (out, v->u.assembly.code, d + 1);
         fprintf (out, ")");
         break;
 

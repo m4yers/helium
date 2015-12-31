@@ -6,6 +6,7 @@
     #include <stdio.h>
 
     #include "ext/util.h"
+    #include "ext/list.h"
 
     #include "symbol.h"
     #include "program.h"
@@ -35,7 +36,7 @@
 
     void yy_helium_error (const char * message)
     {
-    printf("string: '%s'\n", yy_helium_lval.sval);
+        printf("string: '%s'\n", yy_helium_lval.sval);
         Vector_PushBack(&module->errors.parser,
             Error_New(
                 &yy_helium_lloc,
@@ -66,6 +67,7 @@
     A_stm stm;
     A_stmList stmlist;
     A_scope scope;
+    U_stringList strList;
 }
 
 %token <sval> ID STRING
@@ -80,6 +82,7 @@
   FN MACRO LET DEF RET ASM
   BREAK AMP NIL
   AUTO TYPE NEW CLASS EXTENDS METHOD PRIMITIVE IMPORT
+  VOLATILE
 
 %type <exp>
     program
@@ -109,6 +112,7 @@
 %type <efieldList> record_field_comma
 %type <field> typed_field
 %type <fieldList> typed_field_comma
+%type <strList> asm_options asm_options_list
 %type <ival> lvalue_jumps
 
 %precedence   LOWEST
@@ -250,15 +254,40 @@ expression:               literals
                         ;
 asm:                      ASM LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), ParseAsm($3), NULL, NULL);
+                              $$ = A_AsmExp(&(@$), NULL, ParseAsm($3), NULL, NULL);
                           }
                         | ASM LPAREN
-                                  SEMICOLON exp_list_comma
-                                  SEMICOLON exp_list_comma
+                                  asm_options_list SEMICOLON
+                                  exp_list_comma   SEMICOLON
+                                  exp_list_comma
                               RPAREN
-                            LBRACE STRING RBRACE
+                              LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), ParseAsm($9), $4, $6);
+                              $$ = A_AsmExp(&(@$), $3, ParseAsm($10), $5, $7);
+                          }
+                        ;
+asm_options_list:         %empty { $$ = NULL; }
+                        | ID asm_options
+                          {
+                              $$ = U_StringList($1, $2);
+                          }
+asm_options:              %empty { $$ = NULL; }
+                        | asm_options COMMA ID
+                          {
+                              if ($1)
+                              {
+                                  U_stringList current = $1;
+                                  while (current && current->tail)
+                                  {
+                                    current = current->tail;
+                                  }
+                                  current->tail = U_StringList ($3, NULL);
+                                  $$ = $1;
+                              }
+                              else
+                              {
+                                  $$ = U_StringList ($3, NULL);
+                              }
                           }
                         ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }

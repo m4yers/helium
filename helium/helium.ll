@@ -23,6 +23,7 @@
 %option noyywrap
 %option yylineno
 
+%s STATE_ASM_OPTS
 %s STATE_ASM
 %x STATE_BLOCK_COMMENT
 %x STATE_LINE_COMMENT
@@ -57,10 +58,15 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
     \"           { BEGIN(INITIAL); return STRING;                                       }
 }
 
-asm              { BEGIN(STATE_ASM); return ASM;                                        }
+asm              { BEGIN(STATE_ASM_OPTS); return ASM;                                   }
+<STATE_ASM_OPTS>
+{
+    ")"      { BEGIN(STATE_ASM); return RPAREN;                                         }
+    "{"      { BEGIN(STATE_ASM); return LBRACE;                                         }
+}
 <STATE_ASM>
 {
-    " "|\t       { continue;                                                            }
+    [" "|\t|\n]* { continue;                                                            }
     [^\{\}]*     { yy_helium_lval.sval = strdup (yy_helium_text); return STRING;        }
     "}"          { BEGIN(INITIAL); return RBRACE;                                       }
 }
@@ -116,6 +122,7 @@ new              { return NEW; }
 class            { return CLASS; }
 extends          { return EXTENDS; }
 method           { return METHOD; }
+volatile         { return VOLATILE; }
 promitive        { return PRIMITIVE; }
 import           { return IMPORT; }
 {ID}             { yy_helium_lval.sval = strdup (yy_helium_text); return ID;}

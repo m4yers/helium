@@ -73,6 +73,8 @@ static void PrintIndent (FILE * out, int d)
 
 void AST_AsmPrint (FILE * out, A_asmStmList list, int d)
 {
+    PrintIndent (out, d);
+
     fprintf (out, "Asm(");
 
     size_t size = LIST_SIZE(list);
@@ -105,7 +107,7 @@ void PrintInst (FILE * out, A_asmStmInst inst, int d)
 
     LIST_FOREACH (op, inst->opList)
     {
-        fprintf (out, ", ");
+        fprintf (out, ",");
         PrintOp (out, op, d);
     }
 
