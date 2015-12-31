@@ -53,13 +53,13 @@ void String_NoStatic (String s)
     }
 }
 
-bool String_IsStatic (String s)
+bool String_IsStatic (const struct String_t * s)
 {
     assert (s);
     return s->is_static;
 }
 
-bool String_Empty (const String s)
+bool String_Empty (const struct String_t * s)
 {
     assert (s);
     return s->size == 0;
@@ -114,7 +114,7 @@ void String_Resize (String s, size_t n, char c)
     (void) c;
 }
 
-int String_Diff_s (String a, String b)
+int String_Diff_s (const struct String_t * a, const struct String_t * b)
 {
     assert (a);
     assert (b);
@@ -136,7 +136,7 @@ int String_Diff_s (String a, String b)
     return -1;
 }
 
-int String_Diff_cp (String a, const char * b)
+int String_Diff_cp (const struct String_t * a, const char * b)
 {
     assert (a);
     assert (b);
@@ -158,17 +158,17 @@ int String_Diff_cp (String a, const char * b)
     return -1;
 }
 
-bool String_Equal_s (String a, String b)
+bool String_Equal_s (const struct String_t * a, const struct String_t * b)
 {
     return String_Diff (a, b) == -1;
 }
 
-bool String_Equal_c (String a, const char * b)
+bool String_Equal_c (const struct String_t * a, const char * b)
 {
     return String_Diff_cp (a, b) == -1;
 }
 
-int String_Cmp (String a, String b)
+int String_Cmp (const struct String_t * a, const struct String_t * b)
 {
     assert (a);
     assert (b);
@@ -199,14 +199,14 @@ void String_PopBack (String s)
     s->data[--s->size] = '\0';
 }
 
-const char * String_Front (const String s)
+const char * String_Front (const struct String_t * s)
 {
     assert (s);
     assert (s->size != 0);
     return s->data;
 }
 
-const char * String_Back (const String s)
+const char * String_Back (const struct String_t * s)
 {
     assert (s);
     assert (s->size != 0);
@@ -232,7 +232,7 @@ void String_Append_cp (String s, const char * c)
     s->data[s->size] = '\0';
 }
 
-void String_Append_s (String s, String o)
+void String_Append_s (String s, const struct String_t * o)
 {
     assert (s);
     assert (o);
@@ -248,7 +248,7 @@ void String_Append_l (String s, long n)
     String_Append_cp (s, str);
 }
 
-void String_Assign_s (String s, String o)
+void String_Assign_s (String s, const struct String_t * o)
 {
     assert (s);
     assert (o);
@@ -290,26 +290,26 @@ void String_Insert_cp (String s, size_t pos, const char * c)
     s->size += size;
 }
 
-size_t String_Size (const String s)
+size_t String_Size (const struct String_t * s)
 {
     assert (s);
     return s->size;
 }
 
-size_t String_Capacity (const String s)
+size_t String_Capacity (const struct String_t * s)
 {
     assert (s);
     return (s->capacity);
 }
 
-const char * String_At (const String s, size_t pos)
+const char * String_At (const struct String_t * s, size_t pos)
 {
     assert (s);
     assert (pos < s->size);
     return s->data + pos;
 }
 
-void * String_Data (const String s)
+void * String_Data (const struct String_t * s)
 {
     assert (s);
     return s->data;

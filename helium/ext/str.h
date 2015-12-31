@@ -66,7 +66,7 @@ String String_New (const char * data);
  * If the String instance references static string this method will force it to allocate new
  * memory block and copy the string there.
  */
-void String_NoStatic (const struct String_t * s);
+void String_NoStatic (struct String_t * s);
 
 /*
  * Checks whether String instance references static string.
@@ -82,7 +82,7 @@ bool String_Empty (const struct String_t * s);
 /*
  * Erases the contents of the string, which becomes an empty string (with a length of 0 characters)
  */
-void String_Clear (const struct String_t * s);
+void String_Clear (struct String_t * s);
 
 /*
  * Requests that the string capacity be at least enough to contain n chars.
@@ -113,7 +113,7 @@ void String_Reserve (String s, size_t n);
  * If n is also greater than the current container capacity, an automatic reallocation of the
  * allocated storage space takes place.
  */
-void String_Resize (const struct String_t * s, size_t n, char c);
+void String_Resize (struct String_t * s, size_t n, char c);
 
 int String_Diff_s (const struct String_t * a, const struct String_t * b);
 int String_Diff_cp (const struct String_t * a, const char * b);
@@ -125,8 +125,9 @@ int String_Diff_cp (const struct String_t * a, const char * b);
  */
 #define String_Diff(a,b)                                             \
     _Generic ((0,b),                                                 \
-            char *: String_Diff_cp,                                  \
             const char *: String_Diff_cp,                            \
+            char *: String_Diff_cp,                                  \
+            const struct String_t *: String_Diff_s,                  \
             struct String_t *: String_Diff_s                         \
             )(a,b)
 
@@ -138,8 +139,9 @@ bool String_Equal_c (const struct String_t * a, const char * b);
  */
 #define String_Equal(a,b)                                            \
     _Generic ((0,b),                                                 \
-            char *: String_Equal_c,                                  \
             const char *: String_Equal_c,                            \
+            char *: String_Equal_c,                                  \
+            const struct String_t *: String_Equal_s,                 \
             struct String_t *: String_Equal_s                        \
             )(a,b)
 
