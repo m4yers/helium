@@ -2,7 +2,23 @@
 #define MACHINE_H_EASKR5CA
 
 #include "ext/list.h"
+#include "ext/str.h"
+#include "ext/bool.h"
+
 #include "temp.h"
+
+typedef enum
+{
+    M_opCode_R, M_opCode_I, M_opCode_J, M_opCode_CI
+} M_opCodeKind;
+
+struct M_opCode_t
+{
+    struct String_t code;
+    M_opCodeKind kind;
+} * M_opCode;
+
+#define M_OpCode(c,k) { .code = String(c), .kind = k }
 
 extern const int F_wordSize;
 
