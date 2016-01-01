@@ -212,7 +212,10 @@ void * Vector_At (const Vector v, size_t pos);
 void * Vector_Data (const Vector v);
 
 #define VECTOR_FOREACH(type, item, vector)                                                      \
-    for (size_t __i_##item=0,__s_##item=Vector_Size(vector);__i_##item<__s_##item;++__i_##item) \
-    for (type * item = Vector_At(vector, __i_##item); item; item = NULL)
+    for (type * item = Vector_Size(vector) != 0 ? Vector_At(vector, 0) : 0; item; item = NULL)  \
+    for (                                                                                       \
+        size_t __i_##item = 0, __s_##item = Vector_Size(vector);                                \
+        item;                                                                                   \
+        __i_##item++, item = __i_##item < __s_##item ? Vector_At(vector, __i_##item) : 0)
 
 #endif /* end of include guard: VECTOR_H_O3R2FVGL */
