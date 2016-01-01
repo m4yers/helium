@@ -63,16 +63,22 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
-        long integer;
+        signed long integer;
         A_asmReg reg;
+        struct
+        {
+            signed long offset;
+            A_asmReg base;
+        } mem;
     } u;
 } * A_asmOp;
 
 LIST_DEFINE (A_asmOpList, A_asmOp)
 LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
-A_asmOp A_AsmOpInt (A_loc loc, long imm);
+A_asmOp A_AsmOpInt (A_loc loc, signed long imm);
 A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
+A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base);
 
 /****************
 *  Statements  *

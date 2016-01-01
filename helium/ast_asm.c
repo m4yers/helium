@@ -36,7 +36,7 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name)
 *  Operands  *
 **************/
 
-A_asmOp A_AsmOpInt (A_loc loc, long integer)
+A_asmOp A_AsmOpInt (A_loc loc, signed long integer)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
     p->kind = A_asmOpIntKind;
@@ -51,6 +51,16 @@ A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg)
     p->kind = A_asmOpRegKind;
     p->loc = *loc;
     p->u.reg = reg;
+    return p;
+}
+
+A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base)
+{
+    A_asmOp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmOpMemKind;
+    p->loc = *loc;
+    p->u.mem.offset = offset;
+    p->u.mem.base = base;
     return p;
 }
 
@@ -90,12 +100,11 @@ void AST_AsmPrint (FILE * out, A_asmStmList list, int d)
 {
     PrintIndent (out, d);
 
-    fprintf (out, "Asm(");
+    fprintf (out, "Asm(\n");
 
     size_t size = LIST_SIZE (list);
     LIST_FOREACH (stm, list)
     {
-        fprintf (out, "\n");
         switch (stm->kind)
         {
         case A_asmStmInstKind:
@@ -154,7 +163,7 @@ void PrintOp (FILE * out, A_asmOp op, int d)
     {
     case A_asmOpIntKind:
     {
-        fprintf (out, "Int(%lu)", op->u.integer);
+        fprintf (out, "Int(%ld)", op->u.integer);
         break;
     }
     case A_asmOpRegKind:
@@ -164,7 +173,9 @@ void PrintOp (FILE * out, A_asmOp op, int d)
     }
     case A_asmOpMemKind:
     {
-        assert (0);
+        fprintf (out, "Mem(%ld,", op->u.mem.offset);
+        PrintReg (out, op->u.mem.base);
+        fprintf (out, ")");
     }
     }
 }

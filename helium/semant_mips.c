@@ -22,8 +22,9 @@
 #define UINT_16_MAX  65535
 #define INT_16_MIN  -32768
 #define INT_16_MAX   32767
+#define UINT_20_MAX  1048575
+#define UINT_26_MAX  67108863
 
-// TODO move it to mipsmachine
 /*
  * This method tries to match and operand against opcode's format. It does not do any semantic
  * match like target vs source vs dest register, the register is just a register, any int value
@@ -38,16 +39,25 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
         return FALSE;
     }
     /*
-     * If the format is 3-char long then it is a mem location e.g. o(b)
+     * If the format is 4-char long then it is a mem location e.g. o(b)
      */
-    else if (String_Size (f) == 3)
+    else if (String_Size (f) == 4)
     {
         if (op->kind != A_asmOpMemKind)
         {
             return FALSE;
         }
-        // TODO validate further
-        return TRUE;
+        switch (*String_At (f, 0))
+        {
+        case SIGNED_OFFSET_16_BIT:
+        {
+            return op->u.mem.offset >= INT_16_MIN && op->u.mem.offset <= INT_16_MAX;
+        }
+        default:
+        {
+            assert (0);
+        }
+        }
     }
     /*
      * If the format is 1-char long the it is a register or an immediate value
@@ -87,6 +97,16 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
             return op->kind == A_asmOpIntKind
                    && op->u.integer >= INT_16_MIN && op->u.integer <= INT_16_MAX;
         }
+        case SYSCALL_FUNCTION_CODE_20_BIT:
+        {
+            return op->kind == A_asmOpIntKind
+                   && op->u.integer >= 0 && op->u.integer <= UINT_20_MAX;
+        }
+        case TARGET_ADDRESS_26_BIT:
+        {
+            return op->kind == A_asmOpIntKind
+                   && op->u.integer >= 0 && op->u.integer <= UINT_26_MAX;
+        }
         default:
         {
             assert (0);
@@ -100,7 +120,6 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
     return FALSE;
 }
 
-// TODO validate and normalize reg names
 static bool TransOp (SemantMIPS_Context context, A_asmOp op)
 {
     (void) context;
@@ -111,6 +130,9 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
 
         switch (reg->kind)
         {
+        /*
+         * Check if the name stands for the actual register
+         */
         case A_asmRegNameKind:
         {
             // reg search looks up names as $name
@@ -123,6 +145,9 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
             }
             break;
         }
+        /*
+         * Find register by its number and normalize the AST node to named register
+         */
         case A_asmRegNumKind:
         {
             const char * name = F_RegistersGetName (regs_all, reg->u.num);
@@ -135,6 +160,19 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
             break;
         }
         }
+    }
+    /*
+     * Same as for RegNum AST node
+     */
+    else if (op->kind == A_asmOpMemKind && op->u.mem.base->kind == A_asmRegNumKind)
+    {
+        const char * name = F_RegistersGetName (regs_all, op->u.mem.base->u.num);
+        if (!name)
+        {
+            return FALSE;
+        }
+        op->u.mem.base->kind = A_asmRegNameKind;
+        op->u.mem.base->u.name = name;
     }
 
     return TRUE;
@@ -176,8 +214,11 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
     VECTOR_FOREACH (const struct M_opCode_t *, op, &vec)
     {
         opcode = *op;
+
         Vector format = String_Split (&opcode->format, ',');
+
         A_asmOpList opList = inst->opList;
+
         VECTOR_FOREACH (struct String_t, f, format)
         {
             /*
@@ -198,6 +239,14 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
         if (opcode && opList)
         {
             opcode = NULL;
+        }
+
+        /*
+         * We have found what we needed
+         */
+        if (opcode)
+        {
+            break;
         }
     }
 

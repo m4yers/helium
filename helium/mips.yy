@@ -123,7 +123,11 @@ operand_list:         %empty { $$ = NULL; }
                           }
                       }
                     ;
-operand:              register
+operand:              INT LPAREN register RPAREN
+                      {
+                          $$ = A_AsmOpMem(&(@$), $1, $3);
+                      }
+                    | register
                       {
                           $$ = A_AsmOpReg(&(@$), $1);
                       }
