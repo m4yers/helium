@@ -7,10 +7,10 @@
 
 #include "temp.h"
 
-struct M_opCode_t
+typedef struct M_opCode_t
 {
-    struct String_t name;
-    struct String_t format;
+    const struct String_t name;
+    const struct String_t format;
 } * M_opCode;
 
 #define M_OpCode(c,f) { .name = String(c), .format = String(f) }

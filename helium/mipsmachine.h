@@ -4,59 +4,63 @@
 #include "machine.h"
 
 /*
- * List of all MIPS opcodes including format
- *
- * Format matches the one in binuntils GNU package. Currenlty i do not any 3rd party stuff in the
- * projects so just copy/paste for time being, mb if it grows into something more serious then
- * i better use binutils or whatever provides MIPS ISA in bare code
+ * Defines for MIPS ISA format, taken from GNU binutils
  *
  * These are the characters which may appears in the format field of an instruction. They appear in
  * the order in which the fields appear when the instruction is used.
- *
- * "a" 26 bit target address
- * "b" 5 bit base register
- * "c" 10 bit breakpoint code
- * "d" 5 bit destination register specifier
- * "h" 5 bit prefx hint
- * "i" 16 bit unsigned immediate
- * "j" 16 bit signed immediate
- * "k" 5 bit cache opcode in target register position
- * "o" 16 bit signed offset
- * "p" 16 bit PC relative branch target address
- * "r" 5 bit same register used as both source and target
- * "s" 5 bit source register specifier
- * "t" 5 bit target register
- * "u" 16 bit upper 16 bits of address
- * "v" 5 bit same register used as both source and destination
- * "w" 5 bit same register used as both target and destination
- * "C" 25 bit coprocessor function code
- * "B" 20 bit syscall function code
- * "x" accept and ignore register name
- * "z" must be zero register
- *
- * Floating point instructions:
- * "D" 5 bit destination register
- * "M" 3 bit compare condition code
- * "N" 3 bit branch condition code
- * "S" 5 bit fs source 1 register
- * "T" 5 bit ft source 2 register
- * "R" 5 bit fr source 3 register
- * "V" 5 bit same register used as floating source and destination
- * "W" 5 bit same register used as floating target and destination
- *
- * Coprocessor instructions:
- * "E" 5 bit target register
- * "G" 5 bit destination register
- *
- * Macro instructions:
- * "A" General 32 bit expression
- * "I" 32 bit immediate
- * "F" 64 bit floating point constant in .rdata
- * "L" 64 bit floating point constant in .lit8
- * "f" 32 bit floating point constant
- * "l" 32 bit floating point constant in .lit4
  */
-extern const struct M_opCode_t MIPS_opCodes[];
+
+/** general */
+#define SHIFT_AMMOUT_5_BIT                                     '<'
+#define SHIFT_AMMOUT_32_63                                     '>'
+#define TARGET_ADDRESS_26_BIT                                  'a'
+#define BASE_REGISTER_5_BIT                                    'b'
+#define BREAKPOINT_CODE_10_BIT                                 'c'
+#define DESTINATION_REGISTER_5_BIT                             'd'
+#define PREFIX_HIT_5_BIT                                       'h'
+#define UNSIGNED_IMMEDIATE_16_BIT                              'i'
+#define SIGNED_IMMEDIATE_16_BIT                                'j'
+#define CHACHE_OPCODE_5_BIT                                    'k'
+#define SIGNED_OFFSET_16_BIT                                   'o'
+#define PC_RELATIVE_BRANCH_TARGET_16_BIT                       'p'
+#define SAME_REGISTER_SOURCE_AND_TARGET                        'r'
+#define SOURCE_REGISTER_5_BIT                                  's'
+#define TARGET_REGISTER_5_BIT                                  't'
+#define UPPER_16_BITS_OF_ADDRESS_16_BIT                        'u'
+#define SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT             'v'
+#define SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT             'w'
+#define COPROCESSOR_FUNCTION_CODE_25_BIT                       'C'
+#define SYSCALL_FUNCTION_CODE_20_BIT                           'C'
+#define ACCEPT_AND_IGNORE_REGISTER_NAME                        'x'
+#define ZERO_REGISTER                                          'z'
+
+/** floating point instructions */
+#define FLOAT_DESTINATION_REGISTER_5_BIT                       'D'
+#define FLOAT_COMPARE_CONDITION_CODE_3_BIT                     'M'
+#define FLOAT_BRANCH_CONDITION_CODE_3_BIT                      'N'
+#define FLOAT_FS_SOURCE_1_REGISTER_5_BIT                       'S'
+#define FLOAT_FT_SOURCE_2_REGISTER_5_BIT                       'T'
+#define FLOAT_FR_SOURCE_3_REGISTER_5_BIT                       'R'
+#define FLOAT_SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT       'V'
+#define FLOAT_SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT       'W'
+
+/** coprocessor */
+#define COP_TARGET_REGISTER_5_BIT                              'E'
+#define COP_DESTINATON_REGISTER_5_BIT                          'G'
+
+/** macro */
+#define MA_GENERAL_EXPRESSION_32_BIT                           'M'
+#define MA_IMMEDIATE_32_BIT                                    'I'
+#define MA_FLOAT_CONSTANT_RDATA_64_BIT                         'F'
+#define MA_FLOAT_CONSTANT_LIT8_64_BIT                          'L'
+#define MA_FLOAT_CONSTANT_32_BIT                               'f'
+#define MA_FLOAT_CONSTANT_LIT8_32_BIT                          'l'
+
+/*
+ * List of all MIPS opcodes including format
+ */
+extern const struct M_opCode_t mips_opcodes[];
+extern const size_t mips_opcodes_num;
 
 /**
  * Always has the value 0. Any writes to this register are ignored.

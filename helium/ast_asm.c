@@ -122,7 +122,7 @@ void PrintOp (FILE * out, A_asmOp op, int d)
     {
     case A_asmOpIntKind:
     {
-        fprintf (out, "Imm(%d)", op->u.integer);
+        fprintf (out, "Int(%d)", op->u.integer);
         break;
     }
     case A_asmOpRegNumKind:

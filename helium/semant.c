@@ -8,6 +8,7 @@
 
 #include "types.h"
 #include "semant.h"
+#include "semant_mips.h"
 #include "ast.h"
 #include "types.h"
 #include "symbol.h"
@@ -1030,6 +1031,8 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_asmExp:
     {
+        SemantMIPS_Translate (context->module, exp->u.assembly.code);
+        break;
     }
     case A_asmExpOld:
     {

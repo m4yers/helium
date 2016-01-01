@@ -2,7 +2,7 @@
 
 const int F_wordSize = 4;
 
-const struct M_opCode_t MIPS_opCodes[] =
+const struct M_opCode_t mips_opcodes[] =
 {
     M_OpCode ("abs",         ""),
     M_OpCode ("nop",          ""),
@@ -24,7 +24,7 @@ const struct M_opCode_t MIPS_opCodes[] =
     M_OpCode ("add.s",        "D,V,T"),
     M_OpCode ("add.d",        "D,V,T"),
     M_OpCode ("addi",         "t,r,j"),
-    M_OpCode ("addiu",        "t,r,j"),
+    M_OpCode ("addiu",        "t,r,j"),//wtf it should be i(unsigned 16 bit immediate)
     M_OpCode ("addu",         "d,v,t"),
     M_OpCode ("addu",         "t,r,I"),
     M_OpCode ("and",          "d,v,t"),
@@ -284,12 +284,12 @@ const struct M_opCode_t MIPS_opCodes[] =
     M_OpCode ("hibernate",    ""),
     M_OpCode ("jr",           "s"),
     M_OpCode ("j",            "s"),
-    /* 
+    /*
      * SVR4 PIC code requires special handling for j, so it must be a
      * macro.
      */
     M_OpCode ("j",            "a"),
-    /* 
+    /*
      * This form of j is used by the disassembler and internally by the
      * assembler, but will never match user input (because the line above
      * will match first).
@@ -297,7 +297,7 @@ const struct M_opCode_t MIPS_opCodes[] =
     M_OpCode ("j",            "a"),
     M_OpCode ("jalr",         "s"),
     M_OpCode ("jalr",         "d,s"),
-    /* 
+    /*
      * SVR4 PIC code requires special handling for jal, so it must be a
      * macro.
      */
@@ -614,7 +614,7 @@ const struct M_opCode_t MIPS_opCodes[] =
     M_OpCode ("xori",         "t,r,i"),
     M_OpCode ("waiti",        ""),
     M_OpCode ("wb",           "o(b)"),
-    /* 
+    /*
      * No hazard protection on coprocessor instructions--they shouldn't
      * change the state of the processor and if they do it's up to the
      * user to put in nops as necessary.  These are at the end so that the
@@ -625,6 +625,8 @@ const struct M_opCode_t MIPS_opCodes[] =
     M_OpCode ("c2",           "C"),
     M_OpCode ("c3",           "C"),
 };
+
+const size_t mips_opcodes_num = ((sizeof mips_opcodes) / (sizeof (mips_opcodes[0])));
 
 void MIPS_Init()
 {

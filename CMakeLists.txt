@@ -81,6 +81,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/helium/regalloc.c
     ${CMAKE_SOURCE_DIR}/helium/preproc.c
     ${CMAKE_SOURCE_DIR}/helium/semant.c
+    ${CMAKE_SOURCE_DIR}/helium/semant_mips.c
     ${CMAKE_SOURCE_DIR}/helium/symbol.c
     ${CMAKE_SOURCE_DIR}/helium/temp.c
     ${CMAKE_SOURCE_DIR}/helium/translate.c
