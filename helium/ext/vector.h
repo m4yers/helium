@@ -143,6 +143,16 @@ void Vector_Resize (Vector v, size_t n, const void * value);
 void Vector_Push (Vector v, const void * value);
 
 /*
+ * Ternary operator used to break string literal(array) to char pointer
+ */
+// TODO rename to Vector_PushL L for literal
+#define Vector_PushBack(vector, value)                                                        \
+{                                                                                             \
+    __typeof__(TRUE ? value : value) __value = value;                                         \
+    Vector_Push (vector, &__value);                                                           \
+}
+
+/*
  * Removes the last element in the vector, effectively reducing the container size by one.
  *
  * This destroys the removed element.
@@ -201,17 +211,8 @@ void * Vector_At (const Vector v, size_t pos);
  */
 void * Vector_Data (const Vector v);
 
-/*
- * Ternary operator used to break string literal(array) to char pointer
- */
-#define Vector_PushBack(vector, value)                                                        \
-{                                                                                             \
-    __typeof__(TRUE ? value : value) __value = value;                                         \
-    Vector_Push (vector, &__value);                                                           \
-}
-
-#define VECTOR_FOREACH(type, item, vector)                                                    \
-    for (size_t __index = 0, __size = Vector_Size(vector); __index < __size; ++__index)       \
-    for (type * item = Vector_At(vector, __index); item; item = NULL)
+#define VECTOR_FOREACH(type, item, vector)                                                      \
+    for (size_t __i_##item=0,__s_##item=Vector_Size(vector);__i_##item<__s_##item;++__i_##item) \
+    for (type * item = Vector_At(vector, __i_##item); item; item = NULL)
 
 #endif /* end of include guard: VECTOR_H_O3R2FVGL */
