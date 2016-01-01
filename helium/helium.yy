@@ -22,6 +22,8 @@
     int yy_helium_lex (void);
 
     void yy_helium_error (const char * s);
+
+    int HeliumParse (Program_Module m);
 }
 
 %code

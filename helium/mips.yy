@@ -20,6 +20,8 @@
     int yy_mips_lex (void);
 
     void yy_mips_error (const char * s);
+
+    int MIPSParse (void);
 }
 
 %code
