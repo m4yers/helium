@@ -31,6 +31,22 @@ Temp_temp F_RegistersGet (F_registers regs, int index)
     return NULL;
 }
 
+const char * F_RegistersGetName (F_registers regs, int index)
+{
+    assert (index >= 0);
+    assert (index < regs->number);
+
+    LIST_FOREACH (s, regs->names)
+    {
+        if (index-- == 0)
+        {
+            return s;
+        }
+    }
+
+    return NULL;
+}
+
 Temp_temp F_RegistersGet_s (F_registers regs, const char * name)
 {
     assert (name);

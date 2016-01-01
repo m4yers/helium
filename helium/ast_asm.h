@@ -29,8 +29,9 @@ typedef enum
 typedef enum
 {
     A_asmOpIntKind,
-    A_asmOpRegNumKind,
+    A_asmOpRegNumKind,  // num register will be normalized by semantic analysis
     A_asmOpRegNameKind,
+    A_asmOpMemKind,
 } A_asmOpKind;
 
 typedef struct A_asmOp_t
@@ -39,6 +40,7 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
+        // TODO make it size_t
         int integer;
         int num;
         const char * name;

@@ -30,6 +30,8 @@ F_registers F_Registers (Temp_tempList temps, U_stringList names);
 Temp_temp F_RegistersGet (F_registers regs, int index);
 Temp_temp F_RegistersGet_s (F_registers regs, const char * name);
 
+const char * F_RegistersGetName (F_registers regs, int index);
+
 bool F_RegistersContains (F_registers regs, Temp_temp reg);
 void F_RegistersAdd (F_registers regs, Temp_temp temp, const char * name);
 Temp_map F_RegistersToMap (Temp_map map, F_registers regs);
