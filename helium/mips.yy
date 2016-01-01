@@ -53,17 +53,19 @@
     A_asmStmList stmList;
     A_asmOp op;
     A_asmOpList opList;
+    A_asmReg reg;
 }
 
 %type <stmList> program statement_list
 %type <stm>     statement
 %type <opList>  operand_list
 %type <op>      operand
+%type <reg>     register
 
 %token <sval> ID STRING
 %token <ival> INT
 
-%token DOLLAR COMMA NEWLINE
+%token DOLLAR COMMA NEWLINE LPAREN RPAREN
 
 %precedence   LOWEST
 
@@ -121,18 +123,24 @@ operand_list:         %empty { $$ = NULL; }
                           }
                       }
                     ;
-operand:              DOLLAR INT
+operand:              register
                       {
-                          $$ = A_AsmOpRegNum(&(@$), $2);
-                      }
-                    | DOLLAR ID
-                      {
-                          $$ = A_AsmOpRegName(&(@$), $2);
+                          $$ = A_AsmOpReg(&(@$), $1);
                       }
                     | INT
                       {
                           $$ = A_AsmOpInt(&(@$), $1);
                       }
+                    ;
+register:             DOLLAR INT
+                      {
+                          $$ = A_AsmRegNum(&(@$), $2);
+                      }
+                    | DOLLAR ID
+                      {
+                          $$ = A_AsmRegName(&(@$), $2);
+                      }
+                    ;
 newlines:             %empty
                     | newlines NEWLINE
 %%

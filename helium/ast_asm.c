@@ -9,11 +9,34 @@
 
 #include "ast_asm.h"
 
+
+/**************
+*  Register  *
+**************/
+
+A_asmReg A_AsmRegNum (A_loc loc, int num)
+{
+    A_asmReg p = checked_malloc (sizeof (*p));
+    p->kind = A_asmRegNumKind;
+    p->loc = *loc;
+    p->u.num = num;
+    return p;
+}
+
+A_asmReg A_AsmRegName (A_loc loc, const char * name)
+{
+    A_asmReg p = checked_malloc (sizeof (*p));
+    p->kind = A_asmRegNameKind;
+    p->loc = *loc;
+    p->u.name = name;
+    return p;
+}
+
 /**************
 *  Operands  *
 **************/
 
-A_asmOp A_AsmOpInt (A_loc loc, int integer)
+A_asmOp A_AsmOpInt (A_loc loc, long integer)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
     p->kind = A_asmOpIntKind;
@@ -22,21 +45,12 @@ A_asmOp A_AsmOpInt (A_loc loc, int integer)
     return p;
 }
 
-A_asmOp A_AsmOpRegNum (A_loc loc, int num)
+A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmOpRegNumKind;
+    p->kind = A_asmOpRegKind;
     p->loc = *loc;
-    p->u.num = num;
-    return p;
-}
-
-A_asmOp A_AsmOpRegName (A_loc loc, const char * name)
-{
-    A_asmOp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmOpRegNameKind;
-    p->loc = *loc;
-    p->u.name = name;
+    p->u.reg = reg;
     return p;
 }
 
@@ -59,6 +73,7 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
 **********************************************************************/
 
 static void PrintInst (FILE * out, A_asmStmInst inst, int d);
+static void PrintReg (FILE * out, A_asmReg reg);
 static void PrintOp (FILE * out, A_asmOp op, int d);
 
 static void PrintIndent (FILE * out, int d)
@@ -77,7 +92,7 @@ void AST_AsmPrint (FILE * out, A_asmStmList list, int d)
 
     fprintf (out, "Asm(");
 
-    size_t size = LIST_SIZE(list);
+    size_t size = LIST_SIZE (list);
     LIST_FOREACH (stm, list)
     {
         fprintf (out, "\n");
@@ -114,6 +129,23 @@ void PrintInst (FILE * out, A_asmStmInst inst, int d)
     fprintf (out, ")");
 }
 
+void PrintReg (FILE * out, A_asmReg reg)
+{
+    switch (reg->kind)
+    {
+    case A_asmRegNumKind:
+    {
+        fprintf (out, "RegNum(%d)", reg->u.num);
+        break;
+    }
+    case A_asmRegNameKind:
+    {
+        fprintf (out, "RegName(%s)", reg->u.name);
+        break;
+    }
+    }
+}
+
 void PrintOp (FILE * out, A_asmOp op, int d)
 {
     (void) d;
@@ -122,18 +154,17 @@ void PrintOp (FILE * out, A_asmOp op, int d)
     {
     case A_asmOpIntKind:
     {
-        fprintf (out, "Int(%d)", op->u.integer);
+        fprintf (out, "Int(%lu)", op->u.integer);
         break;
     }
-    case A_asmOpRegNumKind:
+    case A_asmOpRegKind:
     {
-        fprintf (out, "RegNum(%d)", op->u.num);
+        PrintReg (out, op->u.reg);
         break;
     }
-    case A_asmOpRegNameKind:
+    case A_asmOpMemKind:
     {
-        fprintf (out, "RegName(%s)", op->u.name);
-        break;
+        assert (0);
     }
     }
 }

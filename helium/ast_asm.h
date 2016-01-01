@@ -23,14 +23,37 @@ typedef enum
 } A_asmNodeKind;
 
 /**************
+*  Register  *
+**************/
+
+typedef enum
+{
+    A_asmRegNumKind,
+    A_asmRegNameKind
+} A_asmRegKind;
+
+typedef struct A_asmReg_t
+{
+    struct A_loc_t loc;
+    A_asmRegKind kind;
+    union
+    {
+        int num;
+        const char * name;
+    } u;
+} * A_asmReg;
+
+A_asmReg A_AsmRegNum (A_loc loc, int num);
+A_asmReg A_AsmRegName (A_loc loc, const char * name);
+
+/**************
 *  Operands  *
 **************/
 
 typedef enum
 {
     A_asmOpIntKind,
-    A_asmOpRegNumKind,  // num register will be normalized by semantic analysis
-    A_asmOpRegNameKind,
+    A_asmOpRegKind,
     A_asmOpMemKind,
 } A_asmOpKind;
 
@@ -40,19 +63,16 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
-        // TODO make it size_t
-        int integer;
-        int num;
-        const char * name;
+        long integer;
+        A_asmReg reg;
     } u;
 } * A_asmOp;
 
 LIST_DEFINE (A_asmOpList, A_asmOp)
 LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
-A_asmOp A_AsmOpInt (A_loc loc, int imm);
-A_asmOp A_AsmOpRegNum (A_loc loc, int num);
-A_asmOp A_AsmOpRegName (A_loc loc, const char * name);
+A_asmOp A_AsmOpInt (A_loc loc, long imm);
+A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
 
 /****************
 *  Statements  *
@@ -82,7 +102,7 @@ typedef struct A_asmStm_t
 LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
-A_asmStm A_AsmStmInst(A_loc loc, const char * opcode, A_asmOpList opList);
+A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
 
 /*************
 *  Printer  *

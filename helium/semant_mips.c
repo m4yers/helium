@@ -64,12 +64,12 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
         case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
         {
             // at this point register name is already normalized
-            return op->kind == A_asmOpRegNameKind;
+            return op->kind == A_asmOpRegKind;
         }
         case ZERO_REGISTER:
         {
             // TODO check for $zero
-            return op->kind == A_asmOpRegNameKind;
+            return op->kind == A_asmOpRegKind;
         }
         case SHIFT_AMOUNT_5_BIT:
         {
@@ -105,40 +105,36 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
 {
     (void) context;
 
-    switch (op->kind)
+    if (op->kind == A_asmOpRegKind)
     {
-    case A_asmOpRegNameKind:
-    {
-        // reg search looks up names as $name
-        // TODO fix it
-        struct String_t str = String ("$");
-        String_Append (&str, op->u.name);
-        if (!F_RegistersGet_s (regs_all, str.data))
+        A_asmReg reg = op->u.reg;
+
+        switch (reg->kind)
         {
-            return FALSE;
-        }
-        break;
-    }
-    case A_asmOpRegNumKind:
-    {
-        const char * name = F_RegistersGetName (regs_all, op->u.num);
-        if (!name)
+        case A_asmRegNameKind:
         {
-            return FALSE;
+            // reg search looks up names as $name
+            // TODO fix it
+            struct String_t str = String ("$");
+            String_Append (&str, reg->u.name);
+            if (!F_RegistersGet_s (regs_all, str.data))
+            {
+                return FALSE;
+            }
+            break;
         }
-        op->kind = A_asmOpRegNameKind;
-        op->u.name = name;
-        break;
-    }
-    case A_asmOpIntKind:
-    {
-        // need something to validate here?
-        break;
-    }
-    case A_asmOpMemKind:
-    {
-        break;
-    }
+        case A_asmRegNumKind:
+        {
+            const char * name = F_RegistersGetName (regs_all, reg->u.num);
+            if (!name)
+            {
+                return FALSE;
+            }
+            reg->kind = A_asmRegNameKind;
+            reg->u.name = name;
+            break;
+        }
+        }
     }
 
     return TRUE;

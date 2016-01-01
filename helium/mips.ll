@@ -32,6 +32,8 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 \n               { yy_mips_column = 1; return NEWLINE; }
 "$"              { return DOLLAR; }
 ","              { return COMMA; }
+"("              { return LPAREN; }
+")"              { return RPAREN; }
 {DIGIT}+         { yy_mips_lval.ival = atoi(yy_mips_text);    return INT; }
 {ID}             { yy_mips_lval.sval = strdup (yy_mips_text); return ID;  }
 .                {
