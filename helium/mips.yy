@@ -17,11 +17,14 @@
 
     extern A_asmStmList yy_mips_result;
 
+    extern int yy_mips_column;
+    extern int yy_mips_line;
+
     int yy_mips_lex (void);
 
     void yy_mips_error (const char * s);
 
-    int MIPSParse (void);
+    int MIPSParse (A_loc loc);
 }
 
 %code
@@ -29,8 +32,12 @@
     //TODO make it accept different type of parse trees
     // Program_Module module = NULL;
 
-    int MIPSParse ()
+    int MIPSParse (A_loc loc)
     {
+        printf("mips loc fl: %d\n", loc->first_line);
+        yy_mips_lloc = *loc;
+        yy_mips_column = loc->first_column;
+        yy_mips_line = loc->first_line;
         return yy_mips_parse();
     }
 
@@ -101,6 +108,10 @@ statement_list:       %empty { $$ = NULL; }
                           }
                       }
                     ;
+statement:            ID
+                      {
+                          $$ = A_AsmStmInst(&(@$), $1, NULL);
+                      }
 statement:            ID operand operand_list
                       {
                           $$ = A_AsmStmInst(&(@$), $1, A_AsmOpList($2, $3));
@@ -135,6 +146,7 @@ operand:              INT LPAREN register RPAREN
                       }
                     | INT
                       {
+                          // TODO hex?
                           $$ = A_AsmOpInt(&(@$), $1);
                       }
                     ;
