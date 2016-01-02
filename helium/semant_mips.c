@@ -9,9 +9,14 @@
 
 // TODO finish the module
 
+/*
+ * 3100 Could not match opcode signature
+ * 3101 Unknown opcode
+ * 3102 Bad operand
+ */
 #define ERROR(loc, code, format, ...)                                    \
 {                                                                        \
-    printf ("asm error line: %d\n", __LINE__);                           \
+    printf ("asm semant error line: %d\n", __LINE__);                    \
     Vector_PushBack(&context->module->errors.semant,                     \
             Error_New(loc, code, format, __VA_ARGS__));                  \
 }                                                                        \
@@ -25,18 +30,25 @@
 #define UINT_20_MAX  1048575
 #define UINT_26_MAX  67108863
 
+#define IS_IN_RANGE(value,left,right) (value >= left && value <= right)
+
 /*
  * This method tries to match and operand against opcode's format. It does not do any semantic
  * match like target vs source vs dest register, the register is just a register, any int value
- * is just an int value though sign and range are checked etc.
+ * is just an int value though sign and range are checked etc. Also it does not validate insts for
+ * a specific ISA(MIPS I,II,III ect) yet.
+ *
+ * @format  A format to match against
+ * @operand An operand to validate
+ * @return  An error String if there was one, NULL if the match was a success.
  */
-static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
+static String OpMatchFormat (const struct String_t * f, A_asmOp op)
 {
     /* should not happen */
     if (String_Empty (f))
     {
         assert (0);
-        return FALSE;
+        return String_New ("No format provided");
     }
     /*
      * If the format is 4-char long then it is a mem location e.g. o(b)
@@ -45,14 +57,21 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
     {
         if (op->kind != A_asmOpMemKind)
         {
-            return FALSE;
+            return String_New ("Expected Mem operand");
         }
         switch (*String_At (f, 0))
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            return op->u.mem.offset >= INT_16_MIN && op->u.mem.offset <= INT_16_MAX;
+            if (!IS_IN_RANGE (op->u.mem.offset, INT_16_MIN, INT_16_MAX))
+            {
+                return String_New (
+                           "Signed offset must be a 16-bit value in range from -32,768 to 32,767");
+            }
+            return NULL;
+
         }
+        // If happens you extend the cases
         default:
         {
             assert (0);
@@ -74,38 +93,97 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
         case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
         {
             // at this point register name is already normalized
-            return op->kind == A_asmOpRegKind;
+            if (op->kind != A_asmOpRegKind)
+            {
+                return String_New ("Expected Reg operand");
+            }
+            return NULL;
         }
         case ZERO_REGISTER:
         {
             // TODO check for $zero
-            return op->kind == A_asmOpRegKind;
+            if (op->kind != A_asmOpRegKind)
+            {
+                return String_New ("Expected Reg operand");
+            }
+            return NULL;
         }
         case SHIFT_AMOUNT_5_BIT:
         {
-            return op->kind == A_asmOpIntKind
-                   && op->u.integer >= UINT_5_MIN && op->u.integer <= UINT_5_MAX;
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+
+            if (!IS_IN_RANGE (op->u.integer , UINT_5_MIN , UINT_5_MAX))
+            {
+                return String_New (
+                           "Shift amount must be a 5-bit value in range from 0 to 31");
+            }
+
+            return NULL;
         }
         case UPPER_16_BITS_OF_ADDRESS_16_BIT:
         case UNSIGNED_IMMEDIATE_16_BIT:
         {
-            return op->kind == A_asmOpIntKind
-                   && op->u.integer >= UINT_16_MIN && op->u.integer <= UINT_16_MAX;
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+
+            if (!IS_IN_RANGE (op->u.integer , UINT_16_MIN , UINT_16_MAX))
+            {
+                return String_New (
+                           "Constant must be a 16-bit value in range from 0 to 65535");
+            }
+
+            return NULL;
+
         }
         case SIGNED_IMMEDIATE_16_BIT:
         {
-            return op->kind == A_asmOpIntKind
-                   && op->u.integer >= INT_16_MIN && op->u.integer <= INT_16_MAX;
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+
+            if (!IS_IN_RANGE (op->u.integer, INT_16_MIN, INT_16_MAX))
+            {
+                return String_New (
+                           "Constant must be a 16-bit value in range from -32,768 to 32,767");
+            }
+
+            return NULL;
         }
         case SYSCALL_FUNCTION_CODE_20_BIT:
         {
-            return op->kind == A_asmOpIntKind
-                   && op->u.integer >= 0 && op->u.integer <= UINT_20_MAX;
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+
+            if (!IS_IN_RANGE (op->u.integer, 0, UINT_20_MAX))
+            {
+                return String_New (
+                           "Syscall function code must be a 20-bit value in range\
+   from 0 to 1,048,575");
+            }
+
+            return NULL;
         }
         case TARGET_ADDRESS_26_BIT:
         {
-            return op->kind == A_asmOpIntKind
-                   && op->u.integer >= 0 && op->u.integer <= UINT_26_MAX;
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+
+            if (!IS_IN_RANGE (op->u.integer, 0, UINT_26_MAX))
+            {
+
+                return String_New (
+                           "Target address must be a 20-bit value in range from 0 to 67,108,863");
+            }
         }
         default:
         {
@@ -114,13 +192,10 @@ static bool OpMatchFormat (const struct String_t * f, A_asmOp op)
         }
     }
 
-    /*
-     * All other options are false
-     */
-    return FALSE;
+    return NULL;
 }
 
-static bool TransOp (SemantMIPS_Context context, A_asmOp op)
+static String TransOp (SemantMIPS_Context context, A_asmOp op)
 {
     (void) context;
 
@@ -141,7 +216,7 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
             String_Append (&str, reg->u.name);
             if (!F_RegistersGet_s (regs_all, str.data))
             {
-                return FALSE;
+                return String_New ("Unknown register");
             }
             break;
         }
@@ -153,7 +228,7 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
             const char * name = F_RegistersGetName (regs_all, reg->u.num);
             if (!name)
             {
-                return FALSE;
+                return String_New ("Unknown register");
             }
             reg->kind = A_asmRegNameKind;
             reg->u.name = name;
@@ -169,13 +244,13 @@ static bool TransOp (SemantMIPS_Context context, A_asmOp op)
         const char * name = F_RegistersGetName (regs_all, op->u.mem.base->u.num);
         if (!name)
         {
-            return FALSE;
+            return String_New ("Unknown register");
         }
         op->u.mem.base->kind = A_asmRegNameKind;
         op->u.mem.base->u.name = name;
     }
 
-    return TRUE;
+    return NULL;
 }
 
 static void TransInst (SemantMIPS_Context context, A_asmStm stm)
@@ -185,13 +260,13 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
     /*
      * First we gonna collect all matched opcodes, there can be more than one signature.
      */
-    struct Vector_t vec = Vector (const struct M_opCode_t *);
+    struct Vector_t candidates = Vector (const struct M_opCode_t *);
 
     for (size_t i = 0; i < mips_opcodes_num; ++i)
     {
         if (String_Equal (&mips_opcodes[i].name, inst->opcode))
         {
-            Vector_PushBack (&vec, &mips_opcodes[i]);
+            Vector_PushBack (&candidates, &mips_opcodes[i]);
         }
     }
 
@@ -202,18 +277,24 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
 
     LIST_FOREACH (o, inst->opList)
     {
+        String r = TransOp (context, o);
         /*
          * If a single operand for some reason is wrong skip the line
          */
-        if (!TransOp (context, o))
+        if (r)
         {
+            ERROR (&o->loc, 3102, String_Data (r), "")
+            String_Delete (r);
             return;
         }
     }
 
-    VECTOR_FOREACH (const struct M_opCode_t *, op, &vec)
+    // this var stores rejection explanations for the opcodes candidates
+    struct Vector_t rejections = Vector (String);
+
+    VECTOR_FOREACH (const struct M_opCode_t *, ca, &candidates)
     {
-        opcode = *op;
+        opcode = *ca;
 
         Vector format = String_Split (&opcode->format, ',');
 
@@ -221,11 +302,17 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
 
         VECTOR_FOREACH (struct String_t, f, format)
         {
-            /*
-             * If not enough operands or operand is not correct
-             */
-            if (!opList || !OpMatchFormat (f, opList->head))
+            if (!opList)
             {
+                Vector_Push (&rejections, String_New ("Not enough operands"));
+                opcode = NULL;
+                break;
+            }
+
+            String r = OpMatchFormat (f, opList->head);
+            if (r)
+            {
+                Vector_Push (&rejections, r);
                 opcode = NULL;
                 break;
             }
@@ -238,6 +325,7 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
          */
         if (opcode && opList)
         {
+            Vector_Push (&rejections, String_New ("Too many operands"));
             opcode = NULL;
         }
 
@@ -250,13 +338,42 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
         }
     }
 
-    Vector_Fini (&vec);
-
     if (!opcode)
     {
-        // TODO spill matched opcodes but for some reason(spill it too) unmatched signatures
-        ERROR (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
+        if (Vector_Size (&rejections))
+        {
+            String s = String_New (
+                           "Could not find proper opcode signature, here are some candidates:");
+            // FIXME do not use malloc
+            char * buf = checked_malloc (1024);
+
+            for (size_t i = 0; i < Vector_Size (&rejections); ++i)
+            {
+                struct M_opCode_t * candidate = Vector_At (&candidates, i);
+                String rejection = Vector_At (&rejections, i);
+                sprintf (buf, "'%s' is rejected because '%s'",
+                         candidate->format.data,
+                         rejection->data);
+                String_Append (s, buf);
+            }
+
+            ERROR (&stm->loc, 3100, s->data, inst->opcode);
+
+            String_Delete (s);
+            free (buf);
+        }
+        else
+        {
+            ERROR (&stm->loc, 3101, "Unknown opcode '%s'", inst->opcode);
+        }
     }
+
+    Vector_Fini (&candidates);
+    VECTOR_FOREACH (String, s, &rejections)
+    {
+        String_Delete (*s);
+    }
+    Vector_Fini (&rejections);
 }
 
 static void TransStm (SemantMIPS_Context context, A_asmStm stm)

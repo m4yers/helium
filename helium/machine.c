@@ -62,7 +62,6 @@ Temp_temp F_RegistersGet_s (F_registers regs, const char * name)
         }
     }
 
-    assert (0);
     return NULL;
 }
 
