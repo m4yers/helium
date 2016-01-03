@@ -49,6 +49,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 ","              { return COMMA;                                                        }
 "("              { return LPAREN;                                                       }
 ")"              { return RPAREN;                                                       }
+"-"              { return MINUS;                                                       }
 {DIGIT}+         { yy_mips_lval.ival = atoi(yy_mips_text);    return INT;               }
 {ID}             { yy_mips_lval.sval = strdup (yy_mips_text); return ID;                }
 .                {

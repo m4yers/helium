@@ -34,7 +34,6 @@
 
     int MIPSParse (A_loc loc)
     {
-        printf("mips loc fl: %d fc: %d\n", loc->first_line, loc->first_column);
         yy_mips_lloc = *loc;
         yy_mips_column = loc->first_column;
         yy_mips_line = loc->first_line;
@@ -74,7 +73,7 @@
 %token <sval> ID STRING
 %token <ival> INT
 
-%token DOLLAR COMMA NEWLINE LPAREN RPAREN
+%token DOLLAR COMMA NEWLINE LPAREN RPAREN MINUS
 
 %precedence   LOWEST
 
@@ -144,9 +143,12 @@ operand:              INT LPAREN register RPAREN
                       {
                           $$ = A_AsmOpReg(&(@$), $1);
                       }
+                    | MINUS INT
+                      {
+                          $$ = A_AsmOpInt(&(@$), -$2);
+                      }
                     | INT
                       {
-                          // TODO hex?
                           $$ = A_AsmOpInt(&(@$), $1);
                       }
                     ;
