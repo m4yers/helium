@@ -392,6 +392,7 @@ static void TransStm (SemantMIPS_Context context, A_asmStm stm)
     }
 }
 
+//FIXME when the semant starts to expand macro then we need to return the new stm list
 int SemantMIPS_Translate (Program_Module m, A_asmStmList l)
 {
     assert (m);

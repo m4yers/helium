@@ -338,11 +338,23 @@ static void munchStm (T_stm s)
 
     switch (s->kind)
     {
+    case T_ASM:
+    {
+        struct String_t str;
+        LIST_FOREACH (stm, s->u.ASSEMBLY.stms)
+        {
+            String_Init (&str, "");
+            AST_AsmEmitLine (&str, stm);
+            //HMM can i detect MOVE?
+            emit (ASM_Oper (str.data, NULL, NULL, NULL));
+        }
+        return;
+    }
     case T_ASMOLD:
     {
-        T_exp data = s->u.ASSEMBLY.data;
-        Temp_tempList dl = s->u.ASSEMBLY.dst;
-        Temp_tempList sl = s->u.ASSEMBLY.src;
+        T_exp data = s->u.ASMOLD.data;
+        Temp_tempList dl = s->u.ASMOLD.dst;
+        Temp_tempList sl = s->u.ASMOLD.src;
 
         // the can be max 2 sources
         if (!sl && data)
@@ -354,7 +366,7 @@ static void munchStm (T_stm s)
             sl->tail = L (munchExp (data), NULL);
         }
 
-        emit (ASM_Oper (s->u.ASSEMBLY.code, dl, sl, NULL));
+        emit (ASM_Oper (s->u.ASMOLD.code, dl, sl, NULL));
         return;
     }
     case T_MOVE:

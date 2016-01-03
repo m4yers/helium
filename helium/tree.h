@@ -2,6 +2,7 @@
 #define TREE_H_P4J0KEXI
 
 #include "temp.h"
+#include "ast_asm.h"
 
 typedef struct T_stm_ * T_stm;
 typedef struct T_exp_ * T_exp;
@@ -34,20 +35,24 @@ struct T_stm_
 {
     enum
     {
-        T_COMMENT, T_ASMOLD, T_RET, T_EXIT,
+        T_COMMENT, T_ASM, T_ASMOLD, T_RET, T_EXIT,
         T_SEQ, T_LABEL, T_JUMP, T_RJUMP, T_CJUMP, T_MOVE,
         T_EXP
     } kind;
     union
     {
         const char * COMMENT;
-        struct 
+        struct
+        {
+            A_asmStmList stms;
+        } ASSEMBLY;
+        struct
         {
             const char * code;
             T_exp data;
             Temp_tempList dst;
             Temp_tempList src;
-        } ASSEMBLY;
+        } ASMOLD;
         struct
         {
             T_stm left, right;
@@ -113,6 +118,7 @@ T_expList T_ExpList (T_exp head, T_expList tail);
 int T_ExpListLen (T_expList list);
 T_stmList T_StmList (T_stm head, T_stmList tail);
 
+T_stm T_Asm (A_asmStmList stms);
 T_stm T_AsmOld (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src);
 T_stm T_Seq (T_stm left, T_stm right);
 T_stm T_Comment (const char * comment);

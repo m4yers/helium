@@ -36,14 +36,22 @@ T_stmList T_StmList (T_stm head, T_stmList tail)
     return p;
 }
 
+T_stm T_Asm (A_asmStmList stms)
+{
+    T_stm p = (T_stm) checked_malloc (sizeof * p);
+    p->kind = T_ASM;
+    p->u.ASSEMBLY.stms = stms;
+    return p;
+}
+
 T_stm T_AsmOld (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);
     p->kind = T_ASMOLD;
-    p->u.ASSEMBLY.code = code;
-    p->u.ASSEMBLY.data = data;
-    p->u.ASSEMBLY.dst = dst;
-    p->u.ASSEMBLY.src = src;
+    p->u.ASMOLD.code = code;
+    p->u.ASMOLD.data = data;
+    p->u.ASMOLD.dst = dst;
+    p->u.ASMOLD.src = src;
     return p;
 }
 
@@ -122,7 +130,7 @@ T_stm T_Move (T_exp dst, T_exp src)
 {
     if (dst->kind == T_MEM && dst->u.MEM->kind == T_TEMP)
     {
-        assert(0);
+        assert (0);
     }
     T_stm p = (T_stm) checked_malloc (sizeof * p);
     p->kind = T_MOVE;
@@ -291,5 +299,4 @@ T_relOp T_commute (T_relOp r)
     assert (0);
     return 0;
 }
-
 

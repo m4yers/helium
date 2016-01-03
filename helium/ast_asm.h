@@ -6,6 +6,7 @@
 #include "ext/util.h"
 #include "ext/list.h"
 #include "ext/bool.h"
+#include "ext/str.h"
 
 #include "ast.h"
 #include "ast_asm.h"
@@ -109,6 +110,12 @@ LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
 A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
+
+/*************
+*  Emitter  *
+*************/
+
+void AST_AsmEmitLine (String out, A_asmStm stm);
 
 /*************
 *  Printer  *

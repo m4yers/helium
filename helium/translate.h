@@ -74,6 +74,7 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label don
 Tr_exp Tr_Break (Temp_label done);
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp);
 Tr_exp Tr_Exit (Tr_exp exp);
+Tr_exp Tr_Asm (A_asmStmList stms);
 Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src);
 
 /**************

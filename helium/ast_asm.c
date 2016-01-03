@@ -79,6 +79,61 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
 }
 
 /**********************************************************************
+*                              Emitter                               *
+**********************************************************************/
+
+static char emit_inst_buf[24];
+static void EmitInst (String out, A_asmStmInst inst)
+{
+    sprintf (emit_inst_buf, "%-6s", inst->opcode);
+    String_Append (out, emit_inst_buf);
+    size_t opsSize = LIST_SIZE (inst->opList);
+    LIST_FOREACH (op, inst->opList)
+    {
+        switch (op->kind)
+        {
+        case A_asmOpIntKind:
+        {
+            sprintf (emit_inst_buf, "%ld", op->u.integer);
+            break;
+        }
+        case A_asmOpRegKind:
+        {
+            //NOTE reg has to be normalized by this point
+            sprintf (emit_inst_buf, "$%s", op->u.reg->u.name);
+            break;
+        }
+        case A_asmOpMemKind:
+        {
+            sprintf (emit_inst_buf, "%ld($%s),",
+                     op->u.mem.offset,
+                     op->u.mem.base->u.name);
+            break;
+        }
+        }
+
+        String_Append (out, emit_inst_buf);
+
+        if (--opsSize)
+        {
+            String_Append (out, ", ");
+        }
+    }
+}
+
+void AST_AsmEmitLine (String out, A_asmStm stm)
+{
+    switch (stm->kind)
+    {
+    case A_asmStmInstKind:
+    {
+        EmitInst (out, &stm->u.inst);
+        break;
+    }
+    }
+}
+
+/**********************************************************************
 *                              Printer                               *
 **********************************************************************/
 
