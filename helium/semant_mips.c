@@ -71,6 +71,11 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
             return NULL;
 
         }
+        // not yet implemented, and should i?
+        case MA_GENERAL_EXPRESSION_32_BIT:
+        {
+            return String_New ("Expected a general 32-bit expression");
+        }
         // If happens you extend the cases
         default:
         {
@@ -304,7 +309,7 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
         {
             if (!opList)
             {
-                Vector_Push (&rejections, String_New ("Not enough operands"));
+                Vector_PushBack (&rejections, String_New ("Not enough operands"));
                 opcode = NULL;
                 break;
             }
@@ -312,7 +317,7 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
             String r = OpMatchFormat (f, opList->head);
             if (r)
             {
-                Vector_Push (&rejections, r);
+                Vector_PushBack (&rejections, r);
                 opcode = NULL;
                 break;
             }
@@ -325,7 +330,7 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
          */
         if (opcode && opList)
         {
-            Vector_Push (&rejections, String_New ("Too many operands"));
+            Vector_PushBack (&rejections, String_New ("Too many operands"));
             opcode = NULL;
         }
 
@@ -349,9 +354,10 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
 
             for (size_t i = 0; i < Vector_Size (&rejections); ++i)
             {
-                struct M_opCode_t * candidate = Vector_At (&candidates, i);
-                String rejection = Vector_At (&rejections, i);
-                sprintf (buf, "'%s' is rejected because '%s'",
+                struct M_opCode_t * candidate = * (M_opCode *)Vector_At (&candidates, i);
+                String rejection = * (String *)Vector_At (&rejections, i);
+                sprintf (buf, "\n'%s %s' is rejected because '%s'",
+                         candidate->name.data,
                          candidate->format.data,
                          rejection->data);
                 String_Append (s, buf);
