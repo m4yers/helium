@@ -1,0 +1,41 @@
+fn main
+{
+    asm(mips;;)
+    {
+        blah $a0, 0($a0)           //~ ERROR 3100 unknown opcode blah
+    };
+
+    asm(mips;;)
+    {
+        addi $a0, $a0, 1
+        lw $a5, 0($a0)             //~ ERROR 3101 there are 4 $a registers $a0-$a3
+        lw $32, 0($a0)             //~ ERROR 3101 there are 32 registers from $0 to $31
+    };
+
+    asm(mips;;)
+    {
+        lw $a0, $a0                //~ ERROR 3102 expected mem operand
+        lw $a0, 35000($a0)         //~ ERROR 3102 offset is signed 16-bit integer
+    };
+
+    asm(mips;;)
+    {
+        addi 1, $a0, $a0           //~ ERROR 3102 expected reg
+        addi $a0, $a0, $a0         //~ ERROR 3102 expected immediate value
+        sll  $a0, $a0, 32          //~ ERROR 3102 shift amount is a 5-bit value from 0 to 31
+        sll  $a0, $a0, -1          //~ ERROR 3102 shift amount is a 5-bit value from 0 to 31
+    };
+
+    asm(mips;;)
+    {
+        syscall -1                 //~ ERROR 3102 syscall requires 20-bit positive value
+    };
+
+    asm(mips;;)
+    {
+        addi 1                     //~ ERROR 3102 not enough operands
+        addi $a0, $a0, 1, 1        //~ ERROR 3102 too many operands
+    };
+
+    ret 0;
+}

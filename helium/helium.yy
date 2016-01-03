@@ -256,8 +256,6 @@ expression:               literals
                         ;
 asm:                      ASM LBRACE STRING RBRACE
                           {
-                              printf("hel loc fl: %d\n", @3.first_line);
-                              printf("asm: '%s'\n", $3);
                               $$ = A_AsmExp(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
                           }
                         | ASM LPAREN

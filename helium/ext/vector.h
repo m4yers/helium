@@ -145,7 +145,7 @@ void Vector_Push (Vector v, const void * value);
 /*
  * Ternary operator used to break string literal(array) to char pointer
  */
-// TODO rename to Vector_PushL L for literal
+// TODO rename to Vector_PushR R for rigth hand value
 #define Vector_PushBack(vector, value)                                                        \
 {                                                                                             \
     __typeof__(TRUE ? value : value) __value = value;                                         \

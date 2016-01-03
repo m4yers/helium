@@ -30,7 +30,7 @@
 #define UINT_20_MAX  1048575
 #define UINT_26_MAX  67108863
 
-#define IS_IN_RANGE(value,left,right) (value >= left && value <= right)
+#define IS_IN_RANGE(value,left,right) ((value) >= (left) && (value) <= (right))
 
 /*
  * This method tries to match and operand against opcode's format. It does not do any semantic
@@ -230,13 +230,12 @@ static String TransOp (SemantMIPS_Context context, A_asmOp op)
          */
         case A_asmRegNumKind:
         {
-            const char * name = F_RegistersGetName (regs_all, reg->u.num);
-            if (!name)
+            if (!IS_IN_RANGE(reg->u.num, 0, regs_all->number - 1))
             {
                 return String_New ("Unknown register");
             }
             reg->kind = A_asmRegNameKind;
-            reg->u.name = name;
+            reg->u.name = F_RegistersGetName (regs_all, reg->u.num);
             break;
         }
         }
