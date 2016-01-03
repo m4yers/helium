@@ -139,6 +139,7 @@ static void TraverseExp (S_table env, int depth, A_exp exp)
     case A_retExp:
     {
         TraverseExp (env, depth, exp->u.ret);
+        break;
     }
     case A_callExp:
     {
