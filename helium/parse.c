@@ -15,13 +15,13 @@ extern int HeliumParse (Program_Module m);
 
 A_asmStmList yy_mips_result;
 extern void * yy_mips__scan_string (const char * str);
-extern int MIPSParse ();
+extern int MIPSParse (A_loc loc);
 
 // HMM... ca we make it parse from the same buffer as helium parser. Do we need this?
-A_asmStmList ParseAsm(const char * input)
+A_asmStmList ParseAsm(A_loc loc, const char * input)
 {
     yy_mips__scan_string (input);
-    int status = MIPSParse();
+    int status = MIPSParse(loc);
     return status ? NULL : yy_mips_result;
 }
 

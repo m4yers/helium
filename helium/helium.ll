@@ -6,17 +6,45 @@
 
     #include "helium.yy.h"
 
-    #define YY_USER_ACTION adjust();
+    /*
+     * current column number
+     */
+    int yy_helium_column;
 
-    int yy_helium_column = 1;
+    /*
+     * number of matched lines since the last match
+     */
+    int yy_helium_lines;
 
-    static void adjust (void)
+    #define YY_USER_INIT lloc_init();
+
+    static void lloc_init(void)
+    {
+        yy_helium_lloc.first_line = 1;
+        yy_helium_lloc.last_line = 1;
+        yy_helium_lloc.first_column = 1;
+        yy_helium_lloc.last_column = 1;
+        yy_helium_column = 1;
+        yy_helium_lines = 0;
+    }
+
+    #define YY_USER_ACTION lloc_adjust();
+
+    static void lloc_adjust (void)
     {
         yy_helium_lloc.token = strdup(yytext);
-        yy_helium_lloc.first_line = yy_helium_lloc.last_line = yylineno;
+        yy_helium_lloc.first_line = yy_helium_lloc.last_line - yy_helium_lines;
         yy_helium_lloc.first_column = yy_helium_column;
         yy_helium_lloc.last_column = yy_helium_column + yyleng - 1;
         yy_helium_column += yyleng;
+        yy_helium_lines = 0;
+    }
+
+    static void lloc_newline(void)
+    {
+        yy_helium_column = 1;
+        yy_helium_lines++;
+        yy_helium_lloc.last_line = yylineno;
     }
 %}
 
@@ -38,7 +66,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 <STATE_BLOCK_COMMENT>
 {
                  /** HMM does this preserve \n in the sval?*/
-    \n           { yy_helium_column = 1; continue;                                      }
+    \n           { lloc_newline(); continue;                                            }
     [^*]*        /** eat anything that's not a '*' */
     "*"+[^*/]*   /** eat up '*'s not followed by '/'s */
     "*"+"/"      BEGIN(INITIAL);
@@ -48,7 +76,7 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 <STATE_LINE_COMMENT>
 {
     .*           /** eat up all characters */
-    "\n"         { yy_helium_column = 1; BEGIN(INITIAL);                                }
+    "\n"         { lloc_newline(); BEGIN(INITIAL);                                      }
 }
 
 \"               BEGIN(STATE_STRING);
@@ -61,18 +89,17 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 asm              { BEGIN(STATE_ASM_OPTS); return ASM;                                   }
 <STATE_ASM_OPTS>
 {
-    ")"      { BEGIN(STATE_ASM); return RPAREN;                                         }
-    "{"      { BEGIN(STATE_ASM); return LBRACE;                                         }
+    "{"          { BEGIN(STATE_ASM); return LBRACE;                                     }
 }
+
 <STATE_ASM>
 {
-    [" "|\t|\n]* { continue;                                                            }
     [^\{\}]*     { yy_helium_lval.sval = strdup (yy_helium_text); return STRING;        }
     "}"          { BEGIN(INITIAL); return RBRACE;                                       }
 }
 
 " "|\t           { continue; }
-\n               { yy_helium_column = 1; continue; }
+\n               { lloc_newline(); continue; }
 "!"              { return EMARK; }
 ","              { return COMMA; }
 ":"              { return COLON; }

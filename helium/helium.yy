@@ -17,7 +17,7 @@
     #define YY_HELIUM_LTYPE struct A_loc_t
 
     extern Program_Module module;
-    extern A_asmStmList ParseAsm(const char * input);
+    extern A_asmStmList ParseAsm(A_loc loc, const char * input);
 
     int yy_helium_lex (void);
 
@@ -256,7 +256,9 @@ expression:               literals
                         ;
 asm:                      ASM LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), NULL, ParseAsm($3), NULL, NULL);
+                              printf("hel loc fl: %d\n", @3.first_line);
+                              printf("asm: '%s'\n", $3);
+                              $$ = A_AsmExp(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
                           }
                         | ASM LPAREN
                                   asm_options_list SEMICOLON
@@ -265,7 +267,7 @@ asm:                      ASM LBRACE STRING RBRACE
                               RPAREN
                               LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), $3, ParseAsm($10), $5, $7);
+                              $$ = A_AsmExp(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
                           }
                         ;
 asm_options_list:         %empty { $$ = NULL; }

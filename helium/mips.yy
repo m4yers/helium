@@ -34,7 +34,7 @@
 
     int MIPSParse (A_loc loc)
     {
-        printf("mips loc fl: %d\n", loc->first_line);
+        printf("mips loc fl: %d fc: %d\n", loc->first_line, loc->first_column);
         yy_mips_lloc = *loc;
         yy_mips_column = loc->first_column;
         yy_mips_line = loc->first_line;

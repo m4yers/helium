@@ -10,9 +10,9 @@
 // TODO finish the module
 
 /*
- * 3100 Could not match opcode signature
- * 3101 Unknown opcode
- * 3102 Bad operand
+ * 3100 Unknown opcode
+ * 3101 Bad operand(unknown register etc)
+ * 3102 Could not match opcode signature
  */
 #define ERROR(loc, code, format, ...)                                    \
 {                                                                        \
@@ -283,7 +283,7 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
          */
         if (r)
         {
-            ERROR (&o->loc, 3102, String_Data (r), "")
+            ERROR (&o->loc, 3101, String_Data (r), "")
             String_Delete (r);
             return;
         }
@@ -357,14 +357,14 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
                 String_Append (s, buf);
             }
 
-            ERROR (&stm->loc, 3100, s->data, inst->opcode);
+            ERROR (&stm->loc, 3102, s->data, inst->opcode);
 
             String_Delete (s);
             free (buf);
         }
         else
         {
-            ERROR (&stm->loc, 3101, "Unknown opcode '%s'", inst->opcode);
+            ERROR (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
         }
     }
 
