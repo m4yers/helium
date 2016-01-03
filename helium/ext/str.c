@@ -11,7 +11,6 @@
 String String_Init (String s, const char * data)
 {
     assert (s);
-    assert (data);
 
     s->data = (char *) data;
     s->is_static = TRUE;
