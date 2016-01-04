@@ -1,4 +1,6 @@
-fn main
+def Point = { x: int, y: int }
+
+fn test_init
 {
     let a: { x: int, y: int };
     a.x = 10;
@@ -10,7 +12,6 @@ fn main
     assert! (a.x == 11);
     assert! (a.y == 11);
 
-    def Point = { x: int, y: int }
     let b: Point;
 
     b.x = 12;
@@ -23,4 +24,24 @@ fn main
     assert! (b.y == 13);
 
     ret 0;
+}
+
+fn test_copy
+{
+    let a = Point{ x = 10, y = 11 };
+    let b = a;
+
+    a.x = 12;
+    a.y = 13;
+
+    assert! (a.x == 12);
+    assert! (a.y == 13);
+    assert! (b.x == 10);
+    assert! (b.y == 11);
+}
+
+fn main
+{
+    test_init();
+    test_copy();
 }
