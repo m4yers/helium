@@ -3,6 +3,17 @@ fn test_anonymous
     let a = { x = 10, y = 11 };
     assert! (a.x == 10);
     assert! (a.y == 11);
+
+    let b = a;
+
+    a.x = 12;
+    a.y = 13;
+
+    assert! (&a <> &b);
+    assert! (a.x == 12);
+    assert! (a.y == 13);
+    assert! (b.x == 10);
+    assert! (b.y == 11);
 }
 
 fn test_anonymous_nested

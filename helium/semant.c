@@ -384,8 +384,12 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              *  In case of 1 or 2 we just do temp-to-temp move, in the third case we do deep copy.
              */
 
-            // If the rhs is a variable and the value it yields is handle we copy the whole array.
-            bool copy = (decVar.init->kind == A_varExp || decVar.init->kind == A_valueAt)
+            /*
+             * If the rhs is not an handle expression and the value it yields is handle we copy
+             * the whole array.
+             */
+            bool copy = decVar.init->kind != A_arrayExp
+                        && decVar.init->kind != A_recordExp
                         && aity->meta.is_handle;
 
             /*

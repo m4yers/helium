@@ -5,12 +5,32 @@ def Rect = { tl: Point, tr: Point }
 
 fn same_type
 {
+    /** init */
     let a = Point{ x = 10, y = 11 };
-    let b = a as Point; // basically this creates alias insted of copy
+    let b = a as Point;
 
-    assert! (&a == &b);
-    assert! (a.x == b.x && a.x == 10);
-    assert! (a.y == b.y && a.y == 11);
+    a.x = 12;
+    a.y = 13;
+
+    assert! (&a <> &b);
+    assert! (a.x == 12);
+    assert! (a.y == 13);
+    assert! (b.x == 10);
+    assert! (b.y == 11);
+
+    /** assign */
+    let c = Point{ x = 10, y = 11 };
+    let d: Point;
+    d = c as Point;
+
+    c.x = 12;
+    c.y = 13;
+
+    assert! (&c <> &d);
+    assert! (c.x == 12);
+    assert! (c.y == 13);
+    assert! (d.x == 10);
+    assert! (d.y == 11);
 }
 
 fn record_to_record
@@ -18,16 +38,18 @@ fn record_to_record
     let a = Point{ x = 10, y = 11 };
     let b = a as Vector2D;
 
-    assert! (&a == &b);
+    assert! (&a <> &b);
     assert! (a.x == b.x && a.x == 10);
     assert! (a.y == b.y && a.y == 11);
 
     b.x = 12;
     b.y = 13;
 
-    assert! (&a == &b);
-    assert! (a.x == b.x && a.x == 12);
-    assert! (a.y == b.y && a.y == 13);
+    assert! (&a <> &b);
+    assert! (a.x == 10);
+    assert! (a.y == 11);
+    assert! (b.x == 12);
+    assert! (b.y == 13);
 }
 
 fn record_to_record_pointer
@@ -52,7 +74,7 @@ fn array_to_array
     let a = [Vector3D{x = 10, y = 11, z = 12}, Vector3D{x = 13, y = 14, z = 15}];
     let b = a as [Vector2D;3];
 
-    assert! (&a == &b);
+    assert! (&a <> &b);
 
     assert! (a[0].x = b[0].x);
     assert! (a[0].y = b[0].y);
