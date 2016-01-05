@@ -90,5 +90,6 @@ Tr_accessList Tr_Formals (Tr_level level);
 Tr_access Tr_AllocVirtual (Tr_level level, S_symbol name);
 Tr_access Tr_AllocMaterialize (Tr_access access, Tr_level level, Ty_ty type, bool escape);
 Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape);
+void Tr_AllocDelete(Tr_level level, Tr_access access);
 
 #endif /* end of include guard: TRANSLATE_H_ZDIHRPIG */

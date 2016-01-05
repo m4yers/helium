@@ -296,6 +296,12 @@ Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape)
     return ta;
 }
 
+void Tr_AllocDelete (Tr_level level, Tr_access access)
+{
+    LIST_REMOVE (level->locals, access)
+    F_AllocDelete (level->frame, access->access);
+}
+
 /***************
  *  Variables  *
  ***************/

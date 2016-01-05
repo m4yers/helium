@@ -81,6 +81,8 @@ F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, boo
 
 bool F_AllocIsVirtual (F_access access);
 
+void F_AllocDelete(F_frame frame, F_access access);
+
 /***************
  *  Fragments  *
  ***************/

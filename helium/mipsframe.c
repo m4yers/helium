@@ -45,7 +45,7 @@ struct F_frame_
 
     /**
      * The local variables of word size defined inside the function scope. These are subject for
-     * escaping and alllocal variables that do escape MUST be pushed to stack after use and poped
+     * escaping and all local variables that do escape MUST be pushed to stack after use and poped
      * back before use.
      */
     F_accessList words;
@@ -64,7 +64,8 @@ struct F_frame_
     F_accessList virtuals;
 
     /*
-     * Total word count for local data including one-word and multi-word allocations.
+     * Total word count for local data including one-word and multi-word allocations that will be
+     * pushed to stack.
      */
     int wordsNum;
 
@@ -469,6 +470,52 @@ bool F_AllocIsVirtual (F_access access)
 {
     assert (access);
     return access->kind = FA_virtual;
+}
+
+void F_AllocDelete (F_frame frame, F_access access)
+{
+    DBG ("F_AllocDelete %p named as <%s> for <%s>",
+         access,
+         access->name,
+         frame->name->name)
+
+    switch (access->kind)
+    {
+    case FA_virtual:
+    {
+        // TODO figure out how to handle this
+        assert(!frame->virtuals);
+        LIST_REMOVE (frame->virtuals, access)
+        break;
+    }
+    case FA_reg:
+    {
+        LIST_REMOVE (frame->words, access)
+        if (access->access)
+        {
+            F_AllocDelete (frame, access->access);
+            access->access = NULL;
+        }
+        break;
+    }
+    case  FA_stackWord:
+    {
+        LIST_REMOVE (frame->words, access)
+        frame->wordsNum--;
+        if (access->access)
+        {
+            F_AllocDelete (frame, access->access);
+            access->access = NULL;
+        }
+        break;
+    }
+    case FA_stackArray:
+    {
+        LIST_REMOVE (frame->arrays, access)
+        frame->wordsNum -= access->u.stackArray.size;
+        break;
+    }
+    }
 }
 
 /***************
