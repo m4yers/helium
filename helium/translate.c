@@ -496,9 +496,9 @@ Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty)
     }
 }
 
-Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
+Tr_exp Tr_ArrayExp (Tr_exp b, Ty_ty type, Tr_expList list, int offset)
 {
-    T_exp var = F_GetVar (access->access, T_Temp (F_FP()), TRUE);
+    T_exp base = Tr_UnEx(b);
     int ts = Ty_SizeOf (type->u.array.type);
 
     T_exp exp = T_Eseq (T_NoOp(), NULL);
@@ -517,7 +517,7 @@ Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
                        T_Eseq (T_Move (T_Mem (
                                            T_Binop (
                                                T_plus,
-                                               var,
+                                               base,
                                                T_Const (offset + ts * i++))),
                                        init), NULL);
         }
@@ -528,15 +528,14 @@ Tr_exp Tr_ArrayExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
         }
     }
 
-    tail->u.ESEQ.exp = var;
+    tail->u.ESEQ.exp = base;
 
     return Tr_Ex (exp);
 }
 
-Tr_exp Tr_RecordExp (Tr_access access, Ty_ty type, Tr_expList list, int offset)
+Tr_exp Tr_RecordExp (Tr_exp b, Ty_ty type, Tr_expList list, int offset)
 {
-    T_exp base = F_GetVar (access->access, T_Temp (F_FP()), TRUE);
-
+    T_exp base = Tr_UnEx(b);
     T_exp exp = T_Eseq (T_NoOp(), NULL);
     T_exp tail = exp;
 

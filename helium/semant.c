@@ -385,8 +385,10 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
              */
 
             /*
-             * If the rhs is not an handle expression and the value it yields is handle we copy
-             * the whole array.
+             * If the rhs is not an handle expression but yields handle type we need to copy it, so:
+             *
+             * let a = Point{}; // handle only copy
+             * let b = a;       // handle and frame array copy
              */
             bool copy = decVar.init->kind != A_arrayExp
                         && decVar.init->kind != A_recordExp
@@ -826,7 +828,7 @@ static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 /*
  * Returns default initialization for a type
  */
-static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
+static Semant_Exp TransDefaultValue (Tr_exp base, Ty_ty type, int offset)
 {
     type = GetActualType (type);
     switch (type->kind)
@@ -843,11 +845,11 @@ static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
         int o = offset;
         while (size--)
         {
-            LIST_PUSH (el, TransDefaultValue (access, type->u.array.type, o).exp);
+            LIST_PUSH (el, TransDefaultValue (base, type->u.array.type, o).exp);
             o += typesize;
         }
 
-        return Expression_New (Tr_ArrayExp (access, type, el, offset), type);
+        return Expression_New (Tr_ArrayExp (base, type, el, offset), type);
     }
     case Ty_record:
     {
@@ -855,18 +857,309 @@ static Semant_Exp TransDefaultValue (Tr_access access, Ty_ty type, int offset)
         Tr_expList el = NULL;
         LIST_FOREACH (f, type->u.record)
         {
-            Semant_Exp sexp = TransDefaultValue (access, f->ty, o);
+            Semant_Exp sexp = TransDefaultValue (base, f->ty, o);
             LIST_PUSH (el, sexp.exp);
             o += Ty_SizeOf (f->ty);
         }
 
-        return Expression_New (Tr_RecordExp (access, type, el, offset), type);
+        return Expression_New (Tr_RecordExp (base, type, el, offset), type);
     }
     default:
     {
         assert (0);
     }
     }
+}
+
+static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
+{
+    A_loc loc = &exp->loc;
+    Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
+
+    Tr_access access = NULL;
+
+    bool vaccess = FALSE;
+
+    // FIXME do not use static
+    static Tr_exp base;
+    static int level = 0;
+    static int thisOffset = 0;
+
+    Ty_ty ty = NULL;
+    Tr_exp ex = NULL;
+
+    /*
+     * This is offset(as part of thisOffset value) is used by the lower record level if
+     * exists.
+     */
+    int nextOffset = 0;
+
+    if (level == 0)
+    {
+        if (b)
+        {
+            base = b;
+        }
+        else
+        {
+            /*
+             * We do not the real type yet but we need to pass the base further down the tree
+             * so we create a virtual access point(base), later it will be updated with the
+             * real type information.
+             */
+            access = Tr_AllocVirtual (context->level, NULL);
+            vaccess = TRUE;
+
+            /*
+             * We need the address inside this access so we do deref
+             */
+            base = Tr_SimpleVar (access, context->level, TRUE);
+        }
+
+    }
+
+    if (exp->kind == A_arrayExp)
+    {
+        if (exp->u.array == NULL)
+        {
+            ERROR_MALFORMED_EXP (loc, "Array expression cannot be empty");
+            return e_invalid;
+        }
+
+        Tr_expList el = NULL;
+        Ty_tyList tl = NULL;
+        LIST_FOREACH (item, exp->u.array)
+        {
+            level++;
+            Semant_Exp sexp = TransExp (context, item);
+            level--;
+
+            LIST_PUSH (el, sexp.exp);
+            LIST_PUSH (tl, sexp.ty);
+
+            int size = Ty_SizeOf (sexp.ty);
+            thisOffset += size;
+            nextOffset += size;
+        }
+
+        // returning to the current level offset
+        thisOffset -= nextOffset;
+
+        ty = tl->head;
+        int size = 1;
+
+        if (is_invalid (ty))
+        {
+            return e_invalid;
+        }
+
+        LIST_FOREACH (type, tl->tail)
+        {
+            size++;
+            if (is_invalid (type))
+            {
+                return e_invalid;
+            }
+            else if (type != ty)
+            {
+                ERROR_MALFORMED_EXP (
+                    &exp->loc,
+                    "Array expression expects values of the same type");
+                return e_invalid;
+            }
+        }
+
+        /*
+         * Array expression always yields anonymous array type. It is done for consistency
+         * sake, so the equal expressions will get the same(instance address wise) type.
+         */
+        ty = GetOrCreateTypeEntry (context, Ty_Array (ty, size));
+
+        ex = Tr_ArrayExp (base, ty, el, thisOffset);
+    }
+    else
+    {
+        // Check whether ty record type is named, if so validate it.
+        if (exp->u.record.name)
+        {
+            ty = (Ty_ty)S_Look (context->tenv, exp->u.record.name);
+            if (!ty)
+            {
+                ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
+                return e_invalid;
+            }
+            else if (is_invalid (ty))
+            {
+                ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
+                return e_invalid;
+            }
+            else if (GetActualType (ty)->kind != Ty_record)
+            {
+                ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
+                return e_invalid;
+            }
+        }
+
+        // traverse expression in curly braces.
+        Tr_expList el = NULL;
+        Ty_fieldList fl = NULL;
+        bool valid = TRUE;
+        LIST_FOREACH (exp_field, exp->u.record.fields)
+        {
+            // check for field repetion
+            LIST_FOREACH (exp_field_s, exp->u.record.fields)
+            {
+                if (exp_field_s == exp_field)
+                {
+                    break;
+                }
+                else if (exp_field_s->name == exp_field->name)
+                {
+                    ERROR (
+                        &exp_field->loc,
+                        3002,
+                        "Redefinition of field '%s'",
+                        exp_field->name->name);
+                    valid = FALSE;
+                }
+            }
+
+            level++;
+            Semant_Exp sexp = TransExp (context, exp_field->exp);
+            level--;
+
+            if (is_invalid (sexp.ty))
+            {
+                valid = FALSE;
+            }
+
+            /*
+             * If we have a specified type we need to do these things:
+             *  - check for type matching
+             *  - check for field belonging
+             */
+            if (valid && ty)
+            {
+                Ty_field ty_field = NULL;
+                LIST_FOREACH (type_field, GetActualType (ty)->u.record)
+                {
+                    if (type_field->name == exp_field->name)
+                    {
+                        ty_field = type_field;
+                        break;
+                    }
+                }
+
+                // init expression contains a field that does not belong to the specified type
+                if (!ty_field)
+                {
+                    ERROR (
+                        &exp_field->loc,
+                        3002,
+                        "Unknown to type '%s' field '%s' of type '%s'",
+                        ty->meta.name,
+                        exp_field->name->name,
+                        sexp.ty->meta.name);
+
+                    valid = FALSE;
+                }
+                // types of init expression and type field mismatch
+                else if (GetActualType (ty_field->ty) != GetActualType (sexp.ty))
+                {
+                    ERROR_UNEXPECTED_TYPE (&exp_field->loc, ty_field->ty, sexp.ty);
+                    valid = FALSE;
+                }
+            }
+
+            // creating init expression list
+            LIST_PUSH (el, sexp.exp);
+
+            // creating name ~ type list
+            LIST_PUSH (fl, Ty_Field (exp_field->name, sexp.ty));
+
+            int size = Ty_SizeOf (sexp.ty);
+            thisOffset += size;
+            nextOffset += size;
+        }
+
+        // returning to the current level offset
+        thisOffset -= nextOffset;
+
+        // field traversal yield invalid expression
+        if (!valid)
+        {
+            ty = Ty_Invalid();
+        }
+        else if (ty)
+        {
+            // We need to rearrange the init expression list in type order and fill the gaps
+            Tr_expList ael = NULL;
+            nextOffset = 0;
+            LIST_FOREACH (type_field, GetActualType (ty)->u.record)
+            {
+                Tr_expList iel = el;
+                Tr_exp ie = NULL;
+                Ty_ty tyty = type_field->ty;
+
+                LIST_FOREACH (init_field, fl)
+                {
+                    if (init_field->name == type_field->name)
+                    {
+                        ie = iel->head;
+                        break;
+                    }
+
+                    iel = iel->tail;
+                }
+
+                // found the proper name in type that matches init expression
+                if (ie)
+                {
+                    /* printf ("init value for '%s'\n", type_field->name->name); */
+                    LIST_PUSH (ael, ie);
+                }
+                // did not found any match, use default value
+                else
+                {
+                    /* printf ("default value for '%s'\n", type_field->name->name); */
+                    LIST_PUSH (ael, TransDefaultValue (base, tyty, thisOffset).exp);
+                }
+
+                int size = Ty_SizeOf (tyty);
+                thisOffset += size;
+                nextOffset += size;
+            }
+
+            // returning to the current level offset
+            thisOffset -= nextOffset;
+
+            el = ael;
+        }
+        // create anonymous type
+        else if (!ty)
+        {
+            // TODO store anonymous records
+            // HMM do i actually need to store anon records for module linking? anyway not now
+            ty = Ty_Record (fl);
+        }
+
+        ex = Tr_RecordExp (base, GetActualType (ty), el, thisOffset);
+    }
+
+
+    if (!is_invalid (ty) && level == 0 && vaccess)
+    {
+        /*
+         * Now we know the type and the init tree is created using virtual access point,
+         * we update the access
+         */
+        Tr_AllocMaterialize (access, context->level, ty, FALSE);
+
+        base = NULL;
+    }
+
+    return Expression_New (ex, ty);
+
 }
 
 static Semant_Exp TransExp (Semant_Context context, A_exp exp)
@@ -1263,268 +1556,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
     case A_arrayExp:
     case A_recordExp:
     {
-        static Tr_access access = NULL;
-        static int level = 0;
-        static int thisOffset = 0;
-
-        Ty_ty ty = NULL;
-        Tr_exp ex = NULL;
-
-        /*
-         * This is offset(as part of thisOffset value) is used by the lower record level if
-         * exists.
-         */
-        int nextOffset = 0;
-
-        if (level == 0)
-        {
-            /*
-             * We do not the real type yet but we need to pass the base further down the tree
-             * so we create a virtual access point(base), later it will be updated with the
-             * real type information.
-             */
-            access = Tr_AllocVirtual (context->level, NULL);
-        }
-
-        if (exp->kind == A_arrayExp)
-        {
-            if (exp->u.array == NULL)
-            {
-                ERROR_MALFORMED_EXP (&exp->loc, "Array expression cannot be empty");
-                return e_invalid;
-            }
-
-            Tr_expList el = NULL;
-            Ty_tyList tl = NULL;
-            LIST_FOREACH (item, exp->u.array)
-            {
-                level++;
-                Semant_Exp sexp = TransExp (context, item);
-                level--;
-
-                LIST_PUSH (el, sexp.exp);
-                LIST_PUSH (tl, sexp.ty);
-
-                int size = Ty_SizeOf (sexp.ty);
-                thisOffset += size;
-                nextOffset += size;
-            }
-
-            // returning to the current level offset
-            thisOffset -= nextOffset;
-
-            ty = tl->head;
-            int size = 1;
-
-            if (is_invalid (ty))
-            {
-                return e_invalid;
-            }
-
-            LIST_FOREACH (type, tl->tail)
-            {
-                size++;
-                if (is_invalid (type))
-                {
-                    return e_invalid;
-                }
-                else if (type != ty)
-                {
-                    ERROR_MALFORMED_EXP (
-                        &exp->loc,
-                        "Array expression expects values of the same type");
-                    return e_invalid;
-                }
-            }
-
-            /*
-             * Array expression always yields anonymous array type. It is done for consistency
-             * sake, so the equal expressions will get the same(instance address wise) type.
-             */
-            ty = GetOrCreateTypeEntry (context, Ty_Array (ty, size));
-
-            ex = Tr_ArrayExp (access, ty, el, thisOffset);
-        }
-        else
-        {
-            // Check whether ty record type is named, if so validate it.
-            if (exp->u.record.name)
-            {
-                ty = (Ty_ty)S_Look (context->tenv, exp->u.record.name);
-                if (!ty)
-                {
-                    ERROR_UNKNOWN_TYPE (&exp->loc, exp->u.record.name);
-                    return e_invalid;
-                }
-                else if (is_invalid (ty))
-                {
-                    ERROR_INVALID_TYPE (&exp->loc, exp->u.record.name);
-                    return e_invalid;
-                }
-                else if (GetActualType (ty)->kind != Ty_record)
-                {
-                    ERROR (&exp->loc, 3002, "Type '%s' is not a record type", ty->meta.name);
-                    return e_invalid;
-                }
-            }
-
-            // traverse expression in curly braces.
-            Tr_expList el = NULL;
-            Ty_fieldList fl = NULL;
-            bool valid = TRUE;
-            LIST_FOREACH (exp_field, exp->u.record.fields)
-            {
-                // check for field repetion
-                LIST_FOREACH (exp_field_s, exp->u.record.fields)
-                {
-                    if (exp_field_s == exp_field)
-                    {
-                        break;
-                    }
-                    else if (exp_field_s->name == exp_field->name)
-                    {
-                        ERROR (
-                            &exp_field->loc,
-                            3002,
-                            "Redefinition of field '%s'",
-                            exp_field->name->name);
-                        valid = FALSE;
-                    }
-                }
-
-                level++;
-                Semant_Exp sexp = TransExp (context, exp_field->exp);
-                level--;
-
-                if (is_invalid (sexp.ty))
-                {
-                    valid = FALSE;
-                }
-
-                /*
-                 * If we have a specified type we need to do these things:
-                 *  - check for type matching
-                 *  - check for field belonging
-                 */
-                if (valid && ty)
-                {
-                    Ty_field ty_field = NULL;
-                    LIST_FOREACH (type_field, GetActualType (ty)->u.record)
-                    {
-                        if (type_field->name == exp_field->name)
-                        {
-                            ty_field = type_field;
-                            break;
-                        }
-                    }
-
-                    // init expression contains a field that does not belong to the specified type
-                    if (!ty_field)
-                    {
-                        ERROR (
-                            &exp_field->loc,
-                            3002,
-                            "Unknown to type '%s' field '%s' of type '%s'",
-                            ty->meta.name,
-                            exp_field->name->name,
-                            sexp.ty->meta.name);
-
-                        valid = FALSE;
-                    }
-                    // types of init expression and type field mismatch
-                    else if (GetActualType (ty_field->ty) != GetActualType (sexp.ty))
-                    {
-                        ERROR_UNEXPECTED_TYPE (&exp_field->loc, ty_field->ty, sexp.ty);
-                        valid = FALSE;
-                    }
-                }
-
-                // creating init expression list
-                LIST_PUSH (el, sexp.exp);
-
-                // creating name ~ type list
-                LIST_PUSH (fl, Ty_Field (exp_field->name, sexp.ty));
-
-                int size = Ty_SizeOf (sexp.ty);
-                thisOffset += size;
-                nextOffset += size;
-            }
-
-            // returning to the current level offset
-            thisOffset -= nextOffset;
-
-            // field traversal yield invalid expression
-            if (!valid)
-            {
-                ty = Ty_Invalid();
-            }
-            else if (ty)
-            {
-                // We need to rearrange the init expression list in type order and fill the gaps
-                Tr_expList ael = NULL;
-                nextOffset = 0;
-                LIST_FOREACH (type_field, GetActualType (ty)->u.record)
-                {
-                    Tr_expList iel = el;
-                    Tr_exp ie = NULL;
-                    Ty_ty tyty = type_field->ty;
-
-                    LIST_FOREACH (init_field, fl)
-                    {
-                        if (init_field->name == type_field->name)
-                        {
-                            ie = iel->head;
-                            break;
-                        }
-
-                        iel = iel->tail;
-                    }
-
-                    // found the proper name in type that matches init expression
-                    if (ie)
-                    {
-                        /* printf ("init value for '%s'\n", type_field->name->name); */
-                        LIST_PUSH (ael, ie);
-                    }
-                    // did not found any match, use default value
-                    else
-                    {
-                        /* printf ("default value for '%s'\n", type_field->name->name); */
-                        LIST_PUSH (ael, TransDefaultValue (access, tyty, thisOffset).exp);
-                    }
-
-                    int size = Ty_SizeOf (tyty);
-                    thisOffset += size;
-                    nextOffset += size;
-                }
-
-                // returning to the current level offset
-                thisOffset -= nextOffset;
-
-                el = ael;
-            }
-            // create anonymous type
-            else if (!ty)
-            {
-                // TODO store anonymous records
-                // HMM do i actually need to store anon records for module linking? anyway not now
-                ty = Ty_Record (fl);
-            }
-
-            ex = Tr_RecordExp (access, GetActualType (ty), el, thisOffset);
-        }
-
-
-        if (!is_invalid (ty) && level == 0)
-        {
-            /*
-             * Now we know the type and the init tree is created using virtual access point,
-             * we update the access
-             */
-            Tr_AllocMaterialize (access, context->level, ty, FALSE);
-        }
-
-        return Expression_New (ex, ty);
+        return TransHandleExp (context, exp, NULL);
     }
     case A_assignExp:
     {
