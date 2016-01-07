@@ -1565,7 +1565,16 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp lexp = TransVar (context, assignExp.var, TRUE);
         lexp.ty = GetActualType (lexp.ty);
 
-        Semant_Exp rexp = TransExp (context, assignExp.exp);
+        Semant_Exp rexp;
+        if (assignExp.exp->kind == A_arrayExp || assignExp.exp->kind == A_recordExp)
+        {
+            rexp = TransHandleExp(context, assignExp.exp, lexp.exp);
+        }
+        else
+        {
+            rexp = TransExp (context, assignExp.exp);
+        }
+
         rexp.ty = GetActualType (rexp.ty);
 
         // no way to recover from this

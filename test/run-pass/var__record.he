@@ -1,6 +1,6 @@
 def Point = { x: int, y: int }
 
-fn test_init
+fn test_declaration
 {
     let a: { x: int, y: int };
     a.x = 10;
@@ -26,7 +26,7 @@ fn test_init
     ret 0;
 }
 
-fn test_copy
+fn test_copy_init
 {
     let a = Point{ x = 10, y = 11 };
     let b = a;
@@ -34,6 +34,23 @@ fn test_copy
     a.x = 12;
     a.y = 13;
 
+    assert! (&a <> &b);
+    assert! (a.x == 12);
+    assert! (a.y == 13);
+    assert! (b.x == 10);
+    assert! (b.y == 11);
+}
+
+fn test_copy_assignment
+{
+    let a = Point { x = 10, y = 11 };
+    let b: Point;
+    b = a;
+
+    a.x = 12;
+    a.y = 13;
+
+    assert! (&a <> &b);
     assert! (a.x == 12);
     assert! (a.y == 13);
     assert! (b.x == 10);
@@ -42,6 +59,7 @@ fn test_copy
 
 fn main
 {
-    test_init();
-    test_copy();
+    test_declaration();
+    test_copy_init();
+    test_copy_assignment();
 }
