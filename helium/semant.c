@@ -297,8 +297,18 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     case A_asmDec:
     {
         Semant_Exp sexp = TransExp (context, dec->u.assembly);
-        Tr_AddCodeFragment(context, sexp.exp);
-        return Tr_Void();
+        /*
+         * If the declaration is top level we add the code fragment to the list of plain fragments,
+         * they will be emit during codegen phase. Otherwise the fragment becomes part of function
+         * body. Top level ASM declaration MUST not contain ant input/output expressions, since
+         * it would be kinda hard run regalloc on the fragment.
+         */
+        if (context->global == context->level)
+        {
+            Tr_AddCodeFragment (context, sexp.exp);
+            return Tr_Void();
+        }
+        return sexp.exp;
     }
     // TODO when forward declaration will be available check for cycle typedefs
     case A_typeDec:

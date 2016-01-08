@@ -55,8 +55,8 @@ static void run_cases (void ** state, const char * cases[], size_t len)
 
         assert_true (m->ast);
 
-        AST_Print (stdout, m->ast, 0);
-        exit(0);
+        /* AST_Print (stdout, m->ast, 0); */
+        /* exit(0); */
 
         if (PreProc_Translate (m) != 0)
         {
@@ -83,19 +83,25 @@ static void run_cases (void ** state, const char * cases[], size_t len)
             fail();
         }
 
-        LIST_FOREACH (fragment, m->fragments.functions)
+        LIST_FOREACH (f, m->fragments.code)
         {
-            T_stmList sl = C_Linearize (fragment->u.proc.body);
+            T_stmList sl = C_Linearize (f->u.code.body);
+            ASM_lineList lines = F_CodeGen (NULL, sl);
+            Vector_PushBack(&m->results.code, lines);
+        }
+
+        LIST_FOREACH (f, m->fragments.functions)
+        {
+            T_stmList sl = C_Linearize (f->u.proc.body);
             sl = C_TraceSchedule (C_BasicBlocks (sl));
-            ASM_lineList lines = F_CodeGen (fragment->u.proc.frame, sl);
+            ASM_lineList lines = F_CodeGen (f->u.proc.frame, sl);
             /* ASM_PrintLineList (stdout, lines, Temp_LayerMap (F_tempMap, Temp_Name ())); */
-            F_frame frame = fragment->u.proc.frame;
+            F_frame frame = f->u.proc.frame;
             lines = F_ProcEntryExit2 (frame, lines);
             RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
             lines = F_ProcEntryExit3 (frame, lines, rar->colors);
 
-            Vector_PushBack (&m->results, rar);
-
+            Vector_PushBack (&m->results.functions, rar);
         }
 
         Program_PrintAssembly (stdout, m);
@@ -136,13 +142,33 @@ static void main__return (void ** state)
     {
         "fn main\n\
         {\n\
-            asm { addi $a0, $zero, 1 };\n\
-            1;\n\
-        }",
+            asm\n\
+            {\n\
+                addi $a0, $a1, 1337\n\
+            }\n\
+            \n\
+            ret 1;\n\
+        }\n\
+        asm{addi $a0, $a1, 1111}",
 
         /* "fn main\n\ */
         /* {\n\ */
-        /*     1;\n\ */
+        /*     sum(1,2);\n\ */
+        /*     ret 0;\n\ */
+        /* }\n\ */
+        /* asm(mips;;)\n\ */
+        /* {\n\ */
+        /*     sum:\n\ */
+        /*       add   $v0, $a0, $a1\n\ */
+        /*       jr    $ra\n\ */
+        /* }", */
+
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     let a = Point{ x = 10, y = 11 };\n\ */
+        /*     a = Point{ x = 10, y = 11 };\n\ */
+        /*     ret 1;\n\ */
         /* }", */
     };
 

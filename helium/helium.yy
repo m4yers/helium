@@ -241,7 +241,6 @@ expression:               literals
                         | call_macro
                         | operations
                         | assignment
-                        | asm
                         | AMP lvalue
                           {
                               $$ = A_AddressOfExp(&(@$), $2);
@@ -253,20 +252,6 @@ expression:               literals
                         | expression AS type
                           {
                               $$ = A_TypeCastExp(&(@$), $3, $1);
-                          }
-                        ;
-asm:                      ASM LBRACE STRING RBRACE
-                          {
-                              $$ = A_AsmExp(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
-                          }
-                        | ASM LPAREN
-                                  asm_options_list SEMICOLON
-                                  exp_list_comma   SEMICOLON
-                                  exp_list_comma
-                              RPAREN
-                              LBRACE STRING RBRACE
-                          {
-                              $$ = A_AsmExp(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
                           }
                         ;
 asm_options_list:         %empty { $$ = NULL; }
@@ -631,6 +616,21 @@ decl_asm:                 asm
                           {
                               $$ = A_AsmDec(&(@$), $1);
                           }
+                        ;
+asm:                      ASM LBRACE STRING RBRACE
+                          {
+                              $$ = A_AsmExp(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
+                          }
+                        | ASM LPAREN
+                                  asm_options_list SEMICOLON
+                                  exp_list_comma   SEMICOLON
+                                  exp_list_comma
+                              RPAREN
+                              LBRACE STRING RBRACE
+                          {
+                              $$ = A_AsmExp(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
+                          }
+                        ;
 
 %%
 
