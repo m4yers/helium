@@ -87,7 +87,8 @@ A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base);
 
 typedef enum
 {
-    A_asmStmInstKind
+    A_asmStmInstKind,
+    A_asmStmLabKind
 } A_asmStmKind;
 
 typedef struct A_asmStmInst_t
@@ -96,12 +97,17 @@ typedef struct A_asmStmInst_t
     A_asmOpList opList;
 } * A_asmStmInst;
 
+typedef struct A_asmStmLab_t {
+    const char * name;
+} * A_asmStmLab;
+
 typedef struct A_asmStm_t
 {
     struct A_loc_t loc;
     A_asmStmKind kind;
     union
     {
+        struct A_asmStmLab_t lab;
         struct A_asmStmInst_t inst;
     } u;
 } * A_asmStm;
@@ -110,6 +116,7 @@ LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
 A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
+A_asmStm A_AsmStmLab (A_loc loc, const char * name);
 
 /*************
 *  Emitter  *

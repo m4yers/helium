@@ -73,7 +73,7 @@
 %token <sval> ID STRING
 %token <ival> INT
 
-%token DOLLAR COMMA NEWLINE LPAREN RPAREN MINUS
+%token DOLLAR COMMA NEWLINE LPAREN RPAREN MINUS COLON
 
 %precedence   LOWEST
 
@@ -111,9 +111,13 @@ statement:            ID
                       {
                           $$ = A_AsmStmInst(&(@$), $1, NULL);
                       }
-statement:            ID operand operand_list
+                    | ID operand operand_list
                       {
                           $$ = A_AsmStmInst(&(@$), $1, A_AsmOpList($2, $3));
+                      }
+                    | ID COLON
+                      {
+                          $$ = A_AsmStmLab(&(@$), $1);
                       }
                     ;
 operand_list:         %empty { $$ = NULL; }

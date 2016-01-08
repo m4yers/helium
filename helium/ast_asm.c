@@ -65,7 +65,7 @@ A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base)
 }
 
 /******************
-*  Instructions  *
+*    Statements  *
 ******************/
 
 A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
@@ -78,15 +78,25 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
     return p;
 }
 
+A_asmStm A_AsmStmLab (A_loc loc, const char * name)
+{
+    A_asmStm p = checked_malloc (sizeof (*p));
+    p->loc = *loc;
+    p->kind = A_asmStmLabKind;
+    p->u.lab.name = name;
+    return p;
+}
+
 /**********************************************************************
 *                              Emitter                               *
 **********************************************************************/
 
-static char emit_inst_buf[24];
+static char emit_buf[512];
+
 static void EmitInst (String out, A_asmStmInst inst)
 {
-    sprintf (emit_inst_buf, "%-6s", inst->opcode);
-    String_Append (out, emit_inst_buf);
+    sprintf (emit_buf, "%-6s", inst->opcode);
+    String_Append (out, emit_buf);
     size_t opsSize = LIST_SIZE (inst->opList);
     LIST_FOREACH (op, inst->opList)
     {
@@ -94,31 +104,37 @@ static void EmitInst (String out, A_asmStmInst inst)
         {
         case A_asmOpIntKind:
         {
-            sprintf (emit_inst_buf, "%ld", op->u.integer);
+            sprintf (emit_buf, "%ld", op->u.integer);
             break;
         }
         case A_asmOpRegKind:
         {
             //NOTE reg has to be normalized by this point
-            sprintf (emit_inst_buf, "$%s", op->u.reg->u.name);
+            sprintf (emit_buf, "$%s", op->u.reg->u.name);
             break;
         }
         case A_asmOpMemKind:
         {
-            sprintf (emit_inst_buf, "%ld($%s),",
+            sprintf (emit_buf, "%ld($%s),",
                      op->u.mem.offset,
                      op->u.mem.base->u.name);
             break;
         }
         }
 
-        String_Append (out, emit_inst_buf);
+        String_Append (out, emit_buf);
 
         if (--opsSize)
         {
             String_Append (out, ", ");
         }
     }
+}
+
+static void EmitLabel (String out, A_asmStmLab lab)
+{
+    sprintf (emit_buf, "%s:", lab->name);
+    String_Append (out, emit_buf);
 }
 
 void AST_AsmEmitLine (String out, A_asmStm stm)
@@ -130,16 +146,17 @@ void AST_AsmEmitLine (String out, A_asmStm stm)
         EmitInst (out, &stm->u.inst);
         break;
     }
+    case A_asmStmLabKind:
+    {
+        EmitLabel (out, &stm->u.lab);
+        break;
+    }
     }
 }
 
 /**********************************************************************
 *                              Printer                               *
 **********************************************************************/
-
-static void PrintInst (FILE * out, A_asmStmInst inst, int d);
-static void PrintReg (FILE * out, A_asmReg reg);
-static void PrintOp (FILE * out, A_asmOp op, int d);
 
 static void PrintIndent (FILE * out, int d)
 {
@@ -151,49 +168,7 @@ static void PrintIndent (FILE * out, int d)
     }
 }
 
-void AST_AsmPrint (FILE * out, A_asmStmList list, int d)
-{
-    PrintIndent (out, d);
-
-    fprintf (out, "Asm(\n");
-
-    size_t size = LIST_SIZE (list);
-    LIST_FOREACH (stm, list)
-    {
-        switch (stm->kind)
-        {
-        case A_asmStmInstKind:
-        {
-            PrintInst (out, &stm->u.inst, d + 1);
-            break;
-        }
-        }
-
-        if (--size)
-        {
-            fprintf (out, ",\n");
-        }
-    }
-
-    fprintf (out, ")");
-}
-
-void PrintInst (FILE * out, A_asmStmInst inst, int d)
-{
-    PrintIndent (out, d);
-
-    fprintf (out, "Inst(%s", inst->opcode);
-
-    LIST_FOREACH (op, inst->opList)
-    {
-        fprintf (out, ",");
-        PrintOp (out, op, d);
-    }
-
-    fprintf (out, ")");
-}
-
-void PrintReg (FILE * out, A_asmReg reg)
+static void PrintReg (FILE * out, A_asmReg reg)
 {
     switch (reg->kind)
     {
@@ -210,7 +185,7 @@ void PrintReg (FILE * out, A_asmReg reg)
     }
 }
 
-void PrintOp (FILE * out, A_asmOp op, int d)
+static void PrintOp (FILE * out, A_asmOp op, int d)
 {
     (void) d;
 
@@ -233,4 +208,57 @@ void PrintOp (FILE * out, A_asmOp op, int d)
         fprintf (out, ")");
     }
     }
+}
+
+static void PrintInst (FILE * out, A_asmStmInst inst, int d)
+{
+    PrintIndent (out, d);
+
+    fprintf (out, "Inst(%s", inst->opcode);
+
+    LIST_FOREACH (op, inst->opList)
+    {
+        fprintf (out, ",");
+        PrintOp (out, op, d);
+    }
+
+    fprintf (out, ")");
+}
+
+static void PrintLabel (FILE * out, A_asmStmLab lab, int d)
+{
+    PrintIndent (out, d);
+    fprintf (out, "Label(%s)", lab->name);
+}
+
+void AST_AsmPrint (FILE * out, A_asmStmList list, int d)
+{
+    PrintIndent (out, d);
+
+    fprintf (out, "Asm(\n");
+
+    size_t size = LIST_SIZE (list);
+    LIST_FOREACH (stm, list)
+    {
+        switch (stm->kind)
+        {
+        case A_asmStmInstKind:
+        {
+            PrintInst (out, &stm->u.inst, d + 1);
+            break;
+        }
+        case A_asmStmLabKind:
+        {
+            PrintLabel (out, &stm->u.lab, d + 1);
+            break;
+        }
+        }
+
+        if (--size)
+        {
+            fprintf (out, ",\n");
+        }
+    }
+
+    fprintf (out, ")");
 }
