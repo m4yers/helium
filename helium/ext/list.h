@@ -245,11 +245,11 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
 
 #define LIST_FOREACH(item, list)                                                    \
     for (                                                                           \
-            __typeof__ (list) __##item##__iterator = list;                          \
+            __typeof__ (list) __##item##__iterator = (list);                        \
             __##item##__iterator;                                                   \
             __##item##__iterator = NULL)                                            \
     for (                                                                           \
-        __typeof__ (list->head) item = (__##item##__iterator ? __##item##__iterator->head : 0);\
+        __typeof__ ((list)->head) item = (__##item##__iterator ? __##item##__iterator->head : 0);\
         __##item##__iterator;                                                       \
         __##item##__iterator = __##item##__iterator->tail,                          \
         item = (__##item##__iterator ? __##item##__iterator->head : 0))             \
