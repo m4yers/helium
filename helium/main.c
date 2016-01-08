@@ -93,6 +93,13 @@ int main (int argc, char * argv[])
         exit (0);
     }
 
+    LIST_FOREACH (f, m->fragments.code)
+    {
+        T_stmList sl = C_Linearize (f->u.code.body);
+        ASM_lineList lines = F_CodeGen (NULL, sl);
+        Vector_PushBack (&m->results.code, lines);
+    }
+
     LIST_FOREACH (fragment, m->fragments.functions)
     {
         T_stmList sl = C_Linearize (fragment->u.proc.body);
@@ -104,7 +111,7 @@ int main (int argc, char * argv[])
         RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
         lines = F_ProcEntryExit3 (frame, lines, rar->colors);
 
-        Vector_PushBack (&m->results, rar);
+        Vector_PushBack (&m->results.functions, rar);
 
     }
 

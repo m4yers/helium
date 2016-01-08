@@ -543,6 +543,15 @@ F_frag F_ProcFrag (T_stm body, F_frame frame)
     return r;
 }
 
+F_frag F_CodeFrag (T_stm body)
+{
+    DBG ("F_ProcFrag %p for <%s>\n", body, frame->name->name)
+    F_frag r = checked_malloc (sizeof (*r));
+    r->kind = F_codeFrag;
+    r->u.code.body = body;
+    return r;
+}
+
 void F_ProcFunctionCall (F_frame frame, F_frame encolosing, T_expList args)
 {
     frame->outgoingMaxNum = MAX (frame->outgoingMaxNum, T_ExpListLen (args));

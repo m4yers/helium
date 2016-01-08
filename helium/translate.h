@@ -43,6 +43,7 @@ Tr_expList Tr_ExpList (Tr_exp head, Tr_expList tail);
 
 void Tr_Init (struct Semant_ContextType * c);
 void Tr_ProcEntryExit (struct Semant_ContextType * c, Tr_level level, Tr_exp body);
+void Tr_AddCodeFragment(struct Semant_ContextType * c, Tr_exp fragment);
 
 /***************
  *  Variables  *

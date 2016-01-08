@@ -31,6 +31,7 @@ typedef struct Program_Module_
     {
         F_fragList strings;
         F_fragList functions;
+        F_fragList code;
     } fragments;
 
     struct
@@ -41,7 +42,11 @@ typedef struct Program_Module_
         struct Vector_t /* struct Error */ semant;
     } errors;
 
-    struct Vector_t /* of RA_Result */ results;
+    struct
+    {
+        struct Vector_t /* of RA_Result    */ functions;
+        struct Vector_t /* of ASM_lineList */ code;
+    } results;
 
 } * Program_Module;
 

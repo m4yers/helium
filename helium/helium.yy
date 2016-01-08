@@ -110,6 +110,7 @@
                 decl_type
                 decl_variable
                 decl_function
+                decl_asm
 %type <efield> record_field
 %type <efieldList> record_field_comma
 %type <field> typed_field
@@ -551,6 +552,7 @@ declarations:             %empty { $$ = NULL; }
 declaration:              decl_type
                         | decl_variable
                         | decl_function
+                        | decl_asm
                         ;
 decl_type:                DEF ID EQ type
                           {
@@ -625,6 +627,10 @@ decl_function:            FN ID scope
                                   $9);
                           }
                         ;
+decl_asm:                 asm
+                          {
+                              $$ = A_AsmDec(&(@$), $1);
+                          }
 
 %%
 

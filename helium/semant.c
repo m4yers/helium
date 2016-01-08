@@ -293,6 +293,13 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
     switch (dec->kind)
     {
+    // TODO must not contain replacements in and out, like base in GCC
+    case A_asmDec:
+    {
+        Semant_Exp sexp = TransExp (context, dec->u.assembly);
+        Tr_AddCodeFragment(context, sexp.exp);
+        return Tr_Void();
+    }
     // TODO when forward declaration will be available check for cycle typedefs
     case A_typeDec:
     {
@@ -1568,7 +1575,7 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
         Semant_Exp rexp;
         if (assignExp.exp->kind == A_arrayExp || assignExp.exp->kind == A_recordExp)
         {
-            rexp = TransHandleExp(context, assignExp.exp, lexp.exp);
+            rexp = TransHandleExp (context, assignExp.exp, lexp.exp);
         }
         else
         {

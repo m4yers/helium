@@ -95,7 +95,8 @@ struct F_frag_
     enum
     {
         F_stringFrag,
-        F_procFrag
+        F_procFrag,
+        F_codeFrag
     } kind;
 
     union
@@ -113,11 +114,17 @@ struct F_frag_
             F_frame frame;
         } proc;
 
+        struct
+        {
+            T_stm body;
+        } code;
+
     } u;
 };
 
 F_frag F_StringFrag (Temp_label label, const char * str, F_stringType type);
 F_frag F_ProcFrag (T_stm body, F_frame frame);
+F_frag F_CodeFrag (T_stm body);
 
 LIST_DEFINE (F_fragList, F_frag)
 

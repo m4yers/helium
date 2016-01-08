@@ -29,7 +29,8 @@ Program_Module Program_ModuleNew()
     Vector_Init (&r->errors.preproc, struct Error);
     Vector_Init (&r->errors.semant, struct Error);
 
-    Vector_Init (&r->results, RA_Result);
+    Vector_Init (&r->results.functions, RA_Result);
+    Vector_Init (&r->results.code, ASM_lineList);
 
     return r;
 }
@@ -199,6 +200,10 @@ void Program_AddFragment (Program_Module p, F_frag f)
         LIST_PUSH (p->fragments.functions, f);
         break;
 
+    case F_codeFrag:
+        LIST_PUSH(p->fragments.code, f);
+        break;
+
     default:
         assert (0);
         break;
@@ -266,7 +271,19 @@ void Program_PrintAssembly (FILE * file, Program_Module p)
     }
     fprintf (file, ".text\n");
     fprintf (file, ".globl main\n");
-    VECTOR_FOREACH (RA_Result, r, &p->results)
+
+    VECTOR_FOREACH (ASM_lineList, ll, &p->results.code)
+    {
+        LIST_FOREACH (line, *ll)
+        {
+            if (line->kind != I_META)
+            {
+                ASM_PrintLine (file, line, Temp_Name());
+            }
+        }
+    }
+
+    VECTOR_FOREACH (RA_Result, r, &p->results.functions)
     {
         LIST_FOREACH (line, (*r)->il)
         {

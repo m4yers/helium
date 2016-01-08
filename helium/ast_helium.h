@@ -41,7 +41,7 @@ typedef enum
     A_simpleVar, A_fieldVar, A_subscriptVar,
 
     /** Dec */
-    A_typeDec, A_functionDec, A_varDec,
+    A_typeDec, A_functionDec, A_varDec, A_asmDec,
 
     /** Exp */
     A_retExp, A_addressOf, A_valueAt, A_typeCastExp, A_asmExp,
@@ -290,6 +290,7 @@ struct A_dec_t
 
     union
     {
+        A_exp assembly;
         struct A_decFn_t function;
         struct A_decVar_t var;
         struct A_decType_t type;
@@ -299,6 +300,7 @@ struct A_dec_t
 A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
 A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init);
 A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type);
+A_dec A_AsmDec (A_loc loc, A_exp assembly);
 A_decList A_DecList (A_dec head, A_decList tail);
 
 /***********

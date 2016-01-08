@@ -341,6 +341,15 @@ A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type)
     return p;
 }
 
+A_dec A_AsmDec (A_loc loc, A_exp assembly)
+{
+    A_dec p = checked_malloc (sizeof (*p));
+    p->kind = A_asmDec;
+    p->loc = *loc;
+    p->u.assembly = assembly;
+    return p;
+}
+
 A_decList A_DecList (A_dec head, A_decList tail)
 {
     A_decList p = checked_malloc (sizeof (*p));
