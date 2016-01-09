@@ -42,7 +42,7 @@
 
     void yy_mips_error (const char * message)
     {
-        printf("MIPS Parser error %s\n", message);
+        printf("MIPS Parser error %d:%s\n", yy_mips_lloc.first_line, message);
         // Vector_PushBack(&module->errors.parser,
         //     Error_New(
         //         &yy_mips_lloc,
@@ -74,6 +74,7 @@
 %token <ival> INT
 
 %token DOLLAR COMMA NEWLINE LPAREN RPAREN MINUS COLON
+%token END 0
 
 %precedence   LOWEST
 
@@ -83,13 +84,13 @@
 
 %%
 
-program:              newlines statement statement_list newlines
+program:              newlines statement terminate statement_list
                       {
-                          yy_mips_result = A_AsmStmList($2, $3);
+                          yy_mips_result = A_AsmStmList($2, $4);
                       }
                     ;
 statement_list:       %empty { $$ = NULL; }
-                    | statement_list newlines statement
+                    | statement_list statement terminate
                       {
                           if ($1)
                           {
@@ -98,12 +99,12 @@ statement_list:       %empty { $$ = NULL; }
                               {
                                 current = current->tail;
                               }
-                              current->tail = A_AsmStmList ($3, NULL);
+                              current->tail = A_AsmStmList ($2, NULL);
                               $$ = $1;
                           }
                           else
                           {
-                              $$ = A_AsmStmList ($3, NULL);
+                              $$ = A_AsmStmList ($2, NULL);
                           }
                       }
                     ;
@@ -155,6 +156,10 @@ operand:              INT LPAREN register RPAREN
                       {
                           $$ = A_AsmOpInt(&(@$), $1);
                       }
+                    | ID
+                      {
+                          $$ = A_AsmOpSym(&(@$), S_Symbol($1));
+                      }
                     ;
 register:             DOLLAR INT
                       {
@@ -167,6 +172,10 @@ register:             DOLLAR INT
                     ;
 newlines:             %empty
                     | newlines NEWLINE
+                    ;
+terminate:            NEWLINE newlines
+                    | END
+                    ;
 %%
 
 int yydebug = 0;

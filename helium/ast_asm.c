@@ -36,6 +36,15 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name)
 *  Operands  *
 **************/
 
+A_asmOp A_AsmOpSym (A_loc loc, S_symbol sym)
+{
+    A_asmOp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmOpSymKind;
+    p->loc = *loc;
+    p->u.sym = sym;
+    return p;
+}
+
 A_asmOp A_AsmOpInt (A_loc loc, signed long integer)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
@@ -120,6 +129,10 @@ static void EmitInst (String out, A_asmStmInst inst)
                      op->u.mem.base->u.name);
             break;
         }
+        default:
+        {
+            assert (0);
+        }
         }
 
         String_Append (out, emit_buf);
@@ -191,6 +204,11 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
 
     switch (op->kind)
     {
+    case A_asmOpSymKind:
+    {
+        fprintf (out, "Sym(%s)", op->u.sym->name);
+        break;
+    }
     case A_asmOpIntKind:
     {
         fprintf (out, "Int(%ld)", op->u.integer);
