@@ -96,7 +96,6 @@
             operations
             assignment
             controls
-            asm
 %type <scope> scope
 /* %type <spec> spec */
 /* %type <specList> spec_comma specs */
@@ -612,14 +611,9 @@ decl_function:            FN ID scope
                                   $9);
                           }
                         ;
-decl_asm:                 asm
+decl_asm:                 ASM LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmDec(&(@$), $1);
-                          }
-                        ;
-asm:                      ASM LBRACE STRING RBRACE
-                          {
-                              $$ = A_AsmExp(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
+                              $$ = A_AsmDec(&(@$), NULL, ParseAsm(&(@3), $3), NULL, NULL);
                           }
                         | ASM LPAREN
                                   asm_options_list SEMICOLON
@@ -628,7 +622,7 @@ asm:                      ASM LBRACE STRING RBRACE
                               RPAREN
                               LBRACE STRING RBRACE
                           {
-                              $$ = A_AsmExp(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
+                              $$ = A_AsmDec(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
                           }
                         ;
 

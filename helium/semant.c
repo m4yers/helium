@@ -296,7 +296,8 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     // TODO must not contain replacements in and out, like base in GCC
     case A_asmDec:
     {
-        Semant_Exp sexp = TransExp (context, dec->u.assembly);
+        SemantMIPS_Translate (context->module, dec->u.assembly.code);
+        Tr_exp exp = Tr_Asm(dec->u.assembly.code);
         /*
          * If the declaration is top level we add the code fragment to the list of plain fragments,
          * they will be emit during codegen phase. Otherwise the fragment becomes part of function
@@ -305,10 +306,10 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
          */
         if (context->global == context->level)
         {
-            Tr_AddCodeFragment (context, sexp.exp);
+            Tr_AddCodeFragment (context, exp);
             return Tr_Void();
         }
-        return sexp.exp;
+        return exp;
     }
     // TODO when forward declaration will be available check for cycle typedefs
     case A_typeDec:
@@ -1342,11 +1343,6 @@ static Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         sexp.ty = cty;
         return sexp;
-    }
-    case A_asmExp:
-    {
-        SemantMIPS_Translate (context->module, exp->u.assembly.code);
-        return Expression_New (Tr_Asm (exp->u.assembly.code), Ty_Void());
     }
     case A_asmExpOld:
     {

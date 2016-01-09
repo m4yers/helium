@@ -43,10 +43,12 @@ typedef enum
     /** Dec */
     A_typeDec, A_functionDec, A_varDec, A_asmDec,
 
+    A_asmExpOld, // <- remove this
+
     /** Exp */
-    A_retExp, A_addressOf, A_valueAt, A_typeCastExp, A_asmExp,
+    A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
     A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
-    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp, A_asmExpOld,
+    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
     A_whileExp, A_forExp, A_breakExp, A_arrayExp,
 
     /** Types */
@@ -171,14 +173,6 @@ struct A_asmExpOld_t
     U_stringList src;
 };
 
-struct A_AsmExp_t
-{
-    A_asmStmList code;
-    U_stringList options;
-    A_expList out;
-    A_expList in;
-};
-
 struct A_macroExp_t
 {
     S_symbol name;
@@ -216,7 +210,6 @@ struct A_exp_t
         int intt;
         const char * stringg;
         struct A_asmExpOld_t  asmOld;
-        struct A_AsmExp_t assembly;
         struct A_callExp_t call;
         struct A_macroExp_t macro;
         struct A_opExp_t op;
@@ -260,6 +253,14 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
+struct A_AsmDec_t
+{
+    A_asmStmList code;
+    U_stringList options;
+    A_expList out;
+    A_expList in;
+};
+
 struct A_decFn_t
 {
     S_symbol name;
@@ -290,7 +291,7 @@ struct A_dec_t
 
     union
     {
-        A_exp assembly;
+        struct A_AsmDec_t assembly;
         struct A_decFn_t function;
         struct A_decVar_t var;
         struct A_decType_t type;
@@ -300,7 +301,7 @@ struct A_dec_t
 A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
 A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init);
 A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type);
-A_dec A_AsmDec (A_loc loc, A_exp assembly);
+A_dec A_AsmDec (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in);
 A_decList A_DecList (A_dec head, A_decList tail);
 
 /***********

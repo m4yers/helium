@@ -127,18 +127,6 @@ A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList 
     return p;
 }
 
-A_exp A_AsmExp (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in)
-{
-    A_exp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmExp;
-    p->loc = *loc;
-    p->u.assembly.code = code;
-    p->u.assembly.options = options;
-    p->u.assembly.out = out;
-    p->u.assembly.in = in;
-    return p;
-}
-
 A_exp A_VarExp (A_loc loc, A_var var)
 {
     A_exp p = checked_malloc (sizeof (*p));
@@ -341,12 +329,15 @@ A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type)
     return p;
 }
 
-A_dec A_AsmDec (A_loc loc, A_exp assembly)
+A_dec A_AsmDec (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in)
 {
     A_dec p = checked_malloc (sizeof (*p));
     p->kind = A_asmDec;
     p->loc = *loc;
-    p->u.assembly = assembly;
+    p->u.assembly.code = code;
+    p->u.assembly.options = options;
+    p->u.assembly.out = out;
+    p->u.assembly.in = in;
     return p;
 }
 
@@ -705,21 +696,6 @@ static void PrintExp (FILE * out, A_exp v, int d)
                  v->u.asmOld.code,
                  v->u.asmOld.data);
         break;
-    case A_asmExp:
-        fprintf (out, "AsmExp(");
-        size_t opt_size = LIST_SIZE (v->u.assembly.options);
-        LIST_FOREACH (opt, v->u.assembly.options)
-        {
-            fprintf (out, "%s", opt);
-            if (--opt_size)
-            {
-                fprintf (out, ",");
-            }
-        }
-        fprintf (out, "\n");
-        AST_AsmPrint (out, v->u.assembly.code, d + 1);
-        fprintf (out, ")");
-        break;
 
     case A_retExp:
         fprintf (out, "RetExp(\n");
@@ -892,6 +868,25 @@ static void PrintDec (FILE * out, A_dec v, int d)
     {
         fprintf (out, "TypeDec(%s,\n", S_Name (v->u.type.name));
         PrintType (out, v->u.type.type, d + 1);
+        fprintf (out, ")");
+        break;
+    }
+
+    case A_asmDec:
+    {
+
+        fprintf (out, "AsmDec(");
+        size_t opt_size = LIST_SIZE (v->u.assembly.options);
+        LIST_FOREACH (opt, v->u.assembly.options)
+        {
+            fprintf (out, "%s", opt);
+            if (--opt_size)
+            {
+                fprintf (out, ",");
+            }
+        }
+        fprintf (out, "\n");
+        AST_AsmPrint (out, v->u.assembly.code, d + 1);
         fprintf (out, ")");
         break;
     }
