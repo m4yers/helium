@@ -27,7 +27,14 @@
     - [x] pointers
     - [x] type cast
     - [x] strings
-    - [ ] asm
+    - [ ] asm base
+    - [ ] asm extended
+    - [ ] integer range validation
+    - [ ] arrays and records on function boundries
+    - [ ] str vs &str, what happens to str?
+    - [ ] assert! is somehow broken
+    - [ ] default values for array
+    - [ ] aliasing
     - [ ] proper macro
     - [ ] boolean
     - [ ] ranges
@@ -124,3 +131,8 @@ Array pointers:
 ** remove difference between var and exp, though i need keep in mind lhs and rhs differences
 
 Liternals -> remove old stuff and do convertion in semant
+
+    asm (mips,volatile;x;func())
+    {
+        addi `d0, $zero, `s0
+    }

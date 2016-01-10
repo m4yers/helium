@@ -5,7 +5,6 @@
  *  Location  *
  **************/
 
-// TODO move to top level ast header
 typedef struct A_loc_t
 {
     int first_line;

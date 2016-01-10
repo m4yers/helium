@@ -62,6 +62,7 @@
     A_asmOp op;
     A_asmOpList opList;
     A_asmReg reg;
+    A_var var;
 }
 
 %type <stmList> program statement_list
@@ -69,11 +70,15 @@
 %type <opList>  operand_list
 %type <op>      operand
 %type <reg>     register
+%type <var>     lvalue
+%type <ival>    lvalue_deref
 
 %token <sval> ID STRING
 %token <ival> INT
 
-%token DOLLAR COMMA NEWLINE LPAREN RPAREN MINUS COLON
+%token DOLLAR COMMA NEWLINE
+%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
+%token MINUS DOT COLON
 %token END 0
 
 %precedence   LOWEST
@@ -156,9 +161,9 @@ operand:              INT LPAREN register RPAREN
                       {
                           $$ = A_AsmOpInt(&(@$), $1);
                       }
-                    | ID
+                    | lvalue
                       {
-                          $$ = A_AsmOpSym(&(@$), S_Symbol($1));
+                          $$ = A_AsmOpVar(&(@$), $1);
                       }
                     ;
 register:             DOLLAR INT
@@ -169,6 +174,22 @@ register:             DOLLAR INT
                       {
                           $$ = A_AsmRegName(&(@$), $2);
                       }
+                    ;
+lvalue:               ID
+                      {
+                          $$ = A_SimpleVar (&(@$), S_Symbol ($1));
+                      }
+                    | lvalue DOT ID
+                      {
+                          $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 0);
+                      }
+                    | lvalue lvalue_deref ID
+                      {
+                          $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), $2);
+                      }
+                    ;
+lvalue_deref:         COLON              { $$ = 1;      }
+                    | lvalue_deref COLON { $$ = $1 + 1; }
                     ;
 newlines:             %empty
                     | newlines NEWLINE

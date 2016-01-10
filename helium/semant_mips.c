@@ -230,7 +230,7 @@ static String TransOp (SemantMIPS_Context context, A_asmOp op)
          */
         case A_asmRegNumKind:
         {
-            if (!IS_IN_RANGE(reg->u.num, 0, regs_all->number - 1))
+            if (!IS_IN_RANGE (reg->u.num, 0, regs_all->number - 1))
             {
                 return String_New ("Unknown register");
             }
@@ -252,6 +252,9 @@ static String TransOp (SemantMIPS_Context context, A_asmOp op)
         }
         op->u.mem.base->kind = A_asmRegNameKind;
         op->u.mem.base->u.name = name;
+    }
+    else if (op->kind == A_asmOpVarKind)
+    {
     }
 
     return NULL;
@@ -388,18 +391,24 @@ static void TransStm (SemantMIPS_Context context, A_asmStm stm)
     case A_asmStmInstKind:
     {
         TransInst (context, stm);
+        break;
+    }
+    case A_asmStmLabKind:
+    {
+        break;
     }
     }
 }
 
 //FIXME when the semant starts to expand macro then we need to return the new stm list
-int SemantMIPS_Translate (Program_Module m, A_asmStmList l)
+int SemantMIPS_Translate (Sema_Context c, A_asmStmList l)
 {
-    assert (m);
+    assert (c);
     assert (l);
 
-    struct SemantMIPS_Context_t context;
-    context.module = m;
+    struct Sema_MIPSContext_t context;
+    context.context = c;
+    context.module = c->module;
     context.errors = 0;
 
     LIST_FOREACH (stm, l) TransStm (&context, stm);

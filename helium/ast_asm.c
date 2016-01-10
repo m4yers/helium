@@ -8,6 +8,7 @@
 #include "symbol.h"
 
 #include "ast_asm.h"
+#include "ast_helium.h"
 
 
 /**************
@@ -36,12 +37,12 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name)
 *  Operands  *
 **************/
 
-A_asmOp A_AsmOpSym (A_loc loc, S_symbol sym)
+A_asmOp A_AsmOpVar (A_loc loc, const void * var)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmOpSymKind;
+    p->kind = A_asmOpVarKind;
     p->loc = *loc;
-    p->u.sym = sym;
+    p->u.var = var;
     return p;
 }
 
@@ -204,9 +205,11 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
 
     switch (op->kind)
     {
-    case A_asmOpSymKind:
+    case A_asmOpVarKind:
     {
-        fprintf (out, "Sym(%s)", op->u.sym->name);
+        fprintf (out, "Var(");
+        AST_PrintVar (out, (A_var)op->u.var, 0);
+        fprintf (out, ")");
         break;
     }
     case A_asmOpIntKind:

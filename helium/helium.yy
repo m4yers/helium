@@ -115,7 +115,7 @@
 %type <field> typed_field
 %type <fieldList> typed_field_comma
 %type <strList> asm_options asm_options_list
-%type <ival> lvalue_jumps
+%type <ival> lvalue_deref
 
 %precedence   LOWEST
 
@@ -308,7 +308,7 @@ lvalue:                   ID
                           {
                               $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), 0);
                           }
-                        | lvalue lvalue_jumps ID
+                        | lvalue lvalue_deref ID
                           {
                               $$ = A_FieldVar (&(@$), $1, S_Symbol ($3), $2);
                           }
@@ -317,8 +317,8 @@ lvalue:                   ID
                               $$ = A_SubscriptVar (&(@$), $1, $3);
                           }
                         ;
-lvalue_jumps:             COLON              { $$ = 1;      }
-                        | lvalue_jumps COLON { $$ = $1 + 1; }
+lvalue_deref:             COLON              { $$ = 1;      }
+                        | lvalue_deref COLON { $$ = $1 + 1; }
                         ;
 call_function:            lvalue LPAREN exp_list_comma RPAREN
                           {

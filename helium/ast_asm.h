@@ -9,7 +9,6 @@
 #include "ext/str.h"
 
 #include "ast.h"
-#include "ast_asm.h"
 #include "symbol.h"
 
 /********************
@@ -53,7 +52,7 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name);
 
 typedef enum
 {
-    A_asmOpSymKind,
+    A_asmOpVarKind,
     A_asmOpIntKind,
     A_asmOpRegKind,
     A_asmOpMemKind,
@@ -65,7 +64,7 @@ typedef struct A_asmOp_t
     A_asmOpKind kind;
     union
     {
-        S_symbol sym;
+        const void * var;
         signed long integer;
         A_asmReg reg;
         struct
@@ -79,7 +78,7 @@ typedef struct A_asmOp_t
 LIST_DEFINE (A_asmOpList, A_asmOp)
 LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
-A_asmOp A_AsmOpSym  (A_loc loc, S_symbol sym);
+A_asmOp A_AsmOpVar (A_loc loc, const void * var);
 A_asmOp A_AsmOpInt (A_loc loc, signed long imm);
 A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
 A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base);

@@ -229,7 +229,6 @@ A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 // TODO parse it for real
 // TODO data must be and exp
 A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data);
-A_exp A_AsmExp (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in);
 
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);
