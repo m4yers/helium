@@ -78,13 +78,6 @@
         "Symbol '%s' already exist",                                     \
         S_Name(sym));                                                    \
 
-typedef struct Semant_ExpType
-{
-    Tr_exp exp;
-    Ty_ty ty;
-
-} Semant_Exp;
-
 static bool is_auto (Ty_ty ty)
 {
     return ty == Ty_Auto();
@@ -153,10 +146,7 @@ static Ty_ty GetOrCreateTypeEntry (Semant_Context context, Ty_ty ty)
     return ety;
 }
 
-static Semant_Exp TransExp (Semant_Context context, A_exp exp);
-static Tr_exp TransDec (Semant_Context context, A_dec dec);
-
-static Semant_Exp TransScope (Semant_Context context, A_scope scope)
+Semant_Exp TransScope (Semant_Context context, A_scope scope)
 {
     Semant_Exp r = { Tr_Void(), Ty_Void() };
     Tr_exp seq = NULL;
@@ -183,7 +173,7 @@ static Semant_Exp TransScope (Semant_Context context, A_scope scope)
     return Expression_New (seq, r.ty);
 }
 
-static Ty_ty TransTyp (Semant_Context context, A_ty ty)
+Ty_ty TransTyp (Semant_Context context, A_ty ty)
 {
     assert (ty);
 
@@ -287,7 +277,7 @@ static Ty_ty TransTyp (Semant_Context context, A_ty ty)
 }
 
 // TODO you need to do it in two passes: 1 - names, 2 - definitions
-static Tr_exp TransDec (Semant_Context context, A_dec dec)
+Tr_exp TransDec (Semant_Context context, A_dec dec)
 {
     A_loc loc = &dec->loc;
 
@@ -296,7 +286,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
     // TODO must not contain replacements in and out, like base in GCC
     case A_asmDec:
     {
-        SemantMIPS_Translate (context->module, dec->u.assembly.code);
+        SemantMIPS_Translate (context, dec->u.assembly.code);
         Tr_exp exp = Tr_Asm(dec->u.assembly.code);
         /*
          * If the declaration is top level we add the code fragment to the list of plain fragments,
@@ -644,7 +634,7 @@ static Tr_exp TransDec (Semant_Context context, A_dec dec)
 
 // FIXME deref thing is very unclear, i need a better approach
 // mb trace tree path via stack? -> meaning usage context
-static Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
+Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 {
     A_loc loc = &var->loc;
     Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
@@ -1180,7 +1170,7 @@ static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
 
 }
 
-static Semant_Exp TransExp (Semant_Context context, A_exp exp)
+Semant_Exp TransExp (Semant_Context context, A_exp exp)
 {
     A_loc loc = &exp->loc;
     Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
@@ -1794,7 +1784,7 @@ int Semant_Translate (Program_Module m)
 
     Escape_Find (m->ast);
 
-    struct Semant_ContextType context;
+    struct Semant_Context_t context;
     context.module = m;
     context.loopNesting = 0;
 
