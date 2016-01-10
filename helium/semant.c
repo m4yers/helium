@@ -93,17 +93,17 @@ static bool is_int_type (Ty_ty ty)
     return ty == Ty_Int();
 }
 
-static bool is_int (Semant_Exp exp)
+static bool is_int (Sema_Exp exp)
 {
     return exp.ty == Ty_Int() || GetActualType (exp.ty) == Ty_Int();
 }
 
-static bool is_str (Semant_Exp exp)
+static bool is_str (Sema_Exp exp)
 {
     return exp.ty == Ty_Str();
 }
 
-static bool same_type (Semant_Exp a, Semant_Exp b)
+static bool same_type (Sema_Exp a, Sema_Exp b)
 {
     return a.ty == b.ty;
 }
@@ -116,9 +116,9 @@ static bool campatible_types (Ty_ty a, Ty_ty b)
     return a == b;
 }
 
-static Semant_Exp Expression_New (Tr_exp exp, Ty_ty ty)
+static Sema_Exp Expression_New (Tr_exp exp, Ty_ty ty)
 {
-    Semant_Exp r;
+    Sema_Exp r;
     r.exp = exp;
     r.ty = ty;
     return r;
@@ -129,7 +129,7 @@ static Semant_Exp Expression_New (Tr_exp exp, Ty_ty ty)
  * environment context, if it is there the instance will be resturned as result, if not, the passed
  * type instance will be used to create new type entry and the same instance will be used as result.
  */
-static Ty_ty GetOrCreateTypeEntry (Semant_Context context, Ty_ty ty)
+static Ty_ty GetOrCreateTypeEntry (Sema_Context context, Ty_ty ty)
 {
     struct String_t ty_id = String ("");
     GetQTypeName (ty, &ty_id);
@@ -146,9 +146,9 @@ static Ty_ty GetOrCreateTypeEntry (Semant_Context context, Ty_ty ty)
     return ety;
 }
 
-Semant_Exp TransScope (Semant_Context context, A_scope scope)
+Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope)
 {
-    Semant_Exp r = { Tr_Void(), Ty_Void() };
+    Sema_Exp r = { Tr_Void(), Ty_Void() };
     Tr_exp seq = NULL;
     LIST_FOREACH (stm, scope->list)
     {
@@ -156,12 +156,12 @@ Semant_Exp TransScope (Semant_Context context, A_scope scope)
         {
         case A_stmExp:
         {
-            r = TransExp (context, stm->u.exp);
+            r = Sema_TransExp (context, stm->u.exp);
             break;
         }
         case A_stmDec:
         {
-            r.exp = TransDec (context, stm->u.dec);
+            r.exp = Sema_TransDec (context, stm->u.dec);
             r.ty = Ty_Void();
             break;
         }
@@ -173,7 +173,7 @@ Semant_Exp TransScope (Semant_Context context, A_scope scope)
     return Expression_New (seq, r.ty);
 }
 
-Ty_ty TransTyp (Semant_Context context, A_ty ty)
+Ty_ty Sema_TransTyp (Sema_Context context, A_ty ty)
 {
     assert (ty);
 
@@ -192,7 +192,7 @@ Ty_ty TransTyp (Semant_Context context, A_ty ty)
     }
     case A_pointerTy:
     {
-        Ty_ty type = TransTyp (context, ty->u.pointer);
+        Ty_ty type = Sema_TransTyp (context, ty->u.pointer);
         if (is_invalid (type))
         {
             type = Ty_Int();
@@ -209,7 +209,7 @@ Ty_ty TransTyp (Semant_Context context, A_ty ty)
          * not bring ripple effect to error generation. The user will be only notified by the
          * error produced by A_nameTy look-up
          */
-        Ty_ty type = TransTyp (context, arrayTy.type);
+        Ty_ty type = Sema_TransTyp (context, arrayTy.type);
         if (is_invalid (type))
         {
             type = Ty_Int();
@@ -258,7 +258,7 @@ Ty_ty TransTyp (Semant_Context context, A_ty ty)
              * Same as for the array translation we do not break the process but simply fallback
              * to the default type int
              */
-            Ty_ty type = TransTyp (context, field->type);
+            Ty_ty type = Sema_TransTyp (context, field->type);
             if (is_invalid (type))
             {
                 type = Ty_Int();
@@ -277,7 +277,7 @@ Ty_ty TransTyp (Semant_Context context, A_ty ty)
 }
 
 // TODO you need to do it in two passes: 1 - names, 2 - definitions
-Tr_exp TransDec (Semant_Context context, A_dec dec)
+Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
 {
     A_loc loc = &dec->loc;
 
@@ -305,7 +305,7 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
     case A_typeDec:
     {
         struct A_decType_t decType = dec->u.type;
-        Ty_ty type = TransTyp (context, decType.type);
+        Ty_ty type = Sema_TransTyp (context, decType.type);
 
         // fallback to int if type is invalid
         if (is_invalid (type))
@@ -337,9 +337,9 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
         Ty_ty dty = NULL;
         if (decVar.type)
         {
-            dty = TransTyp (context, decVar.type);
+            dty = Sema_TransTyp (context, decVar.type);
             /*
-             * The type error was spawn by TransTyp already, this fallback will require type
+             * The type error was spawn by Sema_TransTyp already, this fallback will require type
              * inferring based on init expression if it exists, otherwise the translation will
              * return Tr_Void, in this case the variable won't be declared and all reference to
              * it will be illegal.
@@ -358,10 +358,10 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
         Tr_exp iexp = NULL;
         if (decVar.init)
         {
-            Semant_Exp sexp = TransExp (context, decVar.init);
+            Sema_Exp sexp = Sema_TransExp (context, decVar.init);
             /*
              * If the initialization expression is invalid we simply drop it, the actual error was
-             * spawn by TransExp scope.
+             * spawn by Sema_TransExp scope.
              */
             if (!is_invalid (sexp.ty))
             {
@@ -501,7 +501,7 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
         Ty_ty rty = NULL;
         if (decFn.type)
         {
-            rty =  TransTyp (context, decFn.type);
+            rty =  Sema_TransTyp (context, decFn.type);
             if (is_main && !is_int_type (rty))
             {
                 ERROR_UNEXPECTED_TYPE (loc, Ty_Int(), rty);
@@ -524,7 +524,7 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
         U_boolList escapes = NULL;
         LIST_FOREACH (f, decFn.params)
         {
-            Ty_ty fty = TransTyp (context, f->type);
+            Ty_ty fty = Sema_TransTyp (context, f->type);
 
             LIST_PUSH (names, f->name);
             LIST_PUSH (types, fty);
@@ -599,7 +599,7 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
         context->level = level;
 
         // translate body
-        Semant_Exp sexp = TransScope (context, decFn.scope);
+        Sema_Exp sexp = Sema_TransScope (context, decFn.scope);
         Tr_ProcEntryExit (context, context->level, sexp.exp);
 
         // restore frame
@@ -634,10 +634,10 @@ Tr_exp TransDec (Semant_Context context, A_dec dec)
 
 // FIXME deref thing is very unclear, i need a better approach
 // mb trace tree path via stack? -> meaning usage context
-Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
+Sema_Exp Sema_TransVar (Sema_Context context, A_var var, bool deref)
 {
     A_loc loc = &var->loc;
-    Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
+    Sema_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
 
     /*
      * indicates nesting level, if level > 0 we just calculate correct offset, once we got back
@@ -692,7 +692,7 @@ Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         struct A_varField_t varField = var->u.field;
 
         level++;
-        Semant_Exp vexp = TransVar (context, varField.var, deref);
+        Sema_Exp vexp = Sema_TransVar (context, varField.var, deref);
         level--;
 
         if (is_invalid (vexp.ty))
@@ -780,7 +780,7 @@ Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
         struct A_varSubscript_t varSubscript = var->u.subscript;
 
         level++;
-        Semant_Exp vexp = TransVar (context, varSubscript.var, deref);
+        Sema_Exp vexp = Sema_TransVar (context, varSubscript.var, deref);
         level--;
 
         if (is_invalid (vexp.ty))
@@ -800,7 +800,7 @@ Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 
         Ty_ty ty = GetActualType (vexp.ty->u.array.type);
 
-        Semant_Exp sexp = TransExp (context, var->u.subscript.exp);
+        Sema_Exp sexp = Sema_TransExp (context, var->u.subscript.exp);
         /*
          * Essentially, array subscript expects an Int expression, if the subscript is not an Int
          * we simply spawn an error and try to recover by using a correct Int(0) translation.
@@ -836,7 +836,7 @@ Semant_Exp TransVar (Semant_Context context, A_var var, bool deref)
 /*
  * Returns default initialization for a type
  */
-static Semant_Exp TransDefaultValue (Tr_exp base, Ty_ty type, int offset)
+static Sema_Exp TransDefaultValue (Tr_exp base, Ty_ty type, int offset)
 {
     type = GetActualType (type);
     switch (type->kind)
@@ -865,7 +865,7 @@ static Semant_Exp TransDefaultValue (Tr_exp base, Ty_ty type, int offset)
         Tr_expList el = NULL;
         LIST_FOREACH (f, type->u.record)
         {
-            Semant_Exp sexp = TransDefaultValue (base, f->ty, o);
+            Sema_Exp sexp = TransDefaultValue (base, f->ty, o);
             LIST_PUSH (el, sexp.exp);
             o += Ty_SizeOf (f->ty);
         }
@@ -879,10 +879,10 @@ static Semant_Exp TransDefaultValue (Tr_exp base, Ty_ty type, int offset)
     }
 }
 
-static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
+static Sema_Exp TransHandleExp (Sema_Context context, A_exp exp, Tr_exp b)
 {
     A_loc loc = &exp->loc;
-    Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
+    Sema_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
 
     Tr_access access = NULL;
 
@@ -939,7 +939,7 @@ static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
         LIST_FOREACH (item, exp->u.array)
         {
             level++;
-            Semant_Exp sexp = TransExp (context, item);
+            Sema_Exp sexp = Sema_TransExp (context, item);
             level--;
 
             LIST_PUSH (el, sexp.exp);
@@ -1033,7 +1033,7 @@ static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
             }
 
             level++;
-            Semant_Exp sexp = TransExp (context, exp_field->exp);
+            Sema_Exp sexp = Sema_TransExp (context, exp_field->exp);
             level--;
 
             if (is_invalid (sexp.ty))
@@ -1170,11 +1170,11 @@ static Semant_Exp TransHandleExp (Semant_Context context, A_exp exp, Tr_exp b)
 
 }
 
-Semant_Exp TransExp (Semant_Context context, A_exp exp)
+Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
 {
     A_loc loc = &exp->loc;
-    Semant_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
-    Semant_Exp e_void = {Tr_Void(), Ty_Void()};
+    Sema_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
+    Sema_Exp e_void = {Tr_Void(), Ty_Void()};
 
     switch (exp->kind)
     {
@@ -1185,26 +1185,26 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
         {
             return e_void;
         }
-        Semant_Exp r;
+        Sema_Exp r;
         Tr_exp seq = NULL;
         LIST_FOREACH (e, l)
         {
-            r = TransExp (context, e);
+            r = Sema_TransExp (context, e);
             seq = Tr_Seq (seq, r.exp);
         }
         return Expression_New (seq, r.ty);
     }
     case A_varExp:
     {
-        return TransVar (context, exp->u.var, TRUE);
+        return Sema_TransVar (context, exp->u.var, TRUE);
     }
     case A_addressOf:
     {
-        return TransVar (context, exp->u.addressOf, FALSE);
+        return Sema_TransVar (context, exp->u.addressOf, FALSE);
     }
     case A_valueAt:
     {
-        Semant_Exp sexp = TransExp (context, exp->u.valueAt);
+        Sema_Exp sexp = Sema_TransExp (context, exp->u.valueAt);
 
         // no point to try recrover here
         if (is_invalid (sexp.ty))
@@ -1242,9 +1242,9 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_typeCastExp:
     {
-        Ty_ty cty = TransTyp (context, exp->u.typeCast.type);
+        Ty_ty cty = Sema_TransTyp (context, exp->u.typeCast.type);
         Ty_ty acty = GetActualType (cty);
-        Semant_Exp sexp = TransExp (context, exp->u.typeCast.exp);
+        Sema_Exp sexp = Sema_TransExp (context, exp->u.typeCast.exp);
         Ty_ty ety = sexp.ty;
         Ty_ty aety = GetActualType (ety);
 
@@ -1350,7 +1350,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     }
     case A_retExp:
     {
-        Semant_Exp sexp = TransExp (context, exp->u.ret);
+        Sema_Exp sexp = Sema_TransExp (context, exp->u.ret);
         return Expression_New (Tr_Ret (context->level, sexp.exp), sexp.ty);
     }
     case A_callExp:
@@ -1386,7 +1386,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
             }
             else
             {
-                Semant_Exp sexp = TransExp (context, al->head);
+                Sema_Exp sexp = Sema_TransExp (context, al->head);
 
                 if (sexp.ty != t)
                 {
@@ -1433,10 +1433,10 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         A_oper oper = opExp.oper;
 
-        Semant_Exp left = TransExp (context, opExp.left);
+        Sema_Exp left = Sema_TransExp (context, opExp.left);
         left.ty = GetActualType (left.ty);
 
-        Semant_Exp right = TransExp (context, opExp.right);
+        Sema_Exp right = Sema_TransExp (context, opExp.right);
         right.ty = GetActualType (right.ty);
 
         // do type checks
@@ -1565,17 +1565,17 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         struct A_assignExp_t assignExp = exp->u.assign;
 
-        Semant_Exp lexp = TransVar (context, assignExp.var, TRUE);
+        Sema_Exp lexp = Sema_TransVar (context, assignExp.var, TRUE);
         lexp.ty = GetActualType (lexp.ty);
 
-        Semant_Exp rexp;
+        Sema_Exp rexp;
         if (assignExp.exp->kind == A_arrayExp || assignExp.exp->kind == A_recordExp)
         {
             rexp = TransHandleExp (context, assignExp.exp, lexp.exp);
         }
         else
         {
-            rexp = TransExp (context, assignExp.exp);
+            rexp = Sema_TransExp (context, assignExp.exp);
         }
 
         rexp.ty = GetActualType (rexp.ty);
@@ -1652,7 +1652,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         struct A_ifExp_t ifExp = exp->u.iff;
 
-        Semant_Exp texp = TransExp (context, ifExp.test);
+        Sema_Exp texp = Sema_TransExp (context, ifExp.test);
 
         // currenlty Helium does not support bool
         if (texp.ty != Ty_Int())
@@ -1660,22 +1660,22 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
             ERROR_UNEXPECTED_TYPE (&ifExp.test->loc, Ty_Int(), texp.ty);
         }
 
-        Semant_Exp pexp = e_void;
+        Sema_Exp pexp = e_void;
         if (ifExp.tr)
         {
             S_BeginScope (context->venv);
 
-            pexp = TransScope (context, ifExp.tr);
+            pexp = Sema_TransScope (context, ifExp.tr);
 
             S_EndScope (context->venv);
         }
 
-        Semant_Exp nexp = e_void;
+        Sema_Exp nexp = e_void;
         if (ifExp.fl)
         {
             S_BeginScope (context->venv);
 
-            nexp = TransScope (context, ifExp.fl);
+            nexp = Sema_TransScope (context, ifExp.fl);
 
             S_EndScope (context->venv);
         }
@@ -1686,7 +1686,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         struct A_whileExp_t whileExp = exp->u.whilee;
 
-        Semant_Exp texp = TransExp (context, whileExp.test);
+        Sema_Exp texp = Sema_TransExp (context, whileExp.test);
 
         // currenlty Helium does not support bool
         if (texp.ty != Ty_Int())
@@ -1701,7 +1701,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
 
         S_BeginScope (context->venv);
 
-        Semant_Exp body = TransScope (context, whileExp.body);
+        Sema_Exp body = Sema_TransScope (context, whileExp.body);
 
         S_EndScope (context->venv);
 
@@ -1714,13 +1714,13 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
     {
         struct A_forExp_t forExp = exp->u.forr;
 
-        Semant_Exp lexp = TransExp (context, forExp.lo);
+        Sema_Exp lexp = Sema_TransExp (context, forExp.lo);
         if (!is_int (lexp))
         {
             ERROR_UNEXPECTED_TYPE (&forExp.lo->loc, Ty_Int(), lexp.ty)
         }
 
-        Semant_Exp hexp = TransExp (context, forExp.hi);
+        Sema_Exp hexp = Sema_TransExp (context, forExp.hi);
         if (!is_int (hexp))
         {
             ERROR_UNEXPECTED_TYPE (&forExp.hi->loc, Ty_Int(), hexp.ty)
@@ -1740,7 +1740,7 @@ Semant_Exp TransExp (Semant_Context context, A_exp exp)
         context->breaker = breaker;
         context->loopNesting++;
 
-        Semant_Exp body = TransScope (context, forExp.body);
+        Sema_Exp body = Sema_TransScope (context, forExp.body);
 
         context->loopNesting--;
         context->breaker = label;
@@ -1784,14 +1784,14 @@ int Semant_Translate (Program_Module m)
 
     Escape_Find (m->ast);
 
-    struct Semant_Context_t context;
+    struct Sema_Context_t context;
     context.module = m;
     context.loopNesting = 0;
 
     Env_Init (&context);
     Tr_Init (&context);
 
-    LIST_FOREACH (dec, m->ast) TransDec (&context, dec);
+    LIST_FOREACH (dec, m->ast) Sema_TransDec (&context, dec);
 
     return Vector_Size (&m->errors.semant);
 }

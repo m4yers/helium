@@ -26,7 +26,7 @@ Env_Entry Env_FunEntryNew (Tr_level parent, Tr_level level, Temp_label label, S_
     return e;
 }
 
-void Env_Init (Semant_Context c)
+void Env_Init (Sema_Context c)
 {
     S_table tenv = S_Empty();
 

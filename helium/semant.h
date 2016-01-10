@@ -6,7 +6,7 @@
 
 #include "ext/stack.h"
 
-typedef struct Semant_Context_t
+typedef struct Sema_Context_t
 {
     Program_Module module;
     Tr_level global;
@@ -16,22 +16,22 @@ typedef struct Semant_Context_t
     Temp_label breaker;
     int loopNesting;
 
-} * Semant_Context;
+} * Sema_Context;
 
-typedef struct Semant_Exp_t
+typedef struct Sema_Exp_t
 {
     Tr_exp exp;
     Ty_ty ty;
 
-} Semant_Exp;
+} Sema_Exp;
 
 
 int Semant_Translate (Program_Module m);
 
-Semant_Exp TransScope (Semant_Context context, A_scope scope);
-Ty_ty      TransTyp (Semant_Context context, A_ty ty);
-Tr_exp     TransDec (Semant_Context context, A_dec dec);
-Semant_Exp TransExp (Semant_Context context, A_exp exp);
-Semant_Exp TransVar (Semant_Context context, A_var var, bool deref);
+Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope);
+Ty_ty    Sema_TransTyp (Sema_Context context, A_ty ty);
+Tr_exp   Sema_TransDec (Sema_Context context, A_dec dec);
+Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp);
+Sema_Exp Sema_TransVar (Sema_Context context, A_var var, bool deref);
 
 #endif /* end of include guard: SEMANT_H_VYAZ1M7T */

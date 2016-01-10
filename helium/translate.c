@@ -423,7 +423,7 @@ Tr_exp Tr_Int (int value)
     return Tr_Ex (T_Const (value));
 }
 
-Tr_exp Tr_String (Semant_Context c, const char * value)
+Tr_exp Tr_String (Sema_Context c, const char * value)
 {
     Temp_label label = Temp_NewLabel();
     Program_AddFragment (c->module, F_StringFrag (label, value, F_lps));
@@ -796,12 +796,12 @@ Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList
     return Tr_Sx (T_AsmOld (code, data ? Tr_UnEx (data) : NULL, dl, sl));
 }
 
-void Tr_Init (Semant_Context c)
+void Tr_Init (Sema_Context c)
 {
     c->global = c->level = Tr_NewLevel (NULL, Temp_NamedLabel ("global"), NULL);
 }
 
-void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
+void Tr_ProcEntryExit (Sema_Context c, Tr_level level, Tr_exp body)
 {
     T_stm stm = NULL;
 
@@ -810,7 +810,7 @@ void Tr_ProcEntryExit (Semant_Context c, Tr_level level, Tr_exp body)
     Program_AddFragment (c->module, F_ProcFrag (stm, level->frame));
 }
 
-void Tr_AddCodeFragment (struct Semant_ContextType * c, Tr_exp fragment)
+void Tr_AddCodeFragment (struct Sema_Context_t * c, Tr_exp fragment)
 {
     Program_AddFragment (c->module, F_CodeFrag (Tr_UnSx (fragment)));
 }

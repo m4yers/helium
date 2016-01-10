@@ -9,7 +9,7 @@
 #include "program.h"
 
 // forward declaration
-struct Semant_ContextType;
+struct Sema_Context_t;
 
 typedef struct Tr_exp_ * Tr_exp;
 typedef struct Tr_access_ * Tr_access;
@@ -41,9 +41,9 @@ struct Tr_expList_
 
 Tr_expList Tr_ExpList (Tr_exp head, Tr_expList tail);
 
-void Tr_Init (struct Semant_ContextType * c);
-void Tr_ProcEntryExit (struct Semant_ContextType * c, Tr_level level, Tr_exp body);
-void Tr_AddCodeFragment(struct Semant_ContextType * c, Tr_exp fragment);
+void Tr_Init (struct Sema_Context_t * c);
+void Tr_ProcEntryExit (struct Sema_Context_t * c, Tr_level level, Tr_exp body);
+void Tr_AddCodeFragment(struct Sema_Context_t * c, Tr_exp fragment);
 
 /***************
  *  Variables  *
@@ -63,7 +63,7 @@ Tr_exp Tr_Call (Temp_label label, Tr_level encolosing, Tr_level own, Tr_expList 
 Tr_exp Tr_Nil (void);
 Tr_exp Tr_Void (void);
 Tr_exp Tr_Int (int value);
-Tr_exp Tr_String (struct Semant_ContextType * c, const char * value);
+Tr_exp Tr_String (struct Sema_Context_t * c, const char * value);
 Tr_exp Tr_Op (A_oper op, Tr_exp left, Tr_exp right, Ty_ty ty);
 Tr_exp Tr_ArrayExp (Tr_exp base, Ty_ty type, Tr_expList list, int offset);
 Tr_exp Tr_RecordExp (Tr_exp base, Ty_ty type, Tr_expList list, int offset);

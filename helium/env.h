@@ -6,7 +6,7 @@
 #include "translate.h"
 
 // forward declaration
-struct Semant_ContextType;
+struct Sema_Context_t;
 
 struct Env_funEntry_t
 {
@@ -41,6 +41,6 @@ typedef struct Env_Entry_t
 Env_Entry Env_VarEntryNew (Tr_level level, Tr_access access, Ty_ty ty);
 Env_Entry Env_FunEntryNew (Tr_level parent, Tr_level level, Temp_label label, S_symbolList names, Ty_tyList types, Ty_ty result);
 
-void Env_Init (struct Semant_ContextType * c);
+void Env_Init (struct Sema_Context_t * c);
 
 #endif /* end of include guard: ENV_H_V0BEBNKU */
