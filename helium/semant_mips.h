@@ -7,12 +7,13 @@
 
 typedef struct Sema_MIPSContext_t
 {
+    struct A_asmDec_t * dec;
     Sema_Context context;
     Program_Module module;
     size_t errors;
 
 } * SemantMIPS_Context;
 
-int SemantMIPS_Translate (Sema_Context c, A_asmStmList l);
+int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d);
 
 #endif /* end of include guard: SEMANT_MIPS_H_ICPDBCH2 */

@@ -255,6 +255,7 @@ static String TransOp (SemantMIPS_Context context, A_asmOp op)
     }
     else if (op->kind == A_asmOpVarKind)
     {
+        Sema_Exp var = Sema_TransVar (context->context, (A_var)op->u.var, TRUE);
     }
 
     return NULL;
@@ -401,17 +402,18 @@ static void TransStm (SemantMIPS_Context context, A_asmStm stm)
 }
 
 //FIXME when the semant starts to expand macro then we need to return the new stm list
-int SemantMIPS_Translate (Sema_Context c, A_asmStmList l)
+int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
 {
     assert (c);
-    assert (l);
+    assert (d);
 
     struct Sema_MIPSContext_t context;
+    context.dec = d;
     context.context = c;
     context.module = c->module;
     context.errors = 0;
 
-    LIST_FOREACH (stm, l) TransStm (&context, stm);
+    LIST_FOREACH (stm, (A_asmStmList)d->code) TransStm (&context, stm);
 
     return context.errors == 0 ? 0 : 1;
 }

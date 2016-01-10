@@ -329,7 +329,7 @@ A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type)
     return p;
 }
 
-A_dec A_AsmDec (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in)
+A_dec A_AsmDec (A_loc loc, U_stringList options, const void * code, A_expList out, A_expList in)
 {
     A_dec p = checked_malloc (sizeof (*p));
     p->kind = A_asmDec;
@@ -877,7 +877,7 @@ void AST_PrintDec (FILE * out, A_dec v, int d)
             }
         }
         fprintf (out, "\n");
-        AST_AsmPrint (out, v->u.assembly.code, d + 1);
+        AST_AsmPrint (out, (A_asmStmList)v->u.assembly.code, d + 1);
         fprintf (out, ")");
         break;
     }

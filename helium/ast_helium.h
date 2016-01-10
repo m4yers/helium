@@ -8,7 +8,6 @@
 #include "ext/bool.h"
 
 #include "ast.h"
-#include "ast_asm.h"
 
 #include "symbol.h"
 
@@ -252,9 +251,9 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
-struct A_AsmDec_t
+struct A_asmDec_t
 {
-    A_asmStmList code;
+    const void * code; // A_stmStmList
     U_stringList options;
     A_expList out;
     A_expList in;
@@ -290,7 +289,7 @@ struct A_dec_t
 
     union
     {
-        struct A_AsmDec_t assembly;
+        struct A_asmDec_t assembly;
         struct A_decFn_t function;
         struct A_decVar_t var;
         struct A_decType_t type;
@@ -300,7 +299,7 @@ struct A_dec_t
 A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
 A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init);
 A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type);
-A_dec A_AsmDec (A_loc loc, U_stringList options, A_asmStmList code, A_expList out, A_expList in);
+A_dec A_AsmDec (A_loc loc, U_stringList options, const void * code, A_expList out, A_expList in);
 A_decList A_DecList (A_dec head, A_decList tail);
 
 /***********

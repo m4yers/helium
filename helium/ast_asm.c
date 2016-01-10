@@ -37,7 +37,7 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name)
 *  Operands  *
 **************/
 
-A_asmOp A_AsmOpVar (A_loc loc, const void * var)
+A_asmOp A_AsmOpVar (A_loc loc, A_var var)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
     p->kind = A_asmOpVarKind;
