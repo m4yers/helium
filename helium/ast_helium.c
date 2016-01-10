@@ -504,34 +504,18 @@ A_specList A_SpecList (A_spec head, A_specList tail)
  *  Printer  *
  *************/
 
-static char str_oper[][12] =
-{
-    "PLUS", "MINUS", "TIMES", "DIVIDE",
-    "EQUAL", "NOTEQUAL", "LESSTHAN", "LESSEQ", "GREAT", "GREATEQ"
-};
-
-static void PrintExp (FILE * out, A_exp v, int d);
-static void PrintVar (FILE * out, A_var v, int d);
-static void PrintDec (FILE * out, A_dec v, int d);
-static void PrintType (FILE * out, A_ty v, int d);
-static void PrintField (FILE * out, A_field v, int d);
-static void PrintFieldList (FILE * out, A_fieldList v, int d);
-static void PrintExpList (FILE * out, A_expList v, int d);
-static void PrintExpField (FILE * out, A_efield v, int d);
-static void PrintExpFieldList (FILE * out, A_efieldList v, int d);
-
 void AST_Print (FILE * out, A_decList list, int d)
 {
     fprintf (out, "Declarations(");
     LIST_FOREACH (dec, list)
     {
         fprintf (out, "\n");
-        PrintDec (out, dec, d + 1);
+        AST_PrintDec (out, dec, d + 1);
     }
     fprintf (out, ")\n");
 }
 
-static void PrintIndent (FILE * out, int d)
+void AST_PrintIndent (FILE * out, int d)
 {
     int i;
 
@@ -541,9 +525,9 @@ static void PrintIndent (FILE * out, int d)
     }
 }
 
-static void PrintScope (FILE * out, A_scope scope, int d)
+void AST_PrintScope (FILE * out, A_scope scope, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     fprintf (out, "Scope(");
 
@@ -564,12 +548,12 @@ static void PrintScope (FILE * out, A_scope scope, int d)
         {
         case A_stmDec:
         {
-            PrintDec (out, stm->u.dec, d + 1);
+            AST_PrintDec (out, stm->u.dec, d + 1);
             break;
         }
         case A_stmExp:
         {
-            PrintExp (out, stm->u.exp, d + 1);
+            AST_PrintExp (out, stm->u.exp, d + 1);
             break;
         }
         }
@@ -583,9 +567,9 @@ static void PrintScope (FILE * out, A_scope scope, int d)
     fprintf (out, ")");
 }
 
-static void PrintLiteral (FILE * out, A_literal literal, int d)
+void AST_PrintLiteral (FILE * out, A_literal literal, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     fprintf (out, "Literal(");
 
@@ -614,9 +598,9 @@ static void PrintLiteral (FILE * out, A_literal literal, int d)
     }
 }
 
-static void PrintSpecs (FILE * out, A_specList specs, int d)
+void AST_PrintSpecs (FILE * out, A_specList specs, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     fprintf (out, "Specs(\n");
 
@@ -627,12 +611,12 @@ static void PrintSpecs (FILE * out, A_specList specs, int d)
         {
         case A_specType:
         {
-            PrintType (out, spec->u.type, d + 1);
+            AST_PrintType (out, spec->u.type, d + 1);
             break;
         }
         case A_specLiteral:
         {
-            PrintLiteral (out, spec->u.literal, d + 1);
+            AST_PrintLiteral (out, spec->u.literal, d + 1);
             break;
         }
         }
@@ -648,10 +632,10 @@ static void PrintSpecs (FILE * out, A_specList specs, int d)
     fprintf (out, ")");
 }
 
-/* Print A_var types. PrintIndent d spaces. */
-static void PrintVar (FILE * out, A_var v, int d)
+/* Print A_var types. AST_PrintIndent d spaces. */
+void AST_PrintVar (FILE * out, A_var v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     switch (v->kind)
     {
@@ -661,17 +645,17 @@ static void PrintVar (FILE * out, A_var v, int d)
 
     case A_fieldVar:
         fprintf (out, "%s\n", "FieldVar(");
-        PrintVar (out, v->u.field.var, d + 1);
+        AST_PrintVar (out, v->u.field.var, d + 1);
         fprintf (out, "%s\n", ",");
-        PrintIndent (out, d + 1);
+        AST_PrintIndent (out, d + 1);
         fprintf (out, "%s)", S_Name (v->u.field.sym));
         break;
 
     case A_subscriptVar:
         fprintf (out, "%s\n", "SubscriptVar(");
-        PrintVar (out, v->u.subscript.var, d + 1);
+        AST_PrintVar (out, v->u.subscript.var, d + 1);
         fprintf (out, "%s\n", ",");
-        PrintExp (out, v->u.subscript.exp, d + 1);
+        AST_PrintExp (out, v->u.subscript.exp, d + 1);
         fprintf (out, "%s", ")");
         break;
 
@@ -680,14 +664,21 @@ static void PrintVar (FILE * out, A_var v, int d)
     }
 }
 
-static void PrintOp (FILE * out, A_oper d)
+void AST_PrintOp (FILE * out, A_oper d)
 {
-    fprintf (out, "%s", str_oper[d]);
+    static char ops[][12] =
+    {
+        "PLUS", "MINUS", "TIMES", "DIVIDE",
+        "LESSTHAN", "LESSEQ", "GREAT", "GREATEQ",
+        "EQUAL", "NOTEQUAL"
+    };
+
+    fprintf (out, "%s", ops[d]);
 }
 
-static void PrintExp (FILE * out, A_exp v, int d)
+void AST_PrintExp (FILE * out, A_exp v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     switch (v->kind)
     {
@@ -699,19 +690,19 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     case A_retExp:
         fprintf (out, "RetExp(\n");
-        PrintExp (out, v->u.ret, d + 1);
+        AST_PrintExp (out, v->u.ret, d + 1);
         fprintf (out, ")");
         break;
 
     case A_macroCallExp:
         fprintf (out, "MacroCallExp(%s,\n", S_Name (v->u.call.func));
-        PrintExpList (out, v->u.call.args, d + 1);
+        AST_PrintExpList (out, v->u.call.args, d + 1);
         fprintf (out, ")");
         break;
 
     case A_varExp:
         fprintf (out, "VarExp(");
-        PrintVar (out, v->u.var, 0);
+        AST_PrintVar (out, v->u.var, 0);
         fprintf (out, "%s", ")");
         break;
 
@@ -729,50 +720,50 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     case A_callExp:
         fprintf (out, "CallExp(%s,\n", S_Name (v->u.call.func));
-        PrintExpList (out, v->u.call.args, d + 1);
+        AST_PrintExpList (out, v->u.call.args, d + 1);
         fprintf (out, ")");
         break;
 
     case A_opExp:
         fprintf (out, "OpExp(");
-        PrintOp (out, v->u.op.oper);
+        AST_PrintOp (out, v->u.op.oper);
         fprintf (out, ",\n");
-        PrintExp (out, v->u.op.left, d + 1);
+        AST_PrintExp (out, v->u.op.left, d + 1);
         fprintf (out, ",\n");
-        PrintExp (out, v->u.op.right, d + 1);
+        AST_PrintExp (out, v->u.op.right, d + 1);
         fprintf (out, ")");
         break;
 
     case A_recordExp:
         fprintf (out, "RecordExp(%s,\n", v->u.record.name ? S_Name (v->u.record.name) : "Anonymous");
-        PrintExpFieldList (out, v->u.record.fields, d + 1);
+        AST_PrintExpFieldList (out, v->u.record.fields, d + 1);
         fprintf (out, ")");
         break;
 
     case A_seqExp:
         fprintf (out, "SeqExp(\n");
-        PrintExpList (out, v->u.seq, d + 1);
+        AST_PrintExpList (out, v->u.seq, d + 1);
         fprintf (out, ")");
         break;
 
     case A_assignExp:
         fprintf (out, "AssignExp(\n");
-        PrintVar (out, v->u.assign.var, d + 1);
+        AST_PrintVar (out, v->u.assign.var, d + 1);
         fprintf (out, ",\n");
-        PrintExp (out, v->u.assign.exp, d + 1);
+        AST_PrintExp (out, v->u.assign.exp, d + 1);
         fprintf (out, ")");
         break;
 
     case A_ifExp:
         fprintf (out, "IfExp(\n");
-        PrintExp (out, v->u.iff.test, d + 1);
+        AST_PrintExp (out, v->u.iff.test, d + 1);
         fprintf (out, ",\n");
-        PrintScope (out, v->u.iff.tr, d + 1);
+        AST_PrintScope (out, v->u.iff.tr, d + 1);
 
         if (v->u.iff.fl)   /* else is optional */
         {
             fprintf (out, ",\n");
-            PrintScope (out, v->u.iff.fl, d + 1);
+            AST_PrintScope (out, v->u.iff.fl, d + 1);
         }
 
         fprintf (out, ")");
@@ -780,21 +771,21 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     case A_whileExp:
         fprintf (out, "WhileExp(\n");
-        PrintExp (out, v->u.whilee.test, d + 1);
+        AST_PrintExp (out, v->u.whilee.test, d + 1);
         fprintf (out, ",\n");
-        PrintScope (out, v->u.whilee.body, d + 1);
+        AST_PrintScope (out, v->u.whilee.body, d + 1);
         fprintf (out, ")\n");
         break;
 
     case A_forExp:
         fprintf (out, "ForExp(%s,\n", S_Name (v->u.forr.var));
-        PrintExp (out, v->u.forr.lo, d + 1);
+        AST_PrintExp (out, v->u.forr.lo, d + 1);
         fprintf (out, ",\n");
-        PrintExp (out, v->u.forr.hi, d + 1);
+        AST_PrintExp (out, v->u.forr.hi, d + 1);
         fprintf (out, "%s\n", ",");
-        PrintScope (out, v->u.forr.body, d + 1);
+        AST_PrintScope (out, v->u.forr.body, d + 1);
         fprintf (out, ",\n");
-        PrintIndent (out, d + 1);
+        AST_PrintIndent (out, d + 1);
         fprintf (out, "%s", v->u.forr.escape ? "TRUE)" : "FALSE)");
         break;
 
@@ -804,7 +795,7 @@ static void PrintExp (FILE * out, A_exp v, int d)
 
     case A_arrayExp:
         fprintf (out, "ArrayExp(\n");
-        PrintExpList (out, v->u.array, d + 1);
+        AST_PrintExpList (out, v->u.array, d + 1);
         fprintf (out, ")");
         break;
 
@@ -813,9 +804,9 @@ static void PrintExp (FILE * out, A_exp v, int d)
     }
 }
 
-static void PrintDec (FILE * out, A_dec v, int d)
+void AST_PrintDec (FILE * out, A_dec v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     switch (v->kind)
     {
@@ -825,7 +816,7 @@ static void PrintDec (FILE * out, A_dec v, int d)
         if (v->u.function.type)
         {
             fprintf (out, "\n");
-            PrintType (out, v->u.function.type, d + 1);
+            AST_PrintType (out, v->u.function.type, d + 1);
             fprintf (out, ",\n");
         }
         else
@@ -833,10 +824,10 @@ static void PrintDec (FILE * out, A_dec v, int d)
             fprintf (out, "auto,\n");
         }
 
-        PrintFieldList (out, v->u.function.params, d + 1);
+        AST_PrintFieldList (out, v->u.function.params, d + 1);
         fprintf (out, ",\n");
 
-        PrintScope (out, v->u.function.scope, d + 1);
+        AST_PrintScope (out, v->u.function.scope, d + 1);
         fprintf (out, ")");
         break;
     }
@@ -846,7 +837,7 @@ static void PrintDec (FILE * out, A_dec v, int d)
         if (v->u.var.type)
         {
             fprintf (out, "VarDec(%s,\n", S_Name (v->u.var.var));
-            PrintType (out, v->u.var.type, d + 1);
+            AST_PrintType (out, v->u.var.type, d + 1);
         }
         else
         {
@@ -857,7 +848,7 @@ static void PrintDec (FILE * out, A_dec v, int d)
         if (v->u.var.init)
         {
             fprintf (out, ",\n");
-            PrintExp (out, v->u.var.init, d + 1);
+            AST_PrintExp (out, v->u.var.init, d + 1);
         }
 
         fprintf (out, ")");
@@ -867,7 +858,7 @@ static void PrintDec (FILE * out, A_dec v, int d)
     case A_typeDec:
     {
         fprintf (out, "TypeDec(%s,\n", S_Name (v->u.type.name));
-        PrintType (out, v->u.type.type, d + 1);
+        AST_PrintType (out, v->u.type.type, d + 1);
         fprintf (out, ")");
         break;
     }
@@ -896,9 +887,9 @@ static void PrintDec (FILE * out, A_dec v, int d)
     }
 }
 
-static void PrintType (FILE * out, A_ty v, int d)
+void AST_PrintType (FILE * out, A_ty v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     switch (v->kind)
     {
@@ -908,14 +899,14 @@ static void PrintType (FILE * out, A_ty v, int d)
 
     case A_recordTy:
         fprintf (out, "RecordTy(\n");
-        PrintFieldList (out, v->u.record, d + 1);
+        AST_PrintFieldList (out, v->u.record, d + 1);
         break;
 
     case A_arrayTy:
         fprintf (out, "ArrayTy(\n");
-        PrintType (out, v->u.array.type, d + 1);
+        AST_PrintType (out, v->u.array.type, d + 1);
         fprintf (out, ",\n");
-        PrintExp (out, v->u.array.size, d + 1);
+        AST_PrintExp (out, v->u.array.size, d + 1);
         break;
 
     default:
@@ -925,29 +916,29 @@ static void PrintType (FILE * out, A_ty v, int d)
     if (v->specs)
     {
         fprintf (out, ",\n");
-        PrintSpecs (out, v->specs, d + 1);
+        AST_PrintSpecs (out, v->specs, d + 1);
     }
     fprintf (out, ")");
 }
 
-static void PrintField (FILE * out, A_field v, int d)
+void AST_PrintField (FILE * out, A_field v, int d)
 {
     (void) d;
     fprintf (out, "Field(%s,\n", S_Name (v->name));
-    PrintType (out, v->type, d + 1);
+    AST_PrintType (out, v->type, d + 1);
     fprintf (out, ")");
 }
 
-static void PrintFieldList (FILE * out, A_fieldList v, int d)
+void AST_PrintFieldList (FILE * out, A_fieldList v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     if (v)
     {
         fprintf (out, "FieldList(");
-        PrintField (out, v->head, d);
+        AST_PrintField (out, v->head, d);
         fprintf (out, ",\n");
-        PrintFieldList (out, v->tail, d + 1);
+        AST_PrintFieldList (out, v->tail, d + 1);
         fprintf (out, ")");
     }
     else
@@ -956,16 +947,16 @@ static void PrintFieldList (FILE * out, A_fieldList v, int d)
     }
 }
 
-static void PrintExpList (FILE * out, A_expList v, int d)
+void AST_PrintExpList (FILE * out, A_expList v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     if (v)
     {
         fprintf (out, "ExpList(\n");
-        PrintExp (out, v->head, d + 1);
+        AST_PrintExp (out, v->head, d + 1);
         fprintf (out, ",\n");
-        PrintExpList (out, v->tail, d + 1);
+        AST_PrintExpList (out, v->tail, d + 1);
         fprintf (out, ")");
     }
     else
@@ -975,14 +966,14 @@ static void PrintExpList (FILE * out, A_expList v, int d)
 
 }
 
-static void PrintExpField (FILE * out, A_efield v, int d)
+void AST_PrintExpField (FILE * out, A_efield v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     if (v)
     {
         fprintf (out, "Efield(%s,\n", S_Name (v->name));
-        PrintExp (out, v->exp, d + 1);
+        AST_PrintExp (out, v->exp, d + 1);
         fprintf (out, ")");
     }
     else
@@ -991,16 +982,16 @@ static void PrintExpField (FILE * out, A_efield v, int d)
     }
 }
 
-static void PrintExpFieldList (FILE * out, A_efieldList v, int d)
+void AST_PrintExpFieldList (FILE * out, A_efieldList v, int d)
 {
-    PrintIndent (out, d);
+    AST_PrintIndent (out, d);
 
     if (v)
     {
         fprintf (out, "EFieldList(\n");
-        PrintExpField (out, v->head, d + 1);
+        AST_PrintExpField (out, v->head, d + 1);
         fprintf (out, ",\n");
-        PrintExpFieldList (out, v->tail, d + 1);
+        AST_PrintExpFieldList (out, v->tail, d + 1);
         fprintf (out, ")");
     }
     else

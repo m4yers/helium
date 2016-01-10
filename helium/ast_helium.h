@@ -429,5 +429,20 @@ A_specList A_SpecList (A_spec head, A_specList tail);
  *************/
 
 void AST_Print (FILE * out, A_decList list, int d);
+void AST_PrintIndent (FILE * out, int d);
+void AST_PrintScope (FILE * out, A_scope scope, int d);
+void AST_PrintLiteral (FILE * out, A_literal literal, int d);
+void AST_PrintSpecs (FILE * out, A_specList specs, int d);
+void AST_PrintExp (FILE * out, A_exp v, int d);
+void AST_PrintOp (FILE * out, A_oper d);
+void AST_PrintVar (FILE * out, A_var v, int d);
+void AST_PrintDec (FILE * out, A_dec v, int d);
+void AST_PrintType (FILE * out, A_ty v, int d);
+void AST_PrintField (FILE * out, A_field v, int d);
+void AST_PrintFieldList (FILE * out, A_fieldList v, int d);
+void AST_PrintExpList (FILE * out, A_expList v, int d);
+void AST_PrintExpField (FILE * out, A_efield v, int d);
+void AST_PrintExpFieldList (FILE * out, A_efieldList v, int d);
+
 
 #endif /* end of include guard: ABSYN_H_MZGLRGWC */
