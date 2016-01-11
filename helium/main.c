@@ -42,13 +42,13 @@ int main (int argc, char * argv[])
     if (Parse_File (m, m->options.file) != 0)
     {
         printf ("Lex errors: %lu\n", Vector_Size (&m->errors.lexer));
-        VECTOR_FOREACH (struct Error, error, &m->errors.lexer)
+        VECTOR_FOREACH (struct Error_t, error, &m->errors.lexer)
         {
             Error_Print (stdout, error);
         }
 
         printf ("Parse errors: %lu\n", Vector_Size (&m->errors.parser));
-        VECTOR_FOREACH (struct Error, error, &m->errors.parser)
+        VECTOR_FOREACH (struct Error_t, error, &m->errors.parser)
         {
             Error_Print (stdout, error);
         }
@@ -74,7 +74,7 @@ int main (int argc, char * argv[])
     {
         printf ("Failed to pre process program\n");
         printf ("Preprocessor  errors: %lu\n", Vector_Size (&m->errors.preproc));
-        VECTOR_FOREACH (struct Error, error, &m->errors.preproc)
+        VECTOR_FOREACH (struct Error_t, error, &m->errors.preproc)
         {
             Error_Print (stdout, error);
         }
@@ -85,7 +85,7 @@ int main (int argc, char * argv[])
     {
         printf ("Failed to translate program\n");
         printf ("Semant errors: %lu\n", Vector_Size (&m->errors.semant));
-        VECTOR_FOREACH (struct Error, error, &m->errors.semant)
+        VECTOR_FOREACH (struct Error_t, error, &m->errors.semant)
         {
             Error_Print (stdout, error);
         }

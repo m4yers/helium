@@ -12,7 +12,7 @@ typedef struct Sema_MIPSContext_t
     Program_Module module;
     size_t errors;
 
-} * SemantMIPS_Context;
+} * Sema_MIPSContext;
 
 int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d);
 

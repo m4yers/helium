@@ -10,6 +10,7 @@
 
 #include "ast.h"
 #include "ast_helium.h"
+#include "types.h"
 #include "symbol.h"
 
 /********************
@@ -60,6 +61,12 @@ typedef enum
     A_asmOpMemKind,
 } A_asmOpKind;
 
+typedef enum
+{
+    A_asmOpSrc,
+    A_asmOpDst
+} A_asmOpUse;
+
 typedef struct A_asmOp_t
 {
     struct A_loc_t loc;
@@ -68,8 +75,7 @@ typedef struct A_asmOp_t
     {
         struct
         {
-            const char * rep;
-            const void * exp; //* must be A_exp
+            A_asmOpUse use;
         } rep;
         A_var var;
         signed long integer;
@@ -107,7 +113,8 @@ typedef struct A_asmStmInst_t
     A_asmOpList opList;
 } * A_asmStmInst;
 
-typedef struct A_asmStmLab_t {
+typedef struct A_asmStmLab_t
+{
     const char * name;
 } * A_asmStmLab;
 

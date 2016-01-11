@@ -7,8 +7,6 @@
 
 #include "semant_mips.h"
 
-// TODO finish the module
-
 /*
  * 3100 Unknown opcode
  * 3101 Bad operand(unknown register etc)
@@ -88,7 +86,8 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
      */
     else if (String_Size (f) == 1)
     {
-        switch (*String_At (f, 0))
+        char l = *String_At (f, 0);
+        switch (l)
         {
         case SOURCE_REGISTER_5_BIT:
         case TARGET_REGISTER_5_BIT:
@@ -98,7 +97,12 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
         case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
         {
             // at this point register name is already normalized
-            if (op->kind != A_asmOpRegKind)
+            if (op->kind != A_asmOpRegKind
+                    /*
+                     * Replacements and Variables gonna be resolved as a register(temp)
+                     */
+                    && op->kind != A_asmOpRepKind
+                    && op->kind != A_asmOpVarKind)
             {
                 return String_New ("Expected Reg operand");
             }
@@ -200,10 +204,12 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
     return NULL;
 }
 
-static String TransOp (SemantMIPS_Context context, A_asmOp op)
+/*
+ * Method tries to normalize an operand, e.g. numeric registers are converted to a named form,
+ * making sure the reister exists at all.
+ */
+static String NormalizeOp (A_asmOp op)
 {
-    (void) context;
-
     if (op->kind == A_asmOpRegKind)
     {
         A_asmReg reg = op->u.reg;
@@ -255,13 +261,16 @@ static String TransOp (SemantMIPS_Context context, A_asmOp op)
     }
     else if (op->kind == A_asmOpVarKind)
     {
-        Sema_Exp var = Sema_TransVar (context->context, (A_var)op->u.var, TRUE);
+        /* Sema_Exp sexp = Sema_TransVar (context->context, (A_var)op->u.var, TRUE); */
+        /* op->kind = A_asmOpRepKind; */
+        /* op->u.rep.exp = sexp.exp; */
+        /* op->u.rep.ty = sexp.ty; */
     }
 
     return NULL;
 }
 
-static void TransInst (SemantMIPS_Context context, A_asmStm stm)
+static struct Error_t FindInst (A_asmStm stm)
 {
     A_asmStmInst inst = &stm->u.inst;
 
@@ -285,15 +294,13 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
 
     LIST_FOREACH (o, inst->opList)
     {
-        String r = TransOp (context, o);
+        String r = NormalizeOp (o);
         /*
          * If a single operand for some reason is wrong skip the line
          */
         if (r)
         {
-            ERROR (&o->loc, 3101, String_Data (r), "")
-            String_Delete (r);
-            return;
+            return Error_New (&o->loc, 3101, String_Data (r), "");
         }
     }
 
@@ -346,7 +353,10 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
         }
     }
 
-    if (!opcode)
+    if (opcode)
+    {
+    }
+    else
     {
         if (Vector_Size (&rejections))
         {
@@ -366,14 +376,14 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
                 String_Append (s, buf);
             }
 
-            ERROR (&stm->loc, 3102, s->data, inst->opcode);
+            return Error_New (&stm->loc, 3102, s->data, inst->opcode);
 
             String_Delete (s);
             free (buf);
         }
         else
         {
-            ERROR (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
+            return Error_New (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
         }
     }
 
@@ -383,9 +393,21 @@ static void TransInst (SemantMIPS_Context context, A_asmStm stm)
         String_Delete (*s);
     }
     Vector_Fini (&rejections);
+
+    return Error_OK;
 }
 
-static void TransStm (SemantMIPS_Context context, A_asmStm stm)
+static void TransInst (Sema_MIPSContext context, A_asmStm stm)
+{
+    struct Error_t err = FindInst (stm);
+    if (err.code != 0)
+    {
+        Vector_PushBack (&context->module->errors.semant, err);
+        return;
+    }
+}
+
+static void TransStm (Sema_MIPSContext context, A_asmStm stm)
 {
     switch (stm->kind)
     {

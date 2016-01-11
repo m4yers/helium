@@ -36,10 +36,10 @@ typedef struct Program_Module_
 
     struct
     {
-        struct Vector_t /* struct Error */ lexer;
-        struct Vector_t /* struct Error */ parser;
-        struct Vector_t /* struct Error */ preproc;
-        struct Vector_t /* struct Error */ semant;
+        struct Vector_t /* struct Error_t */ lexer;
+        struct Vector_t /* struct Error_t */ parser;
+        struct Vector_t /* struct Error_t */ preproc;
+        struct Vector_t /* struct Error_t */ semant;
     } errors;
 
     struct

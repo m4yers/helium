@@ -24,10 +24,10 @@ Program_Module Program_ModuleNew()
     r->fragments.strings = NULL;
     r->fragments.functions = NULL;
 
-    Vector_Init (&r->errors.lexer, struct Error);
-    Vector_Init (&r->errors.parser, struct Error);
-    Vector_Init (&r->errors.preproc, struct Error);
-    Vector_Init (&r->errors.semant, struct Error);
+    Vector_Init (&r->errors.lexer, struct Error_t);
+    Vector_Init (&r->errors.parser, struct Error_t);
+    Vector_Init (&r->errors.preproc, struct Error_t);
+    Vector_Init (&r->errors.semant, struct Error_t);
 
     Vector_Init (&r->results.functions, RA_Result);
     Vector_Init (&r->results.code, ASM_lineList);
