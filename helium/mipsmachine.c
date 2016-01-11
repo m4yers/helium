@@ -788,4 +788,6 @@ void MIPS_Init()
     F_RegistersAdd (regs_callee_save, s2, "$s2");
     F_RegistersAdd (regs_callee_save, s1, "$s1");
     F_RegistersAdd (regs_callee_save, s0, "$s0");
+
+    regs_map = F_RegistersToMap (Temp_Empty(), regs_all);
 }

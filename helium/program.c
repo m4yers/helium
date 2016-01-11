@@ -12,6 +12,8 @@
 #include "error.h"
 #include "regalloc.h"
 
+#include "machine.h"
+
 Program_Module Program_ModuleNew()
 {
     Program_Module r = checked_malloc (sizeof * r);
@@ -278,7 +280,7 @@ void Program_PrintAssembly (FILE * file, Program_Module p)
         {
             if (line->kind != I_META)
             {
-                ASM_PrintLine (file, line, Temp_Name());
+                ASM_PrintLine (file, line, regs_map);
             }
         }
     }

@@ -8,7 +8,7 @@
 #include "ext/bool.h"
 
 #include "ast.h"
-
+#include "temp.h"
 #include "symbol.h"
 
 typedef struct A_var_t * A_var;
@@ -257,6 +257,9 @@ struct A_asmDec_t
     U_stringList options;
     A_expList out;
     A_expList in;
+    // FIXME not the correct place move to IR
+    Temp_tempList dst;
+    Temp_tempList src;
 };
 
 struct A_decFn_t

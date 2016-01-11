@@ -112,6 +112,18 @@ static void EmitInst (String out, A_asmStmInst inst)
     {
         switch (op->kind)
         {
+        case A_asmOpRepKind:
+        {
+            if (op->u.rep.use == A_asmOpUseSrc)
+            {
+                sprintf (emit_buf, "`s%d", op->u.rep.pos);
+            }
+            else
+            {
+                sprintf (emit_buf, "`d%d", op->u.rep.pos);
+            }
+            break;
+        }
         case A_asmOpIntKind:
         {
             sprintf (emit_buf, "%ld", op->u.integer);

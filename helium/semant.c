@@ -287,7 +287,10 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
     case A_asmDec:
     {
         SemantMIPS_Translate (context, &dec->u.assembly);
-        Tr_exp exp = Tr_Asm((A_asmStmList)dec->u.assembly.code);
+        Tr_exp exp = Tr_Asm (
+                         (A_asmStmList)dec->u.assembly.code,
+                         dec->u.assembly.dst,
+                         dec->u.assembly.src);
         /*
          * If the declaration is top level we add the code fragment to the list of plain fragments,
          * they will be emit during codegen phase. Otherwise the fragment becomes part of function

@@ -761,9 +761,9 @@ Tr_exp Tr_Exit (Tr_exp exp)
     return Tr_Sx (T_Exit (Tr_UnEx (exp)));
 }
 
-Tr_exp Tr_Asm (A_asmStmList stms)
+Tr_exp Tr_Asm (A_asmStmList stms, Temp_tempList dst, Temp_tempList src)
 {
-    return Tr_Sx (T_Asm (stms));
+    return Tr_Sx (T_Asm (stms, dst, src));
 }
 
 Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src)

@@ -346,7 +346,7 @@ static void munchStm (T_stm s)
             String_Init (&str, "");
             AST_AsmEmitLine (&str, stm);
             //HMM can i detect MOVE?
-            emit (ASM_Oper (str.data, NULL, NULL, NULL));
+            emit (ASM_Oper (str.data, s->u.ASSEMBLY.dst, s->u.ASSEMBLY.src, NULL));
         }
         return;
     }

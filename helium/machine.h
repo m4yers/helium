@@ -17,6 +17,8 @@ typedef struct M_opCode_t
 
 extern const int F_wordSize;
 
+extern Temp_map regs_map;
+
 typedef struct
 {
     int number;

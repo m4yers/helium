@@ -63,8 +63,8 @@ typedef enum
 
 typedef enum
 {
-    A_asmOpSrc,
-    A_asmOpDst
+    A_asmOpUseSrc,
+    A_asmOpUseDst
 } A_asmOpUse;
 
 typedef struct A_asmOp_t
@@ -76,6 +76,7 @@ typedef struct A_asmOp_t
         struct
         {
             A_asmOpUse use;
+            int pos;
         } rep;
         A_var var;
         signed long integer;

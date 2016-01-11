@@ -354,7 +354,7 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
         }
     }
 
-    if(!opcode)
+    if (!opcode)
     {
         if (Vector_Size (&rejections))
         {
@@ -406,6 +406,82 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
     {
         Vector_PushBack (&context->module->errors.semant, err);
         return;
+    }
+
+    Vector format = String_Split (&opcode->format, ',');
+
+    A_asmStmInst inst = &stm->u.inst;
+    A_asmOpList opList = inst->opList;
+
+    /*
+     * Now we need to actually parse the instruction and replace all registers occurances with
+     * replacements fields like `s0, `s1, `d0 etc, and push all the registers into .src/.dst lists
+     * of the top level ASM STM AST node
+     * FIXME it is a double work to parse format twice, can you optimize it somehow?
+     */
+
+    VECTOR_FOREACH (struct String_t, f, format)
+    {
+        if (String_Size (f) == 4)
+        {
+        }
+        else if (String_Size (f) == 1)
+        {
+            A_asmOp op = opList->head;
+            char l = *String_At (f, 0);
+            switch (l)
+            {
+            case TARGET_REGISTER_5_BIT:
+            case DESTINATION_REGISTER_5_BIT:
+            {
+                // FIXME regs name
+                struct String_t str = String ("$");
+                String_Append (&str, op->u.reg->u.name);
+                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                /*
+                 * TODO
+                 * this check here because of 't' register that can be used as 'd' in the beginning
+                 * of the format string, this is a bit strange imho, you need to read more carefully
+                 * through binutils sources
+                 */
+                if (__i_f == 0)
+                {
+                    LIST_PUSH (context->dec->dst, r);
+                    op->kind = A_asmOpRepKind;
+                    op->u.rep.use = A_asmOpUseDst;
+                    op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                }
+                else
+                {
+                    LIST_PUSH (context->dec->src, r);
+                    op->kind = A_asmOpRepKind;
+                    op->u.rep.use = A_asmOpUseSrc;
+                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                }
+                break;
+            }
+            case SOURCE_REGISTER_5_BIT:
+            case SAME_REGISTER_SOURCE_AND_TARGET_5_BIT:
+            case SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT:
+            case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
+            {
+                // FIXME regs name
+                struct String_t str = String ("$");
+                String_Append (&str, op->u.reg->u.name);
+                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                LIST_PUSH (context->dec->src, r);
+                op->kind = A_asmOpRepKind;
+                op->u.rep.use = A_asmOpUseSrc;
+                op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                break;
+            }
+            // immediate go directly into asm string
+            default:
+            {
+            }
+            }
+        }
+        opList = LIST_NEXT (opList);
     }
 }
 

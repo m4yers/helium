@@ -338,6 +338,8 @@ A_dec A_AsmDec (A_loc loc, U_stringList options, const void * code, A_expList ou
     p->u.assembly.options = options;
     p->u.assembly.out = out;
     p->u.assembly.in = in;
+    p->u.assembly.dst = NULL;
+    p->u.assembly.src = NULL;
     return p;
 }
 

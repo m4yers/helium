@@ -152,6 +152,8 @@ Temp_temp fp;
  */
 Temp_temp ra;
 
+Temp_map regs_map;
+
 F_registers regs_all;
 F_registers regs_colors;
 F_registers regs_result;

@@ -118,14 +118,6 @@ const char * Temp_Look (Temp_map m, Temp_temp t)
     }
 }
 
-Temp_tempList Temp_TempList (Temp_temp h, Temp_tempList t)
-{
-    Temp_tempList p = (Temp_tempList) checked_malloc (sizeof (*p));
-    p->head = h;
-    p->tail = t;
-    return p;
-}
-
 int Temp_GetTempIndex (Temp_temp temp)
 {
     return temp->num;
@@ -182,14 +174,6 @@ bool Temp_IsTempInList (Temp_tempList list, Temp_temp temp)
     }
 
     return FALSE;
-}
-
-Temp_labelList Temp_LabelList (Temp_label h, Temp_labelList t)
-{
-    Temp_labelList p = (Temp_labelList) checked_malloc (sizeof (*p));
-    p->head = h;
-    p->tail = t;
-    return p;
 }
 
 static FILE * outfile;
