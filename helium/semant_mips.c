@@ -270,7 +270,7 @@ static String NormalizeOp (A_asmOp op)
     return NULL;
 }
 
-static struct Error_t FindInst (A_asmStm stm)
+static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
 {
     A_asmStmInst inst = &stm->u.inst;
 
@@ -300,7 +300,8 @@ static struct Error_t FindInst (A_asmStm stm)
          */
         if (r)
         {
-            return Error_New (&o->loc, 3101, String_Data (r), "");
+            *err = Error_New (&o->loc, 3101, String_Data (r), "");
+            return NULL;
         }
     }
 
@@ -353,10 +354,7 @@ static struct Error_t FindInst (A_asmStm stm)
         }
     }
 
-    if (opcode)
-    {
-    }
-    else
+    if(!opcode)
     {
         if (Vector_Size (&rejections))
         {
@@ -376,14 +374,16 @@ static struct Error_t FindInst (A_asmStm stm)
                 String_Append (s, buf);
             }
 
-            return Error_New (&stm->loc, 3102, s->data, inst->opcode);
+            *err = Error_New (&stm->loc, 3102, s->data, inst->opcode);
+            return NULL;
 
             String_Delete (s);
             free (buf);
         }
         else
         {
-            return Error_New (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
+            *err = Error_New (&stm->loc, 3100, "Unknown opcode '%s'", inst->opcode);
+            return NULL;
         }
     }
 
@@ -394,12 +394,14 @@ static struct Error_t FindInst (A_asmStm stm)
     }
     Vector_Fini (&rejections);
 
-    return Error_OK;
+    *err = Error_OK;
+    return opcode;
 }
 
 static void TransInst (Sema_MIPSContext context, A_asmStm stm)
 {
-    struct Error_t err = FindInst (stm);
+    struct Error_t err;
+    const struct M_opCode_t * opcode = FindInst (stm, &err);
     if (err.code != 0)
     {
         Vector_PushBack (&context->module->errors.semant, err);
