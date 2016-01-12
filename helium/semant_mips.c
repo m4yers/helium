@@ -249,22 +249,18 @@ static String NormalizeOp (A_asmOp op)
     /*
      * Same as for RegNum AST node
      */
-    else if (op->kind == A_asmOpMemKind && op->u.mem.base->kind == A_asmRegNumKind)
+    else if (op->kind == A_asmOpMemKind)
     {
-        const char * name = F_RegistersGetName (regs_all, op->u.mem.base->u.num);
-        if (!name)
+        if (op->u.mem.base->kind == A_asmRegNumKind)
         {
-            return String_New ("Unknown register");
+            const char * name = F_RegistersGetName (regs_all, op->u.mem.base->u.reg->u.num);
+            if (!name)
+            {
+                return String_New ("Unknown register");
+            }
+            op->u.mem.base->u.reg->kind = A_asmRegNameKind;
+            op->u.mem.base->u.reg->u.name = name;
         }
-        op->u.mem.base->kind = A_asmRegNameKind;
-        op->u.mem.base->u.name = name;
-    }
-    else if (op->kind == A_asmOpVarKind)
-    {
-        /* Sema_Exp sexp = Sema_TransVar (context->context, (A_var)op->u.var, TRUE); */
-        /* op->kind = A_asmOpRepKind; */
-        /* op->u.rep.exp = sexp.exp; */
-        /* op->u.rep.ty = sexp.ty; */
     }
 
     return NULL;
@@ -422,12 +418,29 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
 
     VECTOR_FOREACH (struct String_t, f, format)
     {
+        A_asmOp op = opList->head;
+
         if (String_Size (f) == 4)
         {
+            if (op->u.mem.base->kind == A_asmOpRegKind)
+            {
+                // FIXME regs name
+                struct String_t str = String ("$");
+                String_Append (&str, op->u.mem.base->u.reg->u.name);
+                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                LIST_PUSH (context->dec->src, r);
+                op->u.mem.base->kind = A_asmOpRepKind;
+                op->u.mem.base->u.rep.use = A_asmOpUseSrc;
+                op->u.mem.base->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+            }
+            // TODO lvalue
+            else
+            {
+                assert(0);
+            }
         }
         else if (String_Size (f) == 1)
         {
-            A_asmOp op = opList->head;
             char l = *String_At (f, 0);
             switch (l)
             {

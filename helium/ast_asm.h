@@ -84,7 +84,7 @@ typedef struct A_asmOp_t
         struct
         {
             signed long offset;
-            A_asmReg base;
+            struct A_asmOp_t * base;
         } mem;
     } u;
 } * A_asmOp;
@@ -96,7 +96,7 @@ A_asmOp A_AsmOpRep (A_loc loc, const char * rep);
 A_asmOp A_AsmOpVar (A_loc loc, A_var);
 A_asmOp A_AsmOpInt (A_loc loc, signed long imm);
 A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
-A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base);
+A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmOp base);
 
 /****************
 *  Statements  *

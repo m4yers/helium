@@ -64,7 +64,7 @@ A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg)
     return p;
 }
 
-A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmReg base)
+A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmOp base)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
     p->kind = A_asmOpMemKind;
@@ -103,6 +103,52 @@ A_asmStm A_AsmStmLab (A_loc loc, const char * name)
 
 static char emit_buf[512];
 
+static void EmitOp (String out, A_asmOp op)
+{
+    switch (op->kind)
+    {
+    case A_asmOpRepKind:
+    {
+        if (op->u.rep.use == A_asmOpUseSrc)
+        {
+            sprintf (emit_buf, "`s%d", op->u.rep.pos);
+            String_Append (out, emit_buf);
+        }
+        else
+        {
+            sprintf (emit_buf, "`d%d", op->u.rep.pos);
+            String_Append (out, emit_buf);
+        }
+        break;
+    }
+    case A_asmOpIntKind:
+    {
+        sprintf (emit_buf, "%ld", op->u.integer);
+        String_Append (out, emit_buf);
+        break;
+    }
+    case A_asmOpRegKind:
+    {
+        //NOTE reg has to be normalized by this point
+        sprintf (emit_buf, "$%s", op->u.reg->u.name);
+        String_Append (out, emit_buf);
+        break;
+    }
+    case A_asmOpMemKind:
+    {
+        sprintf (emit_buf, "%ld(", op->u.mem.offset);
+        String_Append (out, emit_buf);
+        EmitOp (out, op->u.mem.base);
+        String_Append (out, ")");
+        break;
+    }
+    default:
+    {
+        assert (0);
+    }
+    }
+}
+
 static void EmitInst (String out, A_asmStmInst inst)
 {
     sprintf (emit_buf, "%-6s", inst->opcode);
@@ -110,45 +156,7 @@ static void EmitInst (String out, A_asmStmInst inst)
     size_t opsSize = LIST_SIZE (inst->opList);
     LIST_FOREACH (op, inst->opList)
     {
-        switch (op->kind)
-        {
-        case A_asmOpRepKind:
-        {
-            if (op->u.rep.use == A_asmOpUseSrc)
-            {
-                sprintf (emit_buf, "`s%d", op->u.rep.pos);
-            }
-            else
-            {
-                sprintf (emit_buf, "`d%d", op->u.rep.pos);
-            }
-            break;
-        }
-        case A_asmOpIntKind:
-        {
-            sprintf (emit_buf, "%ld", op->u.integer);
-            break;
-        }
-        case A_asmOpRegKind:
-        {
-            //NOTE reg has to be normalized by this point
-            sprintf (emit_buf, "$%s", op->u.reg->u.name);
-            break;
-        }
-        case A_asmOpMemKind:
-        {
-            sprintf (emit_buf, "%ld($%s),",
-                     op->u.mem.offset,
-                     op->u.mem.base->u.name);
-            break;
-        }
-        default:
-        {
-            assert (0);
-        }
-        }
-
-        String_Append (out, emit_buf);
+        EmitOp (out, op);
 
         if (--opsSize)
         {
@@ -237,7 +245,7 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
     case A_asmOpMemKind:
     {
         fprintf (out, "Mem(%ld,", op->u.mem.offset);
-        PrintReg (out, op->u.mem.base);
+        PrintOp (out, op->u.mem.base, d);
         fprintf (out, ")");
     }
     }

@@ -145,7 +145,7 @@ operand_list:         %empty { $$ = NULL; }
                           }
                       }
                     ;
-operand:              INT LPAREN register RPAREN
+operand:              INT LPAREN operand RPAREN
                       {
                           $$ = A_AsmOpMem(&(@$), $1, $3);
                       }
