@@ -211,6 +211,10 @@ void String_Append_l (String s, long n);
             long: String_Append_l                                    \
             )(a,b)
 
+#define String_AppendF(s,f,...)                                      \
+    sprintf(s->data + s->size, f, __VA_ARGS__);                      \
+    while(*(s->data + s->size) != '\0') s->size++;                   \
+
 Vector String_Split_s (const struct String_t * s, const struct String_t * d);
 Vector String_Split_c (const struct String_t * s, char d);
 Vector String_Split_cp (const struct String_t * s, const char * d);

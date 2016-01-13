@@ -300,6 +300,24 @@ static void string_append_zero_len_ok (void ** state)
     (void) state;
 }
 
+static void string_appendf_ok (void ** state)
+{
+    String str = String_New ("");
+    String_Reserve (str, 512);
+
+    String_AppendF (str, "%d", 100);
+
+    assert_true (String_Equal (str, "100"));
+    assert_true (String_Size (str) == 3);
+
+    String_AppendF (str, "%d", 500);
+
+    assert_true (String_Equal (str, "100500"));
+    assert_true (String_Size (str) == 6);
+
+    (void) state;
+}
+
 static void string_assign_ok (void ** state)
 {
     String str = String_New (a_string);
@@ -597,6 +615,7 @@ int main (void)
         cmocka_unit_test (string_append_ok),
         cmocka_unit_test (string_append_integer_ok),
         cmocka_unit_test (string_append_zero_len_ok),
+        cmocka_unit_test (string_appendf_ok),
         cmocka_unit_test (string_assign_ok),
         cmocka_unit_test (string_assign_empty_ok),
         cmocka_unit_test (string_assign_uninitialized_ok),
