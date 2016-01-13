@@ -343,7 +343,8 @@ static void munchStm (T_stm s)
         struct String_t str;
         LIST_FOREACH (stm, s->u.ASSEMBLY.stms)
         {
-            String_Init (&str, "");
+            String_Init (&str, "");        // no fini since we use the data
+            String_Reserve(&str, 128);     // should be more than enough for one line
             AST_AsmEmitLine (&str, stm);
             //HMM can i detect MOVE?
             emit (ASM_Oper (str.data, s->u.ASSEMBLY.dst, s->u.ASSEMBLY.src, NULL));

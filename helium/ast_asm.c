@@ -101,8 +101,6 @@ A_asmStm A_AsmStmLab (A_loc loc, const char * name)
 *                              Emitter                               *
 **********************************************************************/
 
-static char emit_buf[512];
-
 static void EmitOp (String out, A_asmOp op)
 {
     switch (op->kind)
@@ -111,33 +109,28 @@ static void EmitOp (String out, A_asmOp op)
     {
         if (op->u.rep.use == A_asmOpUseSrc)
         {
-            sprintf (emit_buf, "`s%d", op->u.rep.pos);
-            String_Append (out, emit_buf);
+            String_AppendF (out, "`s%d", op->u.rep.pos);
         }
         else
         {
-            sprintf (emit_buf, "`d%d", op->u.rep.pos);
-            String_Append (out, emit_buf);
+            String_AppendF (out, "`d%d", op->u.rep.pos);
         }
         break;
     }
     case A_asmOpIntKind:
     {
-        sprintf (emit_buf, "%ld", op->u.integer);
-        String_Append (out, emit_buf);
+        String_AppendF (out, "%ld", op->u.integer);
         break;
     }
     case A_asmOpRegKind:
     {
         //NOTE reg has to be normalized by this point
-        sprintf (emit_buf, "$%s", op->u.reg->u.name);
-        String_Append (out, emit_buf);
+        String_AppendF (out, "$%s", op->u.reg->u.name);
         break;
     }
     case A_asmOpMemKind:
     {
-        sprintf (emit_buf, "%ld(", op->u.mem.offset);
-        String_Append (out, emit_buf);
+        String_AppendF (out, "%ld(", op->u.mem.offset);
         EmitOp (out, op->u.mem.base);
         String_Append (out, ")");
         break;
@@ -151,8 +144,7 @@ static void EmitOp (String out, A_asmOp op)
 
 static void EmitInst (String out, A_asmStmInst inst)
 {
-    sprintf (emit_buf, "%-6s", inst->opcode);
-    String_Append (out, emit_buf);
+    String_AppendF (out, "%-6s", inst->opcode);
     size_t opsSize = LIST_SIZE (inst->opList);
     LIST_FOREACH (op, inst->opList)
     {
@@ -167,8 +159,7 @@ static void EmitInst (String out, A_asmStmInst inst)
 
 static void EmitLabel (String out, A_asmStmLab lab)
 {
-    sprintf (emit_buf, "%s:", lab->name);
-    String_Append (out, emit_buf);
+    String_AppendF (out, "%s:", lab->name);
 }
 
 void AST_AsmEmitLine (String out, A_asmStm stm)
@@ -247,6 +238,10 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
         fprintf (out, "Mem(%ld,", op->u.mem.offset);
         PrintOp (out, op->u.mem.base, d);
         fprintf (out, ")");
+    }
+    case A_asmOpRepKind:
+    {
+        assert(0);
     }
     }
 }
