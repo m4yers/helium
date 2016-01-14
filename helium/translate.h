@@ -1,7 +1,6 @@
 #ifndef TRANSLATE_H_ZDIHRPIG
 #define TRANSLATE_H_ZDIHRPIG
 
-#include "ast_helium.h"
 #include "temp.h"
 #include "frame.h"
 #include "types.h"
@@ -11,13 +10,15 @@
 // forward declaration
 struct Sema_Context_t;
 
-typedef struct Tr_exp_ * Tr_exp;
-typedef struct Tr_access_ * Tr_access;
+typedef struct Tr_exp_t * Tr_exp;
+typedef struct Tr_access_t * Tr_access;
 
-typedef struct Tr_accessList_ * Tr_accessList;
-typedef struct Tr_level_ * Tr_level;
+typedef struct Tr_level_t * Tr_level;
 
-struct Tr_level_
+LIST_DEFINE (Tr_accessList, Tr_access)
+LIST_DEFINE (Tr_expList, Tr_exp)
+
+struct Tr_level_t
 {
     Temp_label name;
     Tr_level parent;
@@ -26,24 +27,13 @@ struct Tr_level_
     F_frame frame;
 };
 
-struct Tr_accessList_
-{
-    Tr_access head;
-    Tr_accessList tail;
-};
-
-typedef struct Tr_expList_ * Tr_expList;
-struct Tr_expList_
-{
-    Tr_exp head;
-    Tr_expList tail;
-};
-
 Tr_expList Tr_ExpList (Tr_exp head, Tr_expList tail);
 
 void Tr_Init (struct Sema_Context_t * c);
 void Tr_ProcEntryExit (struct Sema_Context_t * c, Tr_level level, Tr_exp body);
-void Tr_AddCodeFragment(struct Sema_Context_t * c, Tr_exp fragment);
+void Tr_AddCodeFragment (struct Sema_Context_t * c, Tr_exp fragment);
+
+Tr_exp Tr_Temp (Temp_temp temp);
 
 /***************
  *  Variables  *
@@ -75,7 +65,7 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label don
 Tr_exp Tr_Break (Temp_label done);
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp);
 Tr_exp Tr_Exit (Tr_exp exp);
-Tr_exp Tr_Asm (A_asmStmList stms, Temp_tempList dst, Temp_tempList src);
+Tr_exp Tr_Asm (A_asmStmList stms, Tr_expList dst, Tr_expList src);
 Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src);
 
 /**************
@@ -91,6 +81,6 @@ Tr_accessList Tr_Formals (Tr_level level);
 Tr_access Tr_AllocVirtual (Tr_level level, S_symbol name);
 Tr_access Tr_AllocMaterialize (Tr_access access, Tr_level level, Ty_ty type, bool escape);
 Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape);
-void Tr_AllocDelete(Tr_level level, Tr_access access);
+void Tr_AllocDelete (Tr_level level, Tr_access access);
 
 #endif /* end of include guard: TRANSLATE_H_ZDIHRPIG */

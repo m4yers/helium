@@ -46,8 +46,8 @@ struct T_stm_
         struct
         {
             A_asmStmList stms;
-            Temp_tempList dst;
-            Temp_tempList src;
+            T_expList dst;
+            T_expList src;
         } ASSEMBLY;
         struct
         {
@@ -121,7 +121,7 @@ T_expList T_ExpList (T_exp head, T_expList tail);
 int T_ExpListLen (T_expList list);
 T_stmList T_StmList (T_stm head, T_stmList tail);
 
-T_stm T_Asm (A_asmStmList stms, Temp_tempList dst, Temp_tempList src);
+T_stm T_Asm (A_asmStmList stms, T_expList dst, T_expList src);
 T_stm T_AsmOld (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src);
 T_stm T_Seq (T_stm left, T_stm right);
 T_stm T_Comment (const char * comment);

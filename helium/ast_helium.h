@@ -8,7 +8,6 @@
 #include "ext/bool.h"
 
 #include "ast.h"
-#include "temp.h"
 #include "symbol.h"
 
 typedef struct A_var_t * A_var;
@@ -251,15 +250,17 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
+// forward declaration
+struct Tr_expList_t;
+
 struct A_asmDec_t
 {
     const void * code; // A_stmStmList
     U_stringList options;
-    A_expList out;
-    A_expList in;
     // FIXME not the correct place move to IR
-    Temp_tempList dst;
-    Temp_tempList src;
+    // FIXME Tr_expList
+    struct Tr_expList_t * dst;
+    struct Tr_expList_t * src;
 };
 
 struct A_decFn_t

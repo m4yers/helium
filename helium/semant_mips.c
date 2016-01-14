@@ -428,7 +428,7 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                 struct String_t str = String ("$");
                 String_Append (&str, op->u.mem.base->u.reg->u.name);
                 Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                LIST_PUSH (context->dec->src, r);
+                LIST_PUSH (context->dec->src, Tr_Temp(r));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
                 op->u.mem.base->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
@@ -436,7 +436,7 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
             // TODO lvalue
             else
             {
-                assert(0);
+                assert (0);
             }
         }
         else if (String_Size (f) == 1)
@@ -448,28 +448,35 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
             case DESTINATION_REGISTER_5_BIT:
             {
                 // FIXME regs name
-                struct String_t str = String ("$");
-                String_Append (&str, op->u.reg->u.name);
-                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                /*
-                 * TODO
-                 * this check here because of 't' register that can be used as 'd' in the beginning
-                 * of the format string, this is a bit strange imho, you need to read more carefully
-                 * through binutils sources
-                 */
-                if (__i_f == 0)
+                if (op->u.reg->kind == A_asmRegNameKind)
                 {
-                    LIST_PUSH (context->dec->dst, r);
-                    op->kind = A_asmOpRepKind;
-                    op->u.rep.use = A_asmOpUseDst;
-                    op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                    struct String_t str = String ("$");
+                    String_Append (&str, op->u.reg->u.name);
+                    Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                    /*
+                     * TODO
+                     * this check here because of 't' register that can be used as 'd' in the
+                     * beginning of the format string, this is a bit strange imho, you need to read
+                     * more carefully through binutils sources
+                     */
+                    if (__i_f == 0)
+                    {
+                        LIST_PUSH (context->dec->dst, Tr_Temp(r));
+                        op->kind = A_asmOpRepKind;
+                        op->u.rep.use = A_asmOpUseDst;
+                        op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                    }
+                    else
+                    {
+                        LIST_PUSH (context->dec->src, Tr_Temp(r));
+                        op->kind = A_asmOpRepKind;
+                        op->u.rep.use = A_asmOpUseSrc;
+                        op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                    }
                 }
                 else
                 {
-                    LIST_PUSH (context->dec->src, r);
-                    op->kind = A_asmOpRepKind;
-                    op->u.rep.use = A_asmOpUseSrc;
-                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                    assert (0);
                 }
                 break;
             }
@@ -478,14 +485,21 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
             case SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT:
             case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
             {
-                // FIXME regs name
-                struct String_t str = String ("$");
-                String_Append (&str, op->u.reg->u.name);
-                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                LIST_PUSH (context->dec->src, r);
-                op->kind = A_asmOpRepKind;
-                op->u.rep.use = A_asmOpUseSrc;
-                op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                if (op->u.reg->kind == A_asmRegNameKind)
+                {
+                    // FIXME regs name
+                    struct String_t str = String ("$");
+                    String_Append (&str, op->u.reg->u.name);
+                    Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                    LIST_PUSH (context->dec->src, Tr_Temp(r));
+                    op->kind = A_asmOpRepKind;
+                    op->u.rep.use = A_asmOpUseSrc;
+                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                }
+                else
+                {
+                    assert (0);
+                }
                 break;
             }
             // immediate go directly into asm string

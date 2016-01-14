@@ -50,7 +50,7 @@ struct Cx
     T_stm stm;
 };
 
-struct Tr_exp_
+struct Tr_exp_t
 {
     enum { Tr_ex, Tr_sx, Tr_cx } kind;
     union
@@ -195,7 +195,7 @@ static struct Cx Tr_UnCx (Tr_exp exp)
     }
 }
 
-struct Tr_access_
+struct Tr_access_t
 {
     Tr_level level;
     F_access access;
@@ -300,6 +300,11 @@ void Tr_AllocDelete (Tr_level level, Tr_access access)
 {
     LIST_REMOVE (level->locals, access)
     F_AllocDelete (level->frame, access->access);
+}
+
+Tr_exp Tr_Temp (Temp_temp temp)
+{
+    return Tr_Ex (T_Temp (temp));
 }
 
 /***************
@@ -761,9 +766,21 @@ Tr_exp Tr_Exit (Tr_exp exp)
     return Tr_Sx (T_Exit (Tr_UnEx (exp)));
 }
 
-Tr_exp Tr_Asm (A_asmStmList stms, Temp_tempList dst, Temp_tempList src)
+Tr_exp Tr_Asm (A_asmStmList stms, Tr_expList dst, Tr_expList src)
 {
-    return Tr_Sx (T_Asm (stms, dst, src));
+    T_expList tdst = NULL;
+    LIST_FOREACH (e, dst)
+    {
+        LIST_PUSH (tdst, Tr_UnEx (e));
+    }
+
+    T_expList tsrc = NULL;
+    LIST_FOREACH (e, src)
+    {
+        LIST_PUSH (tsrc, Tr_UnEx (e));
+    }
+
+    return Tr_Sx (T_Asm (stms, tdst, tsrc));
 }
 
 Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
