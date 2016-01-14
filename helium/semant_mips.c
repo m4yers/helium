@@ -428,7 +428,7 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                 struct String_t str = String ("$");
                 String_Append (&str, op->u.mem.base->u.reg->u.name);
                 Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                LIST_PUSH (context->dec->src, Tr_Temp(r));
+                LIST_PUSH (context->dec->src, Tr_Temp (r));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
                 op->u.mem.base->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
@@ -448,7 +448,7 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
             case DESTINATION_REGISTER_5_BIT:
             {
                 // FIXME regs name
-                if (op->u.reg->kind == A_asmRegNameKind)
+                if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
                     struct String_t str = String ("$");
                     String_Append (&str, op->u.reg->u.name);
@@ -461,14 +461,33 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                      */
                     if (__i_f == 0)
                     {
-                        LIST_PUSH (context->dec->dst, Tr_Temp(r));
+                        LIST_PUSH (context->dec->dst, Tr_Temp (r));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
                         op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
                     }
                     else
                     {
-                        LIST_PUSH (context->dec->src, Tr_Temp(r));
+                        LIST_PUSH (context->dec->src, Tr_Temp (r));
+                        op->kind = A_asmOpRepKind;
+                        op->u.rep.use = A_asmOpUseSrc;
+                        op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                    }
+                }
+                else if (op->kind == A_asmOpVarKind)
+                {
+                    if (__i_f == 0)
+                    {
+                        Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
+                        LIST_PUSH (context->dec->dst, sexp.exp);
+                        op->kind = A_asmOpRepKind;
+                        op->u.rep.use = A_asmOpUseDst;
+                        op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                    }
+                    else
+                    {
+                        Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
+                        LIST_PUSH (context->dec->src, sexp.exp);
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseSrc;
                         op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
@@ -485,13 +504,21 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
             case SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT:
             case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
             {
-                if (op->u.reg->kind == A_asmRegNameKind)
+                if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
                     // FIXME regs name
                     struct String_t str = String ("$");
                     String_Append (&str, op->u.reg->u.name);
                     Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                    LIST_PUSH (context->dec->src, Tr_Temp(r));
+                    LIST_PUSH (context->dec->src, Tr_Temp (r));
+                    op->kind = A_asmOpRepKind;
+                    op->u.rep.use = A_asmOpUseSrc;
+                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                }
+                else if (op->kind == A_asmOpVarKind)
+                {
+                    Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
+                    LIST_PUSH (context->dec->src, sexp.exp);
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
                     op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;

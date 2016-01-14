@@ -39,8 +39,8 @@ ID       [_a-zA-Z][_a-zA-Z0-9]*
 "//"             { BEGIN(STATE_LINE_COMMENT);                                           }
 <STATE_LINE_COMMENT>
 {
+    \n           { lloc_newline(); BEGIN(INITIAL); return NEWLINE;                      }
     .*           /** eat up all characters */
-    "\n"         { lloc_newline(); BEGIN(INITIAL);                                      }
 }
 
 " "|\t           { continue;                                                            }

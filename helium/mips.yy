@@ -42,7 +42,10 @@
 
     void yy_mips_error (const char * message)
     {
-        printf("MIPS Parser error %d:%s\n", yy_mips_lloc.first_line, message);
+        printf("MIPS Parser error %d:%d %s\n",
+            yy_mips_lloc.first_line,
+            yy_mips_lloc.first_column,
+            message);
         // Vector_PushBack(&module->errors.parser,
         //     Error_New(
         //         &yy_mips_lloc,
