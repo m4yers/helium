@@ -82,7 +82,7 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
         __node->tail = NULL;                                                        \
         if (list)                                                                   \
         {                                                                           \
-            __typeof__(list) __current = list;                                      \
+            __typeof__(list) __current = (list);                                    \
             while(__current && __current->tail)                                     \
             {                                                                       \
                 __current = __current->tail;                                        \
@@ -91,7 +91,7 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
         }                                                                           \
         else                                                                        \
         {                                                                           \
-            list = __node;                                                          \
+            (list) = __node;                                                        \
         }                                                                           \
     }                                                                               \
 
