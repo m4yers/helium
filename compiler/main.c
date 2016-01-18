@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "util/str.h"
 #include "util/mem.h"
 #include "util/vector.h"
 #include "util/list.h"
+#include "util/bool.h"
 
 #include "core/program.h"
 #include "core/parse.h"
@@ -12,6 +14,7 @@
 #include "core/codegen.h"
 #include "core/regalloc.h"
 #include "core/error.h"
+#include "core/ir.h"
 
 #include "modules/helium/env.h"
 #include "modules/helium/preproc.h"

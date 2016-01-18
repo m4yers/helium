@@ -1,4 +1,4 @@
-include_directories (${CMAKE_SOURCE_DIR}/helium)
+include_directories (${CMAKE_SOURCE_DIR}/compiler)
 
 macro(add_helium_test name file)
     add_cmocka_test (${ARGV0} ${ARGV1}

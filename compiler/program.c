@@ -6,12 +6,16 @@
 #include "util/vector.h"
 #include "util/list.h"
 #include "util/util.h"
+#include "util/bool.h"
 #include "util/mem.h"
+#include "util/str.h"
 
 #include "core/program.h"
 #include "core/regalloc.h"
 #include "core/machine.h"
 #include "core/error.h"
+#include "core/frame.h"
+#include "core/asm.h"
 
 Program_Module Program_ModuleNew()
 {
