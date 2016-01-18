@@ -49,6 +49,8 @@
 %}
 
 %option noyywrap
+%option noinput
+%option nounput
 %option yylineno
 
 %s STATE_ASM_OPTS

@@ -9,10 +9,24 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 if (${CMAKE_C_COMPILER_ID} MATCHES "(GNU|Clang)")
 
     # add -Wconversion ?
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -pedantic -pedantic-errors")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wshadow -Wmissing-prototypes -Wdeclaration-after-statement")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wunused -Wfloat-equal -Wpointer-arith -Wwrite-strings -Wformat-security")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-format-attribute -Wundef")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+        -std=c11 \
+        -Wall \
+        -Wextra \
+        -Werror \
+        -Wshadow \
+        -Wpedantic \
+        -pedantic-errors \
+        -Wmissing-prototypes \
+        -Wno-missing-field-initializers \
+        -Wdeclaration-after-statement \
+        -Wunused \
+        -Wfloat-equal \
+        -Wpointer-arith \
+        -Wwrite-strings \
+        -Wformat-security \
+        -Wmissing-format-attribute \
+        -Wundef")
 
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GNU_SOURCE")
 endif (${CMAKE_C_COMPILER_ID} MATCHES "(GNU|Clang)")
@@ -87,11 +101,13 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/core/symbol.c
     ${CMAKE_SOURCE_DIR}/compiler/core/temp.c
     ${CMAKE_SOURCE_DIR}/compiler/core/ir.c
-    ${CMAKE_SOURCE_DIR}/compiler/program.c)
+    ${CMAKE_SOURCE_DIR}/compiler/program.c
+)
 
 add_subdirectory (test/libhc)
 
-add_executable (Helium_Compiler ${CMAKE_SOURCE_DIR}/compiler/main.c
+add_executable (Helium_Compiler
+    ${CMAKE_SOURCE_DIR}/compiler/main.c
     ${HELIUM_SOURCES}
     ${BISON_HeliumParser_OUTPUTS}
     ${FLEX_HeliumLexer_OUTPUTS}

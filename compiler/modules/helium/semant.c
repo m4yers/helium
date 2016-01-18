@@ -101,24 +101,6 @@ static bool is_int (Sema_Exp exp)
     return exp.ty == Ty_Int() || GetActualType (exp.ty) == Ty_Int();
 }
 
-static bool is_str (Sema_Exp exp)
-{
-    return exp.ty == Ty_Str();
-}
-
-static bool same_type (Sema_Exp a, Sema_Exp b)
-{
-    return a.ty == b.ty;
-}
-
-static bool campatible_types (Ty_ty a, Ty_ty b)
-{
-    a = GetActualType (a);
-    b = GetActualType (b);
-
-    return a == b;
-}
-
 static Sema_Exp Expression_New (Tr_exp exp, Ty_ty ty)
 {
     Sema_Exp r;

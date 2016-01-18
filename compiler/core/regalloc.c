@@ -178,21 +178,21 @@ static Temp_temp GetTemp (int index, Temp_tempList l)
     return NULL;
 }
 
-static int GetMoveIndex (ASM_line t, Live_moveList l)
-{
-    int i = 0;
-    while (l)
-    {
-        if (t == l->line)
-        {
-            return i;
-        }
-        l = l->tail;
-        i++;
-    }
-
-    return -1;
-}
+/* static int GetMoveIndex (ASM_line t, Live_moveList l) */
+/* { */
+/*     int i = 0; */
+/*     while (l) */
+/*     { */
+/*         if (t == l->line) */
+/*         { */
+/*             return i; */
+/*         } */
+/*         l = l->tail; */
+/*         i++; */
+/*     } */
+/*  */
+/*     return -1; */
+/* } */
 
 static ASM_line GetMove (int index, Live_moveList l)
 {
@@ -358,6 +358,7 @@ Workspace_New (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers reg
     return r;
 }
 
+#if LOG_DEBUG
 static char * Workspace_ToString (Workspace w)
 {
     // TODO: Artyom Goncharov this number is totally arbitrary, needs to be revised
@@ -406,6 +407,7 @@ static void Workspace_Print (FILE * out, Workspace w)
     BitArray_Print (out, w->coalesced);
     fprintf (out, "\n");
 }
+#endif
 
 /* static void Workspace_Reset (Workspace w) */
 /* { */

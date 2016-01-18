@@ -12,33 +12,42 @@
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_NONE
-
+#define LOG_ERROR 1
 #define ERR(...) \
     fprintf(stderr, __VA_ARGS__);
 #else
+#define LOG_ERROR 0
 #define ERR(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_ERROR
+#define LOG_WARNING 1
 #define WRN(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
+#define LOG_WARNING 0
 #define WRN(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_WARNING
+#define LOG_INFO 1
 #define NFO(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
+#define LOG_INFO 0
 #define NFO(...) (void) 0;
 #endif
 
 #if LOG_LEVEL > LOG_LEVEL_INFO
+#define LOG_DEBUG 1
 #define DBG(...) \
     fprintf(stdout, __VA_ARGS__);
 #else
+#define LOG_DEBUG 0
 #define DBG(...) (void) 0;
 
 #endif
+
+static int blah;
 
 #endif /* end of include guard: LOG_H_BLAKQPRH */

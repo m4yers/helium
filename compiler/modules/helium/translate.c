@@ -176,27 +176,27 @@ static T_stm Tr_UnSx (Tr_exp exp)
     }
 }
 
-static struct Cx Tr_UnCx (Tr_exp exp)
-{
-    assert (exp);
-    switch (exp->kind)
-    {
-    case Tr_ex:
-    {
-        printf ("Tr_UnCx -> Tr_ex");
-        assert (0);
-    }
-    case Tr_sx:
-    {
-        printf ("Tr_UnCx -> Tr_sx");
-        assert (0);
-    }
-    case Tr_cx:
-    {
-        return exp->u.cx;
-    }
-    }
-}
+/* static struct Cx Tr_UnCx (Tr_exp exp) */
+/* { */
+/*     assert (exp); */
+/*     switch (exp->kind) */
+/*     { */
+/*     case Tr_ex: */
+/*     { */
+/*         printf ("Tr_UnCx -> Tr_ex"); */
+/*         assert (0); */
+/*     } */
+/*     case Tr_sx: */
+/*     { */
+/*         printf ("Tr_UnCx -> Tr_sx"); */
+/*         assert (0); */
+/*     } */
+/*     case Tr_cx: */
+/*     { */
+/*         return exp->u.cx; */
+/*     } */
+/*     } */
+/* } */
 
 struct Tr_access_t
 {
@@ -212,13 +212,13 @@ static Tr_access Tr_Access (Tr_level level, F_access access)
     return r;
 }
 
-static Tr_accessList Tr_AccessList (Tr_access head, Tr_accessList tail)
-{
-    Tr_accessList r = checked_malloc (sizeof (*r));
-    r->head = head;
-    r->tail = tail;
-    return r;
-}
+/* static Tr_accessList Tr_AccessList (Tr_access head, Tr_accessList tail) */
+/* { */
+/*     Tr_accessList r = checked_malloc (sizeof (*r)); */
+/*     r->head = head; */
+/*     r->tail = tail; */
+/*     return r; */
+/* } */
 
 Tr_level Tr_NewLevel (Tr_level parent, Temp_label name, U_boolList formals)
 {

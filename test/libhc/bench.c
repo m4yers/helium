@@ -110,32 +110,6 @@ static void run_cases (void ** state, const char * cases[], size_t len)
     (void) state; /* unused */
 }
 
-static void macro__panic (void ** state)
-{
-    const char * cases[] =
-    {
-        "fn main\n\
-         {\n\
-             panic!(\"Oh no!\");\n\
-         }",
-    };
-
-    run_cases (state, cases, TOTAL_ELEMENTS (cases));
-}
-
-static void macro__assert (void ** state)
-{
-    const char * cases[] =
-    {
-        "fn main\n\
-         {\n\
-             assert!(1);\n\
-         }",
-    };
-
-    run_cases (state, cases, TOTAL_ELEMENTS (cases));
-}
-
 static void main__return (void ** state)
 {
     const char * cases[] =

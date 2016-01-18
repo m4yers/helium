@@ -169,6 +169,7 @@ struct F_access_
     } u;
 };
 
+#if LOG_DEBUG
 // TODO come up with a better way to print stuff
 #define ACCESS_TOSTRING_BUFFER_SIZE 128
 static char * Access_ToString (F_access access, char * buffer)
@@ -180,7 +181,7 @@ static char * Access_ToString (F_access access, char * buffer)
 
     char * current = buffer;
 
-    current += sprintf (current, "Access %p ", access);
+    current += sprintf (current, "Access %p ", (void *)access);
     switch (access->kind)
     {
     case FA_virtual:
@@ -192,7 +193,7 @@ static char * Access_ToString (F_access access, char * buffer)
     {
         current += sprintf (current, "name: %s, kind: regWord, handles: %p",
                             access->name,
-                            access->access);
+                            (void *)access->access);
         break;
     }
     case FA_stackWord:
@@ -200,7 +201,7 @@ static char * Access_ToString (F_access access, char * buffer)
         current += sprintf (current, "name: %s, kind: stackWord, offset: %d, handles: %p",
                             access->name,
                             access->u.stackWord.offset,
-                            access->access);
+                            (void *)access->access);
         break;
     }
     case FA_stackArray:
@@ -244,6 +245,7 @@ static char * Frame_ToString (F_frame frame)
 
     return buffer;
 }
+#endif
 
 static F_access RegWordNew (Temp_temp reg, F_access access)
 {

@@ -44,6 +44,7 @@ Program_Module Program_ModuleNew()
  *                         Arguments parsing                         *
  *********************************************************************/
 
+#ifdef CONFIG_BUILD_EXE
 const char * argp_program_version = "helium-0.0.1";
 const char * argp_program_bug_address = "<m4yers@gmail.com>";
 
@@ -180,10 +181,9 @@ void Program_ParseArguments (Program_Module m, int argc, char ** argv)
     (void) argc;
     (void) argv;
 
-#ifdef CONFIG_BUILD_EXE
     argp_parse (&argp, argc, argv, 0, 0, &m->options);
-#endif
 }
+#endif
 
 
 /*********************************************************************
@@ -206,7 +206,7 @@ void Program_AddFragment (Program_Module p, F_frag f)
         break;
 
     case F_codeFrag:
-        LIST_PUSH(p->fragments.code, f);
+        LIST_PUSH (p->fragments.code, f);
         break;
 
     default:

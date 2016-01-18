@@ -28,6 +28,8 @@
 %}
 
 %option noyywrap
+%option noinput
+%option nounput
 
 %x STATE_LINE_COMMENT
 
