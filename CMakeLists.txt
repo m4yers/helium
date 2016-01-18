@@ -27,23 +27,23 @@ find_package (FLEX)
 find_package (BISON)
 
 FLEX_TARGET (HeliumLexer
-    ${CMAKE_SOURCE_DIR}/helium/helium.ll
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/helium.ll
     ${CMAKE_CURRENT_BINARY_DIR}/helium.ll.c
     COMPILE_FLAGS "--prefix=yy_helium_")
 
 BISON_TARGET (HeliumParser
-    ${CMAKE_SOURCE_DIR}/helium/helium.yy
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/helium.yy
     ${CMAKE_CURRENT_BINARY_DIR}/helium.yy.c
     VERBOSE helium.yy.output
     COMPILE_FLAGS "-Dapi.prefix={yy_helium_}")
 
 FLEX_TARGET (MIPSLexer
-    ${CMAKE_SOURCE_DIR}/helium/mips.ll
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/mips.ll
     ${CMAKE_CURRENT_BINARY_DIR}/mips.ll.c
     COMPILE_FLAGS "--prefix=yy_mips_")
 
 BISON_TARGET (MIPSParser
-    ${CMAKE_SOURCE_DIR}/helium/mips.yy
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/mips.yy
     ${CMAKE_CURRENT_BINARY_DIR}/mips.yy.c
     VERBOSE mips.yy.output
     COMPILE_FLAGS "-Dapi.prefix={yy_mips_}")
@@ -54,39 +54,39 @@ include_directories (/usr/local/include)
 include_directories (${CMAKE_SOURCE_DIR}/helium)
 
 set (HELIUM_SOURCES
-    ${CMAKE_SOURCE_DIR}/helium/ext/bitarray.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/list.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/mem.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/stack.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/table.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/util.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/str.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/pair.c
-    ${CMAKE_SOURCE_DIR}/helium/ext/vector.c
-    ${CMAKE_SOURCE_DIR}/helium/asm.c
-    ${CMAKE_SOURCE_DIR}/helium/ast_helium.c
-    ${CMAKE_SOURCE_DIR}/helium/ast_asm.c
-    ${CMAKE_SOURCE_DIR}/helium/canon.c
-    ${CMAKE_SOURCE_DIR}/helium/env.c
-    ${CMAKE_SOURCE_DIR}/helium/error.c
-    ${CMAKE_SOURCE_DIR}/helium/escape.c
-    ${CMAKE_SOURCE_DIR}/helium/flowgraph.c
-    ${CMAKE_SOURCE_DIR}/helium/graph.c
-    ${CMAKE_SOURCE_DIR}/helium/liveness.c
-    ${CMAKE_SOURCE_DIR}/helium/machine.c
-    ${CMAKE_SOURCE_DIR}/helium/mipscodegen.c
-    ${CMAKE_SOURCE_DIR}/helium/mipsframe.c
-    ${CMAKE_SOURCE_DIR}/helium/mipsmachine.c
-    ${CMAKE_SOURCE_DIR}/helium/parse.c
-    ${CMAKE_SOURCE_DIR}/helium/regalloc.c
-    ${CMAKE_SOURCE_DIR}/helium/preproc.c
-    ${CMAKE_SOURCE_DIR}/helium/semant.c
-    ${CMAKE_SOURCE_DIR}/helium/semant_mips.c
-    ${CMAKE_SOURCE_DIR}/helium/symbol.c
-    ${CMAKE_SOURCE_DIR}/helium/temp.c
-    ${CMAKE_SOURCE_DIR}/helium/translate.c
-    ${CMAKE_SOURCE_DIR}/helium/tree.c
-    ${CMAKE_SOURCE_DIR}/helium/types.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/ast.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/preproc.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/translate.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/escape.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/semant.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/types.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/helium/env.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/ast.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/codegen.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/frame.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/machine.c
+    ${CMAKE_SOURCE_DIR}/helium/modules/mips/semant.c
+    ${CMAKE_SOURCE_DIR}/helium/util/bitarray.c
+    ${CMAKE_SOURCE_DIR}/helium/util/list.c
+    ${CMAKE_SOURCE_DIR}/helium/util/mem.c
+    ${CMAKE_SOURCE_DIR}/helium/util/stack.c
+    ${CMAKE_SOURCE_DIR}/helium/util/table.c
+    ${CMAKE_SOURCE_DIR}/helium/util/util.c
+    ${CMAKE_SOURCE_DIR}/helium/util/str.c
+    ${CMAKE_SOURCE_DIR}/helium/util/pair.c
+    ${CMAKE_SOURCE_DIR}/helium/util/vector.c
+    ${CMAKE_SOURCE_DIR}/helium/core/asm.c
+    ${CMAKE_SOURCE_DIR}/helium/core/canon.c
+    ${CMAKE_SOURCE_DIR}/helium/core/error.c
+    ${CMAKE_SOURCE_DIR}/helium/core/flowgraph.c
+    ${CMAKE_SOURCE_DIR}/helium/core/graph.c
+    ${CMAKE_SOURCE_DIR}/helium/core/liveness.c
+    ${CMAKE_SOURCE_DIR}/helium/core/machine.c
+    ${CMAKE_SOURCE_DIR}/helium/core/parse.c
+    ${CMAKE_SOURCE_DIR}/helium/core/regalloc.c
+    ${CMAKE_SOURCE_DIR}/helium/core/symbol.c
+    ${CMAKE_SOURCE_DIR}/helium/core/temp.c
+    ${CMAKE_SOURCE_DIR}/helium/core/ir.c
     ${CMAKE_SOURCE_DIR}/helium/program.c)
 
 add_subdirectory (test/libhc)

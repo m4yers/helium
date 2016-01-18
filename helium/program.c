@@ -3,16 +3,15 @@
 #include <string.h>
 #include <assert.h>
 
-#include "ext/vector.h"
-#include "ext/list.h"
-#include "ext/util.h"
-#include "ext/mem.h"
+#include "util/vector.h"
+#include "util/list.h"
+#include "util/util.h"
+#include "util/mem.h"
 
-#include "program.h"
-#include "error.h"
-#include "regalloc.h"
-
-#include "machine.h"
+#include "core/program.h"
+#include "core/regalloc.h"
+#include "core/machine.h"
+#include "core/error.h"
 
 Program_Module Program_ModuleNew()
 {

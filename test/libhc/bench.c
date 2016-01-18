@@ -7,23 +7,23 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/list.h"
-#include "ext/vector.h"
+#include "util/list.h"
+#include "util/vector.h"
 
-#include "symbol.h"
-#include "parse.h"
-#include "env.h"
-#include "preproc.h"
-#include "semant.h"
-#include "translate.h"
-#include "canon.h"
-#include "codegen.h"
-#include "regalloc.h"
-#include "mipsmachine.h"
-#include "escape.h"
-#include "error.h"
+#include "core/symbol.h"
+#include "core/parse.h"
+#include "core/canon.h"
+#include "core/codegen.h"
+#include "core/regalloc.h"
+#include "core/error.h"
+#include "core/program.h"
 
-#include "program.h"
+#include "modules/helium/env.h"
+#include "modules/helium/preproc.h"
+#include "modules/helium/translate.h"
+#include "modules/helium/escape.h"
+#include "modules/helium/semant.h"
+#include "modules/mips/machine.h"
 
 static void run_cases (void ** state, const char * cases[], size_t len)
 {
@@ -36,13 +36,13 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         if (Parse_String (m, cases[i]) != 0)
         {
             printf ("Lex errors: %lu\n", Vector_Size (&m->errors.lexer));
-            VECTOR_FOREACH (struct Error, error, &m->errors.lexer)
+            VECTOR_FOREACH (struct Error_t, error, &m->errors.lexer)
             {
                 Error_Print (stdout, error);
             }
 
             printf ("Parse errors: %lu\n", Vector_Size (&m->errors.parser));
-            VECTOR_FOREACH (struct Error, error, &m->errors.parser)
+            VECTOR_FOREACH (struct Error_t, error, &m->errors.parser)
             {
                 Error_Print (stdout, error);
             }
@@ -62,7 +62,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         {
             printf ("Failed to pre process program\n");
             printf ("Preprocessor  errors: %lu\n", Vector_Size (&m->errors.preproc));
-            VECTOR_FOREACH (struct Error, error, &m->errors.preproc)
+            VECTOR_FOREACH (struct Error_t, error, &m->errors.preproc)
             {
                 Error_Print (stdout, error);
             }
@@ -76,7 +76,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
         {
             printf ("Failed to translate program\n");
             printf ("Semant errors: %lu\n", Vector_Size (&m->errors.semant));
-            VECTOR_FOREACH (struct Error, error, &m->errors.semant)
+            VECTOR_FOREACH (struct Error_t, error, &m->errors.semant)
             {
                 Error_Print (stdout, error);
             }
@@ -142,9 +142,13 @@ static void main__return (void ** state)
     {
         "fn main\n\
         {\n\
+            def Point = { x: int, y: int }\n\
+            let a = 10;\n\
+            let b: Point;\n\
             asm\n\
             {\n\
-                addi $a0, $a1, 1337\n\
+                addi b.x, b.x, 1327\n\
+                addi $a0, $a1, 1327\n\
             }\n\
             \n\
             ret 1;\n\
@@ -153,12 +157,13 @@ static void main__return (void ** state)
 
         /* "fn main\n\ */
         /* {\n\ */
-        /*     sum(1,2);\n\ */
+        /*     let a = 10;\n\ */
         /*     ret 0;\n\ */
         /* }\n\ */
         /* asm(mips;;)\n\ */
         /* {\n\ */
         /*     sum:\n\ */
+        /*       add   a.x, $a0, $a1\n\ */
         /*       add   $v0, $a0, $a1\n\ */
         /*       jr    $ra\n\ */
         /* }", */

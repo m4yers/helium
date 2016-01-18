@@ -2,20 +2,22 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ext/mem.h"
-#include "ext/vector.h"
-#include "ext/list.h"
+#include "util/mem.h"
+#include "util/vector.h"
+#include "util/list.h"
 
-#include "program.h"
-#include "parse.h"
-#include "translate.h"
-#include "mipsmachine.h"
-#include "preproc.h"
-#include "semant.h"
-#include "canon.h"
-#include "codegen.h"
-#include "regalloc.h"
-#include "error.h"
+#include "core/program.h"
+#include "core/parse.h"
+#include "core/canon.h"
+#include "core/codegen.h"
+#include "core/regalloc.h"
+#include "core/error.h"
+
+#include "modules/helium/env.h"
+#include "modules/helium/preproc.h"
+#include "modules/helium/translate.h"
+#include "modules/helium/semant.h"
+#include "modules/mips/machine.h"
 
 static const char * file_drop_extension (const char * file)
 {
