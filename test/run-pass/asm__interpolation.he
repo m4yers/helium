@@ -1,0 +1,32 @@
+fn test_simple
+{
+    let a = 10;
+
+    asm
+    {
+        addi a, $zero, 1337
+    }
+
+    assert! (a == 1337);
+}
+
+fn test_record
+{
+    def Point = { x: int, y: int }
+    let a = Point{};
+
+    asm
+    {
+        addi a.x, $0, 10
+        addi a.y, $0, 11
+    }
+
+    assert! (a.x == 10);
+    assert! (a.y == 11);
+}
+
+fn main
+{
+    test_simple();
+    test_record();
+}
