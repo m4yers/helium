@@ -250,17 +250,10 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
-// forward declaration
-struct Tr_expList_t;
-
 struct A_asmDec_t
 {
     const void * code; // A_stmStmList
     U_stringList options;
-    // FIXME not the correct place move to IR
-    // FIXME Tr_expList
-    struct Tr_expList_t * dst;
-    struct Tr_expList_t * src;
 };
 
 struct A_decFn_t

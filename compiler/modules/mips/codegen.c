@@ -344,37 +344,37 @@ static void munchStm (T_stm s)
     {
         struct String_t str;
 
-        Temp_tempList tdst = NULL;
-        LIST_FOREACH (e, s->u.ASSEMBLY.dst)
-        {
-            if (e->kind == T_TEMP)
-            {
-                LIST_PUSH (tdst, e->u.TEMP);
-            }
-            else
-            {
-                LIST_PUSH (tdst, munchExp (e));
-            }
-        }
-
-        Temp_tempList tsrc = NULL;
-        LIST_FOREACH (e, s->u.ASSEMBLY.src)
-        {
-            if (e->kind == T_TEMP)
-            {
-                LIST_PUSH (tsrc, e->u.TEMP);
-            }
-            else
-            {
-                LIST_PUSH (tsrc, munchExp (e));
-            }
-        }
-
         LIST_FOREACH (stm, s->u.ASSEMBLY.stms)
         {
             String_Init (&str, "");        // no fini since we use the data
             String_Reserve (&str, 128);    // should be more than enough for one line
             AST_AsmEmitLine (&str, stm);
+
+            Temp_tempList tdst = NULL;
+            LIST_FOREACH (e, stm->dst)
+            {
+                if (e->kind == T_TEMP)
+                {
+                    LIST_PUSH (tdst, e->u.TEMP);
+                }
+                else
+                {
+                    LIST_PUSH (tdst, munchExp (e));
+                }
+            }
+
+            Temp_tempList tsrc = NULL;
+            LIST_FOREACH (e, stm->src)
+            {
+                if (e->kind == T_TEMP)
+                {
+                    LIST_PUSH (tsrc, e->u.TEMP);
+                }
+                else
+                {
+                    LIST_PUSH (tsrc, munchExp (e));
+                }
+            }
             //HMM can i detect MOVE?
             emit (ASM_Oper (str.data, tdst, tsrc, NULL));
         }

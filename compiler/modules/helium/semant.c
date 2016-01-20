@@ -271,11 +271,8 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
     // TODO must not contain replacements in and out, like base in GCC
     case A_asmDec:
     {
-        SemantMIPS_Translate (context, &dec->u.assembly);
-        Tr_exp exp = Tr_Asm (
-                         (A_asmStmList)dec->u.assembly.code,
-                         dec->u.assembly.dst,
-                         dec->u.assembly.src);
+        A_asmStmList stml = SemantMIPS_Translate (context, &dec->u.assembly);
+        Tr_exp exp = Tr_Asm (stml);
         /*
          * If the declaration is top level we add the code fragment to the list of plain fragments,
          * they will be emit during codegen phase. Otherwise the fragment becomes part of function

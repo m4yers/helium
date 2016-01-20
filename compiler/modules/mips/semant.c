@@ -395,16 +395,18 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
     return opcode;
 }
 
-static void TransInst (Sema_MIPSContext context, A_asmStm stm)
+static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
 {
     struct Error_t err;
     const struct M_opCode_t * opcode = FindInst (stm, &err);
     if (err.code != 0)
     {
         Vector_PushBack (&context->module->errors.semant, err);
-        return;
+        return NULL;
     }
 
+    A_asmStmList pre = NULL;
+    A_asmStmList post = NULL;
     Vector format = String_Split (&opcode->format, ',');
 
     A_asmStmInst inst = &stm->u.inst;
@@ -429,10 +431,10 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                 struct String_t str = String ("$");
                 String_Append (&str, op->u.mem.base->u.reg->u.name);
                 Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                LIST_PUSH (context->dec->src, Tr_Temp (r));
+                LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
-                op->u.mem.base->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
             }
             // TODO lvalue
             else
@@ -462,17 +464,17 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                      */
                     if (__i_f == 0)
                     {
-                        LIST_PUSH (context->dec->dst, Tr_Temp (r));
+                        LIST_PUSH (stm->dst, Tr_UnEx(Tr_Temp (r)));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
-                        op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                        op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
                     }
                     else
                     {
-                        LIST_PUSH (context->dec->src, Tr_Temp (r));
+                        LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)))
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseSrc;
-                        op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                        op->u.rep.pos = LIST_SIZE (stm->src) - 1;
                     }
                 }
                 else if (op->kind == A_asmOpVarKind)
@@ -480,18 +482,18 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                     if (__i_f == 0)
                     {
                         Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (context->dec->dst, sexp.exp);
+                        LIST_PUSH (stm->dst, Tr_UnEx(sexp.exp));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
-                        op->u.rep.pos = LIST_SIZE (context->dec->dst) - 1;
+                        op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
                     }
                     else
                     {
                         Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (context->dec->src, sexp.exp);
+                        LIST_PUSH (stm->src, Tr_UnEx(sexp.exp));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseSrc;
-                        op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                        op->u.rep.pos = LIST_SIZE (stm->src) - 1;
                     }
                 }
                 else
@@ -511,18 +513,18 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
                     struct String_t str = String ("$");
                     String_Append (&str, op->u.reg->u.name);
                     Temp_temp r = F_RegistersGet_s (regs_all, str.data);
-                    LIST_PUSH (context->dec->src, Tr_Temp (r));
+                    LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
-                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                    op->u.rep.pos = LIST_SIZE (stm->src) - 1;
                 }
                 else if (op->kind == A_asmOpVarKind)
                 {
                     Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                    LIST_PUSH (context->dec->src, sexp.exp);
+                    LIST_PUSH (stm->src, Tr_UnEx(sexp.exp));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
-                    op->u.rep.pos = LIST_SIZE (context->dec->src) - 1;
+                    op->u.rep.pos = LIST_SIZE (stm->src) - 1;
                 }
                 else
                 {
@@ -538,26 +540,40 @@ static void TransInst (Sema_MIPSContext context, A_asmStm stm)
         }
         opList = LIST_NEXT (opList);
     }
+
+    A_asmStmList result = NULL;
+
+    if (pre)
+    {
+        LIST_JOIN (result, pre);
+    }
+
+    LIST_JOIN (result, A_AsmStmList (stm, NULL));
+
+    if (post)
+    {
+        LIST_JOIN (result, post);
+    }
+
+    return result;
 }
 
-static void TransStm (Sema_MIPSContext context, A_asmStm stm)
+static A_asmStmList TransStm (Sema_MIPSContext context, A_asmStm stm)
 {
     switch (stm->kind)
     {
     case A_asmStmInstKind:
     {
-        TransInst (context, stm);
-        break;
+        return TransInst (context, stm);
     }
-    case A_asmStmLabKind:
+    default:
     {
-        break;
+        return A_AsmStmList (stm, NULL);
     }
     }
 }
 
-//FIXME when the semant starts to expand macro then we need to return the new stm list
-int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
+A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
 {
     assert (c);
     assert (d);
@@ -568,7 +584,16 @@ int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
     context.module = c->module;
     context.errors = 0;
 
-    LIST_FOREACH (stm, (A_asmStmList)d->code) TransStm (&context, stm);
+    A_asmStmList result = NULL;
 
-    return context.errors == 0 ? 0 : 1;
+    LIST_FOREACH (stm, (A_asmStmList)d->code)
+    {
+        A_asmStmList stml = TransStm (&context, stm);
+        if (stml)
+        {
+            LIST_JOIN (result, stml);
+        }
+    }
+
+    return result;
 }

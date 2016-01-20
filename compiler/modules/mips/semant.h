@@ -14,6 +14,6 @@ typedef struct Sema_MIPSContext_t
 
 } * Sema_MIPSContext;
 
-int SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d);
+A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d);
 
 #endif /* end of include guard: SEMANT_MIPS_H_ICPDBCH2 */
