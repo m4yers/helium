@@ -6,20 +6,11 @@
 
 #include "core/temp.h"
 
-typedef struct T_stm_ * T_stm;
-typedef struct T_exp_ * T_exp;
-typedef struct T_expList_ * T_expList;
-struct T_expList_
-{
-    T_exp head;
-    T_expList tail;
-};
-typedef struct T_stmList_ * T_stmList;
-struct T_stmList_
-{
-    T_stm head;
-    T_stmList tail;
-};
+typedef struct T_stm_t * T_stm;
+typedef struct T_exp_t * T_exp;
+
+LIST_DEFINE(T_expList, T_exp)
+LIST_DEFINE(T_stmList, T_stm)
 
 typedef enum
 {
@@ -33,7 +24,7 @@ typedef enum
     T_ult, T_ule, T_ugt, T_uge
 } T_relOp;
 
-struct T_stm_
+struct T_stm_t
 {
     enum
     {
@@ -47,8 +38,6 @@ struct T_stm_
         struct
         {
             A_asmStmList stms;
-            T_expList dst;
-            T_expList src;
         } ASSEMBLY;
         struct
         {
@@ -87,7 +76,7 @@ struct T_stm_
     } u;
 };
 
-struct T_exp_
+struct T_exp_t
 {
     enum
     {
@@ -122,7 +111,7 @@ T_expList T_ExpList (T_exp head, T_expList tail);
 int T_ExpListLen (T_expList list);
 T_stmList T_StmList (T_stm head, T_stmList tail);
 
-T_stm T_Asm (A_asmStmList stms, T_expList dst, T_expList src);
+T_stm T_Asm (A_asmStmList stms);
 T_stm T_AsmOld (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src);
 T_stm T_Seq (T_stm left, T_stm right);
 T_stm T_Comment (const char * comment);

@@ -36,13 +36,11 @@ T_stmList T_StmList (T_stm head, T_stmList tail)
     return p;
 }
 
-T_stm T_Asm (A_asmStmList stms, T_expList dst, T_expList src)
+T_stm T_Asm (A_asmStmList stms)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);
     p->kind = T_ASM;
     p->u.ASSEMBLY.stms = stms;
-    p->u.ASSEMBLY.dst = dst;
-    p->u.ASSEMBLY.src = src;
     return p;
 }
 
