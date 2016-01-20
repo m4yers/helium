@@ -212,7 +212,7 @@ static ASM_line GetMove (int index, Live_moveList l)
 //////////////////////
 
 static Workspace
-Workspace_New (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers regs_colors, F_accessList accessList)
+Workspace_New (F_frame f, ASM_lineList ll, M_regs regs_all, M_regs regs_colors, F_accessList accessList)
 {
     DBG ("Workspace_New:\n");
     Flow_graph fg = FG_AsmFlowGraph (ll);
@@ -353,7 +353,7 @@ Workspace_New (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers reg
     r->colors = NULL;
     r->accessList = accessList;
     // FIXME Artyom Goncharov there is no need to create reg map every time
-    r->results = Temp_LayerMap (Temp_Empty(), F_RegistersToMap (Temp_Empty(), regs_all));
+    r->results = Temp_LayerMap (Temp_Empty(), M_RegsToTempMap (Temp_Empty(), regs_all));
 
     return r;
 }
@@ -1047,7 +1047,7 @@ static ASM_lineList Rewrite (Workspace w)
     return result;
 }
 
-RA_Result RA_RegAlloc (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers regs_colors)
+RA_Result RA_RegAlloc (F_frame f, ASM_lineList ll, M_regs regs_all, M_regs regs_colors)
 {
     DBG ("\n%s", "RA_RegAlloc");
     Workspace w = NULL;

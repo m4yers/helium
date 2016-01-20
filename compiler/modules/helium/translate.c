@@ -272,7 +272,7 @@ Tr_access Tr_AllocMaterialize (Tr_access access, Tr_level level, Ty_ty type, boo
 
     F_access fa;
     // FIXME currently assuming it evenly divides
-    fa = F_AllocMaterializeArray (level->frame, access->access, size / F_wordSize, escape);
+    fa = F_AllocMaterializeArray (level->frame, access->access, size / M_wordSize, escape);
 
     return access;
 }
@@ -283,11 +283,11 @@ Tr_access Tr_Alloc (Tr_level level, Ty_ty type, S_symbol name, bool escape)
     assert (size > 0);
 
     F_access fa;
-    if (size > F_wordSize)
+    if (size > M_wordSize)
     {
         // FIXME currently assuming it evenly divides
         // FIXME Frame module should not care about escaping, rename to onStack
-        fa = F_AllocArray (level->frame, size / F_wordSize, name ? name->name : NULL, escape);
+        fa = F_AllocArray (level->frame, size / M_wordSize, name ? name->name : NULL, escape);
     }
     else
     {
@@ -568,7 +568,7 @@ Tr_exp Tr_RecordExp (Tr_exp b, Ty_ty type, Tr_expList list, int offset)
                                              base,
                                              T_Const (offset))),
                                   list->head,
-                                  Ty_SizeOf (ft) / F_wordSize);
+                                  Ty_SizeOf (ft) / M_wordSize);
                 tail = tail->u.ESEQ.exp = T_Eseq (Tr_UnSx (copy), NULL);
                 break;
             }
@@ -626,12 +626,12 @@ Tr_exp Tr_Memcpy (Tr_exp dst, Tr_exp src, size_t words)
                            T_Binop (
                                T_plus,
                                d,
-                               T_Const (F_wordSize * words))),
+                               T_Const (M_wordSize * words))),
                        T_Mem (
                            T_Binop (
                                T_plus,
                                s,
-                               T_Const (F_wordSize * words)))),
+                               T_Const (M_wordSize * words)))),
                    r);
     }
 
@@ -780,7 +780,7 @@ Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList
     Temp_tempList dl = NULL;
     LIST_FOREACH (d, dst)
     {
-        Temp_temp t = F_RegistersGet_s (regs_all, d);
+        Temp_temp t = M_RegGet (regs_all, d);
         if (!t)
         {
             assert (0);
@@ -792,7 +792,7 @@ Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList
     Temp_tempList sl = NULL;
     LIST_FOREACH (d, src)
     {
-        Temp_temp t = F_RegistersGet_s (regs_all, d);
+        Temp_temp t = M_RegGet (regs_all, d);
         if (!t)
         {
             assert (0);

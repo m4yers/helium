@@ -6,24 +6,24 @@
 
 #include "core/machine.h"
 
-F_registers F_Registers (Temp_tempList temps, U_stringList names)
+M_regs M_Regs (Temp_tempList temps, U_stringList names)
 {
-    F_registers r = checked_malloc (sizeof (*r));
+    M_regs r = checked_malloc (sizeof (*r));
     r->number = 0;
     r->temps = r->last_temp = temps;
     r->names = r->last_name = names;
     return r;
 }
 
-Temp_temp F_RegistersGet (F_registers regs, int index)
+Temp_temp M_RegGet_u (M_regs regs, int index)
 {
     assert (index < regs->number);
 
-    for (Temp_tempList l = regs->temps; l; l = l->tail)
+    LIST_FOREACH(l, regs->temps)
     {
         if (index-- == 0)
         {
-            return l->head;
+            return l;
         }
     }
 
@@ -31,7 +31,26 @@ Temp_temp F_RegistersGet (F_registers regs, int index)
     return NULL;
 }
 
-const char * F_RegistersGetName (F_registers regs, int index)
+Temp_temp M_RegGet_s (M_regs regs, const char * name)
+{
+    assert (name);
+
+    U_stringList s = regs->names;
+    LIST_FOREACH(t, regs->temps)
+    {
+        const char * n = s->head;
+        if (strcmp (n, name) == 0)
+        {
+            return t;
+        }
+
+        s = LIST_NEXT(s);
+    }
+
+    return NULL;
+}
+
+const char * M_RegGetName (M_regs regs, int index)
 {
     assert (index >= 0);
     assert (index < regs->number);
@@ -47,25 +66,7 @@ const char * F_RegistersGetName (F_registers regs, int index)
     return NULL;
 }
 
-Temp_temp F_RegistersGet_s (F_registers regs, const char * name)
-{
-    assert (name);
-
-    Temp_tempList t = regs->temps;
-    U_stringList l = regs->names;
-    for (; l; t = t->tail, l = l->tail)
-    {
-        const char * n = l->head;
-        if (strcmp (n, name) == 0)
-        {
-            return t->head;
-        }
-    }
-
-    return NULL;
-}
-
-bool F_RegistersContains (F_registers regs, Temp_temp reg)
+bool M_RegsHas (M_regs regs, Temp_temp reg)
 {
     assert (reg);
 
@@ -80,7 +81,7 @@ bool F_RegistersContains (F_registers regs, Temp_temp reg)
     return FALSE;
 }
 
-void F_RegistersAdd (F_registers regs, Temp_temp temp, const char * name)
+void M_RegsAdd (M_regs regs, Temp_temp temp, const char * name)
 {
     if (!regs->temps)
     {
@@ -95,15 +96,15 @@ void F_RegistersAdd (F_registers regs, Temp_temp temp, const char * name)
     regs->number++;
 }
 
-Temp_map F_RegistersToMap (Temp_map map, F_registers regs)
+Temp_map M_RegsToTempMap (Temp_map map, M_regs regs)
 {
     if (regs)
     {
-        Temp_tempList l = regs->temps;
         U_stringList s = regs->names;
-        for (; l; l = l->tail, s = s->tail)
+        LIST_FOREACH(t, regs->temps)
         {
-            Temp_Enter (map, l->head, s->head);
+            Temp_Enter (map, t, s->head);
+            s = LIST_NEXT(s);
         }
     }
 

@@ -8,6 +8,7 @@
 #include "util/str.h"
 #include "util/list.h"
 
+#include "core/machine.h"
 #include "core/symbol.h"
 #include "core/error.h"
 #include "core/ast.h"
@@ -404,7 +405,7 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
             {
                 access = Tr_Alloc (context->level, aity, decVar.var, escape);
                 Tr_exp left = Tr_SimpleVar (access, context->level, TRUE);
-                iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (aity) / F_wordSize);
+                iexp = Tr_Memcpy (left, iexp, Ty_SizeOf (aity) / M_wordSize);
             }
             else
             {
@@ -1622,7 +1623,7 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
          */
         if (copy)
         {
-            aexp = Tr_Memcpy (lexp.exp, rexp.exp, Ty_SizeOf (rexp.ty) / F_wordSize);
+            aexp = Tr_Memcpy (lexp.exp, rexp.exp, Ty_SizeOf (rexp.ty) / M_wordSize);
             aexp = Tr_Seq (aexp, lexp.exp); //assignment yields a value everytime for now
         }
         else

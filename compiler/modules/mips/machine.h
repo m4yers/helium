@@ -154,13 +154,13 @@ Temp_temp ra;
 
 Temp_map regs_map;
 
-F_registers regs_all;
-F_registers regs_colors;
-F_registers regs_result;
-F_registers regs_special;
-F_registers regs_arguments;
-F_registers regs_callee_save;
-F_registers regs_caller_save;
+M_regs regs_all;
+M_regs regs_colors;
+M_regs regs_result;
+M_regs regs_special;
+M_regs regs_arguments;
+M_regs regs_callee_save;
+M_regs regs_caller_save;
 
 void MIPS_Init (void);
 

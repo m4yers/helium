@@ -59,7 +59,7 @@ static Temp_tempList munchArgs (int index, T_expList list)
     Temp_temp a;
     if (index < 4)
     {
-        a = F_RegistersGet (regs_arguments, index);
+        a = M_RegGet (regs_arguments, index);
         R_INST (buffer, "add");
         emit (ASM_Move (
                   buffer,
@@ -72,7 +72,7 @@ static Temp_tempList munchArgs (int index, T_expList list)
     {
         // HMM do we really need a real temp here? mb just NULL for the rest?
         a = Temp_NewTemp();
-        sprintf (buffer, "%-5s `s0, %d(`s1)", "sw", index * F_wordSize);
+        sprintf (buffer, "%-5s `s0, %d(`s1)", "sw", index * M_wordSize);
         emit (ASM_Oper (
                   buffer,
                   NULL,

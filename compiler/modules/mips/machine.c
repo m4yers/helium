@@ -1,6 +1,6 @@
 #include "modules/mips/machine.h"
 
-const int F_wordSize = 4;
+const int M_wordSize = 4;
 
 const struct M_opCode_t mips_opcodes[] =
 {
@@ -671,123 +671,123 @@ void MIPS_Init()
     fp = Temp_NewTemp();
     ra = Temp_NewTemp();
 
-    regs_all = F_Registers (NULL, NULL);
-    F_RegistersAdd (regs_all, zero, "$zero");
+    regs_all = M_Regs (NULL, NULL);
+    M_RegsAdd (regs_all, zero, "$zero");
 
-    F_RegistersAdd (regs_all, at, "$at");
+    M_RegsAdd (regs_all, at, "$at");
 
-    F_RegistersAdd (regs_all, v0, "$v0");
-    F_RegistersAdd (regs_all, v1, "$v1");
+    M_RegsAdd (regs_all, v0, "$v0");
+    M_RegsAdd (regs_all, v1, "$v1");
 
-    F_RegistersAdd (regs_all, a0, "$a0");
-    F_RegistersAdd (regs_all, a1, "$a1");
-    F_RegistersAdd (regs_all, a2, "$a2");
-    F_RegistersAdd (regs_all, a3, "$a3");
+    M_RegsAdd (regs_all, a0, "$a0");
+    M_RegsAdd (regs_all, a1, "$a1");
+    M_RegsAdd (regs_all, a2, "$a2");
+    M_RegsAdd (regs_all, a3, "$a3");
 
-    F_RegistersAdd (regs_all, t0, "$t0");
-    F_RegistersAdd (regs_all, t1, "$t1");
-    F_RegistersAdd (regs_all, t2, "$t2");
-    F_RegistersAdd (regs_all, t3, "$t3");
-    F_RegistersAdd (regs_all, t4, "$t4");
-    F_RegistersAdd (regs_all, t5, "$t5");
-    F_RegistersAdd (regs_all, t6, "$t6");
-    F_RegistersAdd (regs_all, t7, "$t7");
-    F_RegistersAdd (regs_all, t8, "$t8");
-    F_RegistersAdd (regs_all, t9, "$t9");
+    M_RegsAdd (regs_all, t0, "$t0");
+    M_RegsAdd (regs_all, t1, "$t1");
+    M_RegsAdd (regs_all, t2, "$t2");
+    M_RegsAdd (regs_all, t3, "$t3");
+    M_RegsAdd (regs_all, t4, "$t4");
+    M_RegsAdd (regs_all, t5, "$t5");
+    M_RegsAdd (regs_all, t6, "$t6");
+    M_RegsAdd (regs_all, t7, "$t7");
+    M_RegsAdd (regs_all, t8, "$t8");
+    M_RegsAdd (regs_all, t9, "$t9");
 
-    F_RegistersAdd (regs_all, s0, "$s0");
-    F_RegistersAdd (regs_all, s1, "$s1");
-    F_RegistersAdd (regs_all, s2, "$s2");
-    F_RegistersAdd (regs_all, s3, "$s3");
-    F_RegistersAdd (regs_all, s4, "$s4");
-    F_RegistersAdd (regs_all, s5, "$s5");
-    F_RegistersAdd (regs_all, s6, "$s6");
-    F_RegistersAdd (regs_all, s7, "$s7");
+    M_RegsAdd (regs_all, s0, "$s0");
+    M_RegsAdd (regs_all, s1, "$s1");
+    M_RegsAdd (regs_all, s2, "$s2");
+    M_RegsAdd (regs_all, s3, "$s3");
+    M_RegsAdd (regs_all, s4, "$s4");
+    M_RegsAdd (regs_all, s5, "$s5");
+    M_RegsAdd (regs_all, s6, "$s6");
+    M_RegsAdd (regs_all, s7, "$s7");
 
-    F_RegistersAdd (regs_all, k0, "$k0");
-    F_RegistersAdd (regs_all, k1, "$k1");
+    M_RegsAdd (regs_all, k0, "$k0");
+    M_RegsAdd (regs_all, k1, "$k1");
 
-    F_RegistersAdd (regs_all, gp, "$gp");
+    M_RegsAdd (regs_all, gp, "$gp");
 
-    F_RegistersAdd (regs_all, sp, "$sp");
-    F_RegistersAdd (regs_all, fp, "$fp");
-    F_RegistersAdd (regs_all, ra, "$ra");
+    M_RegsAdd (regs_all, sp, "$sp");
+    M_RegsAdd (regs_all, fp, "$fp");
+    M_RegsAdd (regs_all, ra, "$ra");
 
-    regs_colors = F_Registers (NULL, NULL);
+    regs_colors = M_Regs (NULL, NULL);
 
-    F_RegistersAdd (regs_colors, v0, "$v0");
-    /* F_RegistersAdd (regs_colors, v1, "$v1"); */
+    M_RegsAdd (regs_colors, v0, "$v0");
+    /* M_RegsAdd (regs_colors, v1, "$v1"); */
 
-    F_RegistersAdd (regs_colors, a0, "$a0");
-    F_RegistersAdd (regs_colors, a1, "$a1");
-    F_RegistersAdd (regs_colors, a2, "$a2");
-    F_RegistersAdd (regs_colors, a3, "$a3");
+    M_RegsAdd (regs_colors, a0, "$a0");
+    M_RegsAdd (regs_colors, a1, "$a1");
+    M_RegsAdd (regs_colors, a2, "$a2");
+    M_RegsAdd (regs_colors, a3, "$a3");
 
-    F_RegistersAdd (regs_colors, t0, "$t0");
-    F_RegistersAdd (regs_colors, t1, "$t1");
-    F_RegistersAdd (regs_colors, t2, "$t2");
-    F_RegistersAdd (regs_colors, t3, "$t3");
-    F_RegistersAdd (regs_colors, t4, "$t4");
-    F_RegistersAdd (regs_colors, t5, "$t5");
-    F_RegistersAdd (regs_colors, t6, "$t6");
-    F_RegistersAdd (regs_colors, t7, "$t7");
-    F_RegistersAdd (regs_colors, t8, "$t8");
-    F_RegistersAdd (regs_colors, t9, "$t9");
+    M_RegsAdd (regs_colors, t0, "$t0");
+    M_RegsAdd (regs_colors, t1, "$t1");
+    M_RegsAdd (regs_colors, t2, "$t2");
+    M_RegsAdd (regs_colors, t3, "$t3");
+    M_RegsAdd (regs_colors, t4, "$t4");
+    M_RegsAdd (regs_colors, t5, "$t5");
+    M_RegsAdd (regs_colors, t6, "$t6");
+    M_RegsAdd (regs_colors, t7, "$t7");
+    M_RegsAdd (regs_colors, t8, "$t8");
+    M_RegsAdd (regs_colors, t9, "$t9");
 
-    F_RegistersAdd (regs_colors, s0, "$s0");
-    F_RegistersAdd (regs_colors, s1, "$s1");
-    F_RegistersAdd (regs_colors, s2, "$s2");
-    F_RegistersAdd (regs_colors, s3, "$s3");
-    F_RegistersAdd (regs_colors, s4, "$s4");
-    F_RegistersAdd (regs_colors, s5, "$s5");
-    F_RegistersAdd (regs_colors, s6, "$s6");
-    F_RegistersAdd (regs_colors, s7, "$s7");
+    M_RegsAdd (regs_colors, s0, "$s0");
+    M_RegsAdd (regs_colors, s1, "$s1");
+    M_RegsAdd (regs_colors, s2, "$s2");
+    M_RegsAdd (regs_colors, s3, "$s3");
+    M_RegsAdd (regs_colors, s4, "$s4");
+    M_RegsAdd (regs_colors, s5, "$s5");
+    M_RegsAdd (regs_colors, s6, "$s6");
+    M_RegsAdd (regs_colors, s7, "$s7");
 
-    /* F_RegistersAdd (regs_colors, sp, "$sp"); */
-    /* F_RegistersAdd (regs_colors, fp, "$fp"); */
-    F_RegistersAdd (regs_colors, ra, "$ra");
+    /* M_RegsAdd (regs_colors, sp, "$sp"); */
+    /* M_RegsAdd (regs_colors, fp, "$fp"); */
+    M_RegsAdd (regs_colors, ra, "$ra");
 
-    regs_result = F_Registers (NULL, NULL);
-    F_RegistersAdd (regs_result, v0, "$v0");
-    F_RegistersAdd (regs_result, v1, "$v1");
+    regs_result = M_Regs (NULL, NULL);
+    M_RegsAdd (regs_result, v0, "$v0");
+    M_RegsAdd (regs_result, v1, "$v1");
 
-    regs_special = F_Registers (NULL, NULL);
-    F_RegistersAdd (regs_special, zero, "zero");
-    F_RegistersAdd (regs_special, sp,   "$sp");
-    F_RegistersAdd (regs_special, fp,   "$fp");
-    F_RegistersAdd (regs_special, ra,   "$ra");
-    /* F_RegistersAdd (regs_special, v0,   "$v0"); */
-    /* F_RegistersAdd (regs_special, v1,   "$v1"); */
+    regs_special = M_Regs (NULL, NULL);
+    M_RegsAdd (regs_special, zero, "zero");
+    M_RegsAdd (regs_special, sp,   "$sp");
+    M_RegsAdd (regs_special, fp,   "$fp");
+    M_RegsAdd (regs_special, ra,   "$ra");
+    /* M_RegsAdd (regs_special, v0,   "$v0"); */
+    /* M_RegsAdd (regs_special, v1,   "$v1"); */
 
-    regs_arguments = F_Registers (NULL, NULL);
-    F_RegistersAdd (regs_arguments, a0, "$a0");
-    F_RegistersAdd (regs_arguments, a1, "$a1");
-    F_RegistersAdd (regs_arguments, a2, "$a2");
-    F_RegistersAdd (regs_arguments, a3, "$a3");
+    regs_arguments = M_Regs (NULL, NULL);
+    M_RegsAdd (regs_arguments, a0, "$a0");
+    M_RegsAdd (regs_arguments, a1, "$a1");
+    M_RegsAdd (regs_arguments, a2, "$a2");
+    M_RegsAdd (regs_arguments, a3, "$a3");
 
-    regs_caller_save = F_Registers (NULL, NULL);
-    F_RegistersAdd (regs_caller_save, t0, "$t0");
-    F_RegistersAdd (regs_caller_save, t1, "$t1");
-    F_RegistersAdd (regs_caller_save, t2, "$t2");
-    F_RegistersAdd (regs_caller_save, t3, "$t3");
-    F_RegistersAdd (regs_caller_save, t4, "$t4");
-    F_RegistersAdd (regs_caller_save, t5, "$t5");
-    F_RegistersAdd (regs_caller_save, t6, "$t6");
-    F_RegistersAdd (regs_caller_save, t7, "$t7");
-    F_RegistersAdd (regs_caller_save, t8, "$t8");
-    F_RegistersAdd (regs_caller_save, t9, "$t9");
+    regs_caller_save = M_Regs (NULL, NULL);
+    M_RegsAdd (regs_caller_save, t0, "$t0");
+    M_RegsAdd (regs_caller_save, t1, "$t1");
+    M_RegsAdd (regs_caller_save, t2, "$t2");
+    M_RegsAdd (regs_caller_save, t3, "$t3");
+    M_RegsAdd (regs_caller_save, t4, "$t4");
+    M_RegsAdd (regs_caller_save, t5, "$t5");
+    M_RegsAdd (regs_caller_save, t6, "$t6");
+    M_RegsAdd (regs_caller_save, t7, "$t7");
+    M_RegsAdd (regs_caller_save, t8, "$t8");
+    M_RegsAdd (regs_caller_save, t9, "$t9");
 
-    regs_callee_save = F_Registers (NULL, NULL);
+    regs_callee_save = M_Regs (NULL, NULL);
     // fp is always used by the callee
-    F_RegistersAdd (regs_callee_save, fp, "$fp");
-    F_RegistersAdd (regs_callee_save, s7, "$s7");
-    F_RegistersAdd (regs_callee_save, s6, "$s6");
-    F_RegistersAdd (regs_callee_save, s5, "$s5");
-    F_RegistersAdd (regs_callee_save, s4, "$s4");
-    F_RegistersAdd (regs_callee_save, s3, "$s3");
-    F_RegistersAdd (regs_callee_save, s2, "$s2");
-    F_RegistersAdd (regs_callee_save, s1, "$s1");
-    F_RegistersAdd (regs_callee_save, s0, "$s0");
+    M_RegsAdd (regs_callee_save, fp, "$fp");
+    M_RegsAdd (regs_callee_save, s7, "$s7");
+    M_RegsAdd (regs_callee_save, s6, "$s6");
+    M_RegsAdd (regs_callee_save, s5, "$s5");
+    M_RegsAdd (regs_callee_save, s4, "$s4");
+    M_RegsAdd (regs_callee_save, s3, "$s3");
+    M_RegsAdd (regs_callee_save, s2, "$s2");
+    M_RegsAdd (regs_callee_save, s1, "$s1");
+    M_RegsAdd (regs_callee_save, s0, "$s0");
 
-    regs_map = F_RegistersToMap (Temp_Empty(), regs_all);
+    regs_map = M_RegsToTempMap (Temp_Empty(), regs_all);
 }

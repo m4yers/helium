@@ -13,6 +13,6 @@ typedef struct RA_ResultType
 
 } * RA_Result;
 
-RA_Result RA_RegAlloc (F_frame f, ASM_lineList ll, F_registers regs_all, F_registers regs_colors);
+RA_Result RA_RegAlloc (F_frame f, ASM_lineList ll, M_regs regs_all, M_regs regs_colors);
 
 #endif /* end of include guard: REGALLOC_H_6JKE4GXK */

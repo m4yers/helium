@@ -259,7 +259,7 @@ int Ty_SizeOf (Ty_ty type)
     case Ty_pointer:
     case Ty_int:
     {
-        return F_wordSize;
+        return M_wordSize;
     }
     case Ty_array:
     {

@@ -141,8 +141,6 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
  *  Main  *
  **********/
 
-extern const int F_wordSize;
-
 extern Temp_map F_tempMap;
 Temp_temp F_Zero (void);
 Temp_temp F_SP (void);

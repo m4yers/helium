@@ -116,7 +116,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected $zero register operand");
             }
 
-            Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
+            Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
             if (r != zero)
             {
                 return String_New ("Expected $zero register operand");
@@ -232,7 +232,7 @@ static String NormalizeOp (A_asmOp op)
             struct String_t str = String ("$");
             String_Append (&str, reg->u.name);
             reg->u.name = str.data;
-            if (!F_RegistersGet_s (regs_all, reg->u.name))
+            if (!M_RegGet (regs_all, reg->u.name))
             {
                 return String_New ("Unknown register");
             }
@@ -248,7 +248,7 @@ static String NormalizeOp (A_asmOp op)
                 return String_New ("Unknown register");
             }
             reg->kind = A_asmRegNameKind;
-            reg->u.name = F_RegistersGetName (regs_all, reg->u.num);
+            reg->u.name = M_RegGetName (regs_all, reg->u.num);
             break;
         }
         }
@@ -260,7 +260,7 @@ static String NormalizeOp (A_asmOp op)
     {
         if (op->u.mem.base->kind == A_asmRegNumKind)
         {
-            const char * name = F_RegistersGetName (regs_all, op->u.mem.base->u.reg->u.num);
+            const char * name = M_RegGetName (regs_all, op->u.mem.base->u.reg->u.num);
             if (!name)
             {
                 return String_New ("Unknown register");
@@ -434,7 +434,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
         {
             if (op->u.mem.base->kind == A_asmOpRegKind)
             {
-                Temp_temp r = F_RegistersGet_s (regs_all, op->u.mem.base->u.reg->u.name);
+                Temp_temp r = M_RegGet (regs_all, op->u.mem.base->u.reg->u.name);
                 LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
@@ -456,7 +456,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             {
                 if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
-                    Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
+                    Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
                     /*
                      * TODO
                      * this check here because of 't' register that can be used as 'd' in the
@@ -512,7 +512,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             {
                 if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
-                    Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
+                    Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
                     LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;

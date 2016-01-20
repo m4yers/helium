@@ -303,12 +303,12 @@ F_frame F_NewFrame (Temp_label name, U_boolList formals)
             // if escapes and within 4 arguments reg limit
             if (!l->head && r->formalsNum < 4)
             {
-                Temp_temp temp = F_RegistersGet (regs_arguments, r->formalsNum);
+                Temp_temp temp = M_RegGet (regs_arguments, r->formalsNum);
                 access = RegWordNew (temp, NULL);
             }
             else
             {
-                access = StackWordNew (F_wordSize * r->formalsNum, NULL);
+                access = StackWordNew (M_wordSize * r->formalsNum, NULL);
             }
 
             LIST_PUSH (r->formals, access);
@@ -346,7 +346,7 @@ F_access F_Alloc (F_frame frame, const char * name, bool escape)
          * since stack grows from HI to LO we reference local data with negative offset relative
          * to $fp
          */
-        access = StackWordNew (-F_wordSize * ++frame->wordsNum, NULL);
+        access = StackWordNew (-M_wordSize * ++frame->wordsNum, NULL);
     }
     else
     {
@@ -382,13 +382,13 @@ F_access F_AllocArray (F_frame frame, int words, const char * name, bool escape)
      * since stack grows from HI to LO we reference local data with negative offset relative
      * to $fp
      */
-    F_access array = StackArrayNew (-F_wordSize * frame->wordsNum, words);
+    F_access array = StackArrayNew (-M_wordSize * frame->wordsNum, words);
     LIST_PUSH (frame->arrays, array);
 
     F_access access;
     if (escape)
     {
-        access = StackWordNew (-F_wordSize * ++frame->wordsNum, array);
+        access = StackWordNew (-M_wordSize * ++frame->wordsNum, array);
     }
     else
     {
@@ -435,7 +435,7 @@ F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, boo
      * since stack grows from HI to LO we reference local data with negative offset relative
      * to $fp
      */
-    F_access array = StackArrayNew (-F_wordSize * frame->wordsNum, words);
+    F_access array = StackArrayNew (-M_wordSize * frame->wordsNum, words);
     LIST_PUSH (frame->arrays, array);
 
     T_expList containers = access->u.virtual.containers;
@@ -443,7 +443,7 @@ F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, boo
     if (escape)
     {
         access->kind = FA_stackWord;
-        access->u.stackWord.offset = -F_wordSize * ++frame->wordsNum;
+        access->u.stackWord.offset = -M_wordSize * ++frame->wordsNum;
     }
     else
     {
@@ -579,7 +579,7 @@ T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
                                         T_plus,
                                         T_Temp (F_FP()),
                                         T_Const (a->u.stackWord.offset))),
-                             T_Temp (F_RegistersGet (regs_arguments, count))),
+                             T_Temp (M_RegGet (regs_arguments, count))),
                          stm);
         }
         count++;
@@ -766,11 +766,11 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
      */
     LIST_FOREACH (color, colors)
     {
-        if (F_RegistersContains (regs_caller_save, color))
+        if (M_RegsHas (regs_caller_save, color))
         {
             frame->tUsed++;
         }
-        else if (F_RegistersContains (regs_callee_save, color))
+        else if (M_RegsHas (regs_callee_save, color))
         {
             frame->sUsed++;
         }
@@ -808,13 +808,13 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     // words allocated for stack words and arrays
     frameSize += frame->wordsNum;
 
-    lSize = frameSize * F_wordSize;
+    lSize = frameSize * M_wordSize;
 
     /*
      * Each allocated color has its own place on stack
      */
     frameSize += frame->tUsed;
-    tSize = frame->tUsed * F_wordSize;
+    tSize = frame->tUsed * M_wordSize;
 
     /*
      * Padding.
@@ -822,7 +822,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
      */
     frameSize += (frameSize % 2 ? 1 : 0);
 
-    ldssSize = frameSize * F_wordSize;
+    ldssSize = frameSize * M_wordSize;
     /*
      * Return address
      */
@@ -838,7 +838,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     /*
      * Multiplying by word size to get real value
      */
-    frameSize *= F_wordSize;
+    frameSize *= M_wordSize;
 
     T_stmList stms = NULL;
 
@@ -869,7 +869,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                        T_Binop (
                            T_minus,
                            T_Temp (sp),
-                           T_Const (ldssSize + F_wordSize - frameSize))),
+                           T_Const (ldssSize + M_wordSize - frameSize))),
                    T_Temp (ra)));
 
     // Save Callee-Save Registesrs to stack including old $fp
@@ -882,8 +882,8 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                                T_minus,
                                T_Temp (sp),
                                // 1 for ra and 1 for word offset
-                               T_Const (ldssSize + F_wordSize + (i + 1) * F_wordSize - frameSize))),
-                       T_Temp (F_RegistersGet (regs_callee_save, i))));
+                               T_Const (ldssSize + M_wordSize + (i + 1) * M_wordSize - frameSize))),
+                       T_Temp (M_RegGet (regs_callee_save, i))));
     }
 
     // Set FP
@@ -907,19 +907,19 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                        T_Binop (
                            T_minus,
                            T_Temp (sp),
-                           T_Const (ldssSize + F_wordSize - frameSize)))));
+                           T_Const (ldssSize + M_wordSize - frameSize)))));
 
     // Restore CeSR to stack including old $fp
     for (int i = 0; i < frame->sUsed; ++i)
     {
         LIST_PUSH (stms,
                    T_Move (
-                       T_Temp (F_RegistersGet (regs_callee_save, i)),
+                       T_Temp (M_RegGet (regs_callee_save, i)),
                        T_Mem (
                            T_Binop (
                                T_minus,
                                T_Temp (sp),
-                               T_Const (ldssSize + F_wordSize + (i + 1) * F_wordSize - frameSize)))));
+                               T_Const (ldssSize + M_wordSize + (i + 1) * M_wordSize - frameSize)))));
     }
 
     // Restore SP
@@ -953,8 +953,8 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                                T_Binop (
                                    T_minus,
                                    T_Temp (fp),
-                                   T_Const (lSize + (i + 1) * F_wordSize))),
-                           T_Temp (F_RegistersGet (regs_caller_save, i))));
+                                   T_Const (lSize + (i + 1) * M_wordSize))),
+                           T_Temp (M_RegGet (regs_caller_save, i))));
         }
         ASM_lineList save = F_CodeGen (frame, stms);
 
@@ -963,12 +963,12 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
         {
             LIST_PUSH (stms,
                        T_Move (
-                           T_Temp (F_RegistersGet (regs_caller_save, i)),
+                           T_Temp (M_RegGet (regs_caller_save, i)),
                            T_Mem (
                                T_Binop (
                                    T_minus,
                                    T_Temp (fp),
-                                   T_Const (lSize + (i + 1) * F_wordSize)))));
+                                   T_Const (lSize + (i + 1) * M_wordSize)))));
         }
 
         ASM_lineList restore = F_CodeGen (frame, stms);
@@ -1007,7 +1007,7 @@ void F_Init()
 
     F_tempMap = Temp_Empty();
 
-    F_RegistersToMap (F_tempMap, regs_special);
+    M_RegsToTempMap (F_tempMap, regs_special);
 }
 
 Temp_temp F_Zero (void)
