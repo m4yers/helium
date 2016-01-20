@@ -111,10 +111,15 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
         }
         case ZERO_REGISTER:
         {
-            // TODO check for $zero
             if (op->kind != A_asmOpRegKind)
             {
-                return String_New ("Expected Reg operand");
+                return String_New ("Expected $zero register operand");
+            }
+
+            Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
+            if (r != zero)
+            {
+                return String_New ("Expected $zero register operand");
             }
             return NULL;
         }
