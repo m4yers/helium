@@ -226,7 +226,8 @@ static String NormalizeOp (A_asmOp op)
             // TODO fix it
             struct String_t str = String ("$");
             String_Append (&str, reg->u.name);
-            if (!F_RegistersGet_s (regs_all, str.data))
+            reg->u.name = str.data;
+            if (!F_RegistersGet_s (regs_all, reg->u.name))
             {
                 return String_New ("Unknown register");
             }
@@ -259,6 +260,7 @@ static String NormalizeOp (A_asmOp op)
             {
                 return String_New ("Unknown register");
             }
+            // FIXME check for wrong name?
             op->u.mem.base->u.reg->kind = A_asmRegNameKind;
             op->u.mem.base->u.reg->u.name = name;
         }
@@ -427,10 +429,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
         {
             if (op->u.mem.base->kind == A_asmOpRegKind)
             {
-                // FIXME regs name
-                struct String_t str = String ("$");
-                String_Append (&str, op->u.mem.base->u.reg->u.name);
-                Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                Temp_temp r = F_RegistersGet_s (regs_all, op->u.mem.base->u.reg->u.name);
                 LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
@@ -450,12 +449,9 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             case TARGET_REGISTER_5_BIT:
             case DESTINATION_REGISTER_5_BIT:
             {
-                // FIXME regs name
                 if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
-                    struct String_t str = String ("$");
-                    String_Append (&str, op->u.reg->u.name);
-                    Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                    Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
                     /*
                      * TODO
                      * this check here because of 't' register that can be used as 'd' in the
@@ -511,10 +507,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             {
                 if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
-                    // FIXME regs name
-                    struct String_t str = String ("$");
-                    String_Append (&str, op->u.reg->u.name);
-                    Temp_temp r = F_RegistersGet_s (regs_all, str.data);
+                    Temp_temp r = F_RegistersGet_s (regs_all, op->u.reg->u.name);
                     LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
