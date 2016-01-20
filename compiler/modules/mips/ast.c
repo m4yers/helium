@@ -81,6 +81,10 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
     p->kind = A_asmStmInstKind;
     p->u.inst.opcode = opcode;
     p->u.inst.opList = opList;
+    p->dst = NULL;
+    p->src = NULL;
+    p->pre = NULL;
+    p->post = NULL;
     return p;
 }
 
@@ -90,6 +94,10 @@ A_asmStm A_AsmStmLab (A_loc loc, const char * name)
     p->loc = *loc;
     p->kind = A_asmStmLabKind;
     p->u.lab.name = name;
+    p->dst = NULL;
+    p->src = NULL;
+    p->pre = NULL;
+    p->post = NULL;
     return p;
 }
 

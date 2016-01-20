@@ -131,9 +131,10 @@ typedef struct A_asmStm_t
     } u;
 
     // FIXME not the correct place move to IR
-    // FIXME Tr_expList
     struct T_expList_t * dst;
     struct T_expList_t * src;
+    struct T_stmList_t * pre;
+    struct T_stmList_t * post;
 } * A_asmStm;
 
 LIST_DEFINE (A_asmStmList, A_asmStm)

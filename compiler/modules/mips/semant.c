@@ -481,8 +481,10 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                 {
                     if (__i_f == 0)
                     {
+                        Temp_temp t = Temp_NewTemp();
                         Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (stm->dst, Tr_UnEx(sexp.exp));
+                        LIST_PUSH (stm->post, T_Move(Tr_UnEx(sexp.exp), T_Temp(t)));
+                        LIST_PUSH(stm->dst, T_Temp(t));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
                         op->u.rep.pos = LIST_SIZE (stm->dst) - 1;

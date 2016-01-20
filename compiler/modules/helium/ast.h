@@ -250,9 +250,11 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
+struct A_asmStmList_t;
+
 struct A_asmDec_t
 {
-    const void * code; // A_stmStmList
+    struct A_asmStmList_t * code; // A_stmStmList
     U_stringList options;
 };
 
@@ -296,7 +298,7 @@ struct A_dec_t
 A_dec A_FunctionDec (A_loc loc, S_symbol name, A_fieldList params, A_ty type, A_scope scope);
 A_dec A_VarDec (A_loc loc, S_symbol var, A_ty type, A_exp init);
 A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type);
-A_dec A_AsmDec (A_loc loc, U_stringList options, const void * code, A_expList out, A_expList in);
+A_dec A_AsmDec (A_loc loc, U_stringList options, struct A_asmStmList_t * code, A_expList out, A_expList in);
 A_decList A_DecList (A_dec head, A_decList tail);
 
 /***********

@@ -327,7 +327,7 @@ A_dec A_TypeDec (A_loc loc, S_symbol name, A_ty type)
     return p;
 }
 
-A_dec A_AsmDec (A_loc loc, U_stringList options, const void * code, A_expList out, A_expList in)
+A_dec A_AsmDec (A_loc loc, U_stringList options, struct A_asmStmList_t * code, A_expList out, A_expList in)
 {
     (void) out;
     (void) in;

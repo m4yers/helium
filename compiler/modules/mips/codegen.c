@@ -350,6 +350,11 @@ static void munchStm (T_stm s)
             String_Reserve (&str, 128);    // should be more than enough for one line
             AST_AsmEmitLine (&str, stm);
 
+            LIST_FOREACH(st, stm->pre)
+            {
+                munchStm(st);
+            }
+
             Temp_tempList tdst = NULL;
             LIST_FOREACH (e, stm->dst)
             {
@@ -377,6 +382,11 @@ static void munchStm (T_stm s)
             }
             //HMM can i detect MOVE?
             emit (ASM_Oper (str.data, tdst, tsrc, NULL));
+
+            LIST_FOREACH(st, stm->post)
+            {
+                munchStm(st);
+            }
         }
         return;
     }
