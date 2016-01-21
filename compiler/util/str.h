@@ -212,6 +212,7 @@ void String_Append_l (String s, long n);
             )(a,b)
 
 #define String_AppendF(s,f,...)                                      \
+    String_NoStatic(s);                                              \
     sprintf(s->data + s->size, f, __VA_ARGS__);                      \
     while(*(s->data + s->size) != '\0') s->size++;                   \
 
