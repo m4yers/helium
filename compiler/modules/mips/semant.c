@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "util/list.h"
 #include "util/vector.h"
 #include "util/str.h"
@@ -20,14 +22,14 @@
             Error_New(loc, code, format, __VA_ARGS__));                  \
 }                                                                        \
 
-#define UINT_5_MIN   0
-#define UINT_5_MAX   31
-#define UINT_16_MIN  0
-#define UINT_16_MAX  65535
-#define INT_16_MIN  -32768
-#define INT_16_MAX   32767
-#define UINT_20_MAX  1048575
-#define UINT_26_MAX  67108863
+#define UINT5_MIN   0
+#define UINT5_MAX   31
+#define UINT16_MIN  0
+#define UINT16_MAX  65535
+#define INT16_MIN  -32768
+#define INT16_MAX   32767
+#define UINT20_MAX  1048575
+#define UINT26_MAX  67108863
 
 #define IS_IN_RANGE(value,left,right) ((value) >= (left) && (value) <= (right))
 
@@ -62,7 +64,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            if (!IS_IN_RANGE (op->u.mem.offset, INT_16_MIN, INT_16_MAX))
+            if (!IS_IN_RANGE (op->u.mem.offset, INT16_MIN, INT16_MAX))
             {
                 return String_New (
                            "Signed offset must be a 16-bit value in range from -32,768 to 32,767");
@@ -130,7 +132,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer , UINT_5_MIN , UINT_5_MAX))
+            if (!IS_IN_RANGE (op->u.integer , UINT5_MIN , UINT5_MAX))
             {
                 return String_New (
                            "Shift amount must be a 5-bit value in range from 0 to 31");
@@ -146,7 +148,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer , UINT_16_MIN , UINT_16_MAX))
+            if (!IS_IN_RANGE (op->u.integer , UINT16_MIN , UINT16_MAX))
             {
                 return String_New (
                            "Constant must be a 16-bit value in range from 0 to 65535");
@@ -162,7 +164,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer, INT_16_MIN, INT_16_MAX))
+            if (!IS_IN_RANGE (op->u.integer, INT16_MIN, INT16_MAX))
             {
                 return String_New (
                            "Constant must be a 16-bit value in range from -32,768 to 32,767");
@@ -177,7 +179,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer, 0, UINT_20_MAX))
+            if (!IS_IN_RANGE (op->u.integer, 0, UINT20_MAX))
             {
                 return String_New (
                            "Syscall function code must be a 20-bit value in range\
@@ -193,12 +195,28 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer, 0, UINT_26_MAX))
+            if (!IS_IN_RANGE (op->u.integer, 0, UINT26_MAX))
             {
 
                 return String_New (
                            "Target address must be a 20-bit value in range from 0 to 67,108,863");
             }
+            return NULL;
+        }
+        /*
+         * It is either 32-bit int or 32-bit uint
+         */
+        case MA_IMMEDIATE_32_BIT:
+        {
+            if (op->kind != A_asmOpIntKind)
+            {
+                return String_New ("Expected Const operand");
+            }
+            if (!IS_IN_RANGE (op->u.integer, INT32_MIN, UINT32_MAX))
+            {
+                return String_New ( "Target address must be a 32-bit value");
+            }
+            return NULL;
         }
         default:
         {
@@ -358,25 +376,19 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
         {
             String s = String_New (
                            "Could not find proper opcode signature, here are some candidates:");
-            // FIXME do not use malloc
-            char * buf = checked_malloc (1024);
 
             for (size_t i = 0; i < Vector_Size (&rejections); ++i)
             {
                 struct M_opCode_t * candidate = * (M_opCode *)Vector_At (&candidates, i);
                 String rejection = * (String *)Vector_At (&rejections, i);
-                sprintf (buf, "\n'%s %s' is rejected because '%s'",
+                String_AppendF (s, "\n'%s %s' is rejected because '%s'",
                          candidate->name.data,
                          candidate->format.data,
                          rejection->data);
-                String_Append (s, buf);
             }
 
             *err = Error_New (&stm->loc, 3102, s->data, inst->opcode);
             return NULL;
-
-            String_Delete (s);
-            free (buf);
         }
         else
         {
