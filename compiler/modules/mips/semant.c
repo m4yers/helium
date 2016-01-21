@@ -209,7 +209,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
             }
             if (!IS_IN_RANGE (op->u.integer, INT32_MIN, UINT32_MAX))
             {
-                return String_New ( "Target address must be a 32-bit value");
+                return String_New ("Target address must be a 32-bit value");
             }
             return NULL;
         }
@@ -264,7 +264,7 @@ static String NormalizeOp (A_asmOp op)
 {
     if (op->kind == A_asmOpRegKind)
     {
-        return NormalizeReg(op->u.reg);
+        return NormalizeReg (op->u.reg);
     }
     else if (op->kind == A_asmOpMemKind)
     {
@@ -274,7 +274,7 @@ static String NormalizeOp (A_asmOp op)
          */
         if (op->u.mem.base->kind == A_asmRegNumKind)
         {
-            return NormalizeReg(op->u.mem.base->u.reg);
+            return NormalizeReg (op->u.mem.base->u.reg);
         }
     }
 
@@ -377,9 +377,9 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
                 struct M_opCode_t * candidate = * (M_opCode *)Vector_At (&candidates, i);
                 String rejection = * (String *)Vector_At (&rejections, i);
                 String_AppendF (s, "\n'%s %s' is rejected because '%s'",
-                         candidate->name.data,
-                         candidate->format.data,
-                         rejection->data);
+                                candidate->name.data,
+                                candidate->format.data,
+                                rejection->data);
             }
 
             *err = Error_New (&stm->loc, 3102, s->data, inst->opcode);
@@ -403,6 +403,52 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
     return opcode;
 }
 
+static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is_dst)
+{
+    if (op->kind == A_asmOpRegKind)
+    {
+        Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
+        op->kind = A_asmOpRepKind;
+        if (is_dst)
+        {
+            LIST_PUSH (stm->dst, Tr_UnEx (Tr_Temp (r)));
+            op->u.rep.use = A_asmOpUseDst;
+            op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
+        }
+        else
+        {
+            LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)));
+            op->u.rep.use = A_asmOpUseSrc;
+            op->u.rep.pos = LIST_SIZE (stm->src) - 1;
+        }
+    }
+    else if (op->kind == A_asmOpVarKind)
+    {
+        if (is_dst)
+        {
+            Temp_temp t = Temp_NewTemp();
+            Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
+            LIST_PUSH (stm->post, T_Move (Tr_UnEx (sexp.exp), T_Temp (t)));
+            LIST_PUSH (stm->dst, T_Temp (t));
+            op->kind = A_asmOpRepKind;
+            op->u.rep.use = A_asmOpUseDst;
+            op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
+        }
+        else
+        {
+            Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
+            LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
+            op->kind = A_asmOpRepKind;
+            op->u.rep.use = A_asmOpUseSrc;
+            op->u.rep.pos = LIST_SIZE (stm->src) - 1;
+        }
+    }
+    else
+    {
+        assert (0);
+    }
+}
+
 static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
 {
     struct Error_t err;
@@ -413,8 +459,6 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
         return NULL;
     }
 
-    A_asmStmList pre = NULL;
-    A_asmStmList post = NULL;
     Vector format = String_Split (&opcode->format, ',');
 
     A_asmStmInst inst = &stm->u.inst;
@@ -432,84 +476,23 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
 
         if (String_Size (f) == 4)
         {
-            if (op->u.mem.base->kind == A_asmOpRegKind)
-            {
-                Temp_temp r = M_RegGet (regs_all, op->u.mem.base->u.reg->u.name);
-                LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)));
-                op->u.mem.base->kind = A_asmOpRepKind;
-                op->u.mem.base->u.rep.use = A_asmOpUseSrc;
-                op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
-            }
-            else if (op->u.mem.base->kind == A_asmOpVarKind)
-            {
-                Sema_Exp sexp = Sema_TransVar (context->context, op->u.mem.base->u.var, TRUE);
-                LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
-                op->u.mem.base->kind = A_asmOpRepKind;
-                op->u.mem.base->u.rep.use = A_asmOpUseSrc;
-                op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
-            }
-            else
-            {
-                assert(0);
-            }
+            TransOp (context, op->u.mem.base, stm, FALSE);
         }
         else if (String_Size (f) == 1)
         {
             char l = *String_At (f, 0);
             switch (l)
             {
+            /*
+             * TODO
+             * this check here because of 't' register that can be used as 'd' in the beginning
+             * of the format string, this is a bit strange imho, you need to read more carefully
+             * through binutils sources
+             */
             case TARGET_REGISTER_5_BIT:
             case DESTINATION_REGISTER_5_BIT:
             {
-                if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
-                {
-                    Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
-                    /*
-                     * TODO
-                     * this check here because of 't' register that can be used as 'd' in the
-                     * beginning of the format string, this is a bit strange imho, you need to read
-                     * more carefully through binutils sources
-                     */
-                    if (__i_f == 0)
-                    {
-                        LIST_PUSH (stm->dst, Tr_UnEx (Tr_Temp (r)));
-                        op->kind = A_asmOpRepKind;
-                        op->u.rep.use = A_asmOpUseDst;
-                        op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
-                    }
-                    else
-                    {
-                        LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)))
-                        op->kind = A_asmOpRepKind;
-                        op->u.rep.use = A_asmOpUseSrc;
-                        op->u.rep.pos = LIST_SIZE (stm->src) - 1;
-                    }
-                }
-                else if (op->kind == A_asmOpVarKind)
-                {
-                    if (__i_f == 0)
-                    {
-                        Temp_temp t = Temp_NewTemp();
-                        Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (stm->post, T_Move (Tr_UnEx (sexp.exp), T_Temp (t)));
-                        LIST_PUSH (stm->dst, T_Temp (t));
-                        op->kind = A_asmOpRepKind;
-                        op->u.rep.use = A_asmOpUseDst;
-                        op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
-                    }
-                    else
-                    {
-                        Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
-                        op->kind = A_asmOpRepKind;
-                        op->u.rep.use = A_asmOpUseSrc;
-                        op->u.rep.pos = LIST_SIZE (stm->src) - 1;
-                    }
-                }
-                else
-                {
-                    assert (0);
-                }
+                TransOp (context, op, stm, __i_f == 0);
                 break;
             }
             case SOURCE_REGISTER_5_BIT:
@@ -517,26 +500,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             case SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT:
             case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
             {
-                if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
-                {
-                    Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
-                    LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)));
-                    op->kind = A_asmOpRepKind;
-                    op->u.rep.use = A_asmOpUseSrc;
-                    op->u.rep.pos = LIST_SIZE (stm->src) - 1;
-                }
-                else if (op->kind == A_asmOpVarKind)
-                {
-                    Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                    LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
-                    op->kind = A_asmOpRepKind;
-                    op->u.rep.use = A_asmOpUseSrc;
-                    op->u.rep.pos = LIST_SIZE (stm->src) - 1;
-                }
-                else
-                {
-                    assert (0);
-                }
+                TransOp (context, op, stm, FALSE);
                 break;
             }
             // immediate go directly into asm string
@@ -548,21 +512,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
         opList = LIST_NEXT (opList);
     }
 
-    A_asmStmList result = NULL;
-
-    if (pre)
-    {
-        LIST_JOIN (result, pre);
-    }
-
-    LIST_JOIN (result, A_AsmStmList (stm, NULL));
-
-    if (post)
-    {
-        LIST_JOIN (result, post);
-    }
-
-    return result;
+    return A_AsmStmList (stm, NULL);
 }
 
 static A_asmStmList TransStm (Sema_MIPSContext context, A_asmStm stm)
