@@ -210,6 +210,39 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
     return NULL;
 }
 
+static String NormalizeReg (A_asmReg reg)
+{
+    switch (reg->kind)
+    {
+    /*
+     * Check if the name stands for the actual register
+     */
+    case A_asmRegNameKind:
+    {
+        if (!M_RegGet (regs_all, reg->u.name))
+        {
+            return String_New ("Unknown register name");
+        }
+        break;
+    }
+    /*
+     * Find register by its number and normalize the AST node to named register
+     */
+    case A_asmRegNumKind:
+    {
+        if (!IS_IN_RANGE (reg->u.num, 0, regs_all->number - 1))
+        {
+            return String_New ("Unknown register");
+        }
+        reg->kind = A_asmRegNameKind;
+        reg->u.name = M_RegGetName (regs_all, reg->u.num);
+        break;
+    }
+    }
+
+    return NULL;
+}
+
 /*
  * Method tries to normalize an operand, e.g. numeric registers are converted to a named form,
  * making sure the reister exists at all.
@@ -218,51 +251,17 @@ static String NormalizeOp (A_asmOp op)
 {
     if (op->kind == A_asmOpRegKind)
     {
-        A_asmReg reg = op->u.reg;
-
-        switch (reg->kind)
-        {
-        /*
-         * Check if the name stands for the actual register
-         */
-        case A_asmRegNameKind:
-        {
-            if (!M_RegGet (regs_all, reg->u.name))
-            {
-                return String_New ("Unknown register");
-            }
-            break;
-        }
-        /*
-         * Find register by its number and normalize the AST node to named register
-         */
-        case A_asmRegNumKind:
-        {
-            if (!IS_IN_RANGE (reg->u.num, 0, regs_all->number - 1))
-            {
-                return String_New ("Unknown register");
-            }
-            reg->kind = A_asmRegNameKind;
-            reg->u.name = M_RegGetName (regs_all, reg->u.num);
-            break;
-        }
-        }
+        return NormalizeReg(op->u.reg);
     }
-    /*
-     * Same as for RegNum AST node
-     */
     else if (op->kind == A_asmOpMemKind)
     {
+        /*
+         * We handle only register base, other things like variable interpolation is handled
+         * later
+         */
         if (op->u.mem.base->kind == A_asmRegNumKind)
         {
-            const char * name = M_RegGetName (regs_all, op->u.mem.base->u.reg->u.num);
-            if (!name)
-            {
-                return String_New ("Unknown register");
-            }
-            // FIXME check for wrong name?
-            op->u.mem.base->u.reg->kind = A_asmRegNameKind;
-            op->u.mem.base->u.reg->u.name = name;
+            return NormalizeReg(op->u.mem.base->u.reg);
         }
     }
 
@@ -430,7 +429,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
             if (op->u.mem.base->kind == A_asmOpRegKind)
             {
                 Temp_temp r = M_RegGet (regs_all, op->u.mem.base->u.reg->u.name);
-                LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
+                LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)));
                 op->u.mem.base->kind = A_asmOpRepKind;
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
                 op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
@@ -460,14 +459,14 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                      */
                     if (__i_f == 0)
                     {
-                        LIST_PUSH (stm->dst, Tr_UnEx(Tr_Temp (r)));
+                        LIST_PUSH (stm->dst, Tr_UnEx (Tr_Temp (r)));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
                         op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
                     }
                     else
                     {
-                        LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)))
+                        LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)))
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseSrc;
                         op->u.rep.pos = LIST_SIZE (stm->src) - 1;
@@ -479,8 +478,8 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                     {
                         Temp_temp t = Temp_NewTemp();
                         Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (stm->post, T_Move(Tr_UnEx(sexp.exp), T_Temp(t)));
-                        LIST_PUSH(stm->dst, T_Temp(t));
+                        LIST_PUSH (stm->post, T_Move (Tr_UnEx (sexp.exp), T_Temp (t)));
+                        LIST_PUSH (stm->dst, T_Temp (t));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseDst;
                         op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
@@ -488,7 +487,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                     else
                     {
                         Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                        LIST_PUSH (stm->src, Tr_UnEx(sexp.exp));
+                        LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
                         op->kind = A_asmOpRepKind;
                         op->u.rep.use = A_asmOpUseSrc;
                         op->u.rep.pos = LIST_SIZE (stm->src) - 1;
@@ -508,7 +507,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                 if (op->kind == A_asmOpRegKind && op->u.reg->kind == A_asmRegNameKind)
                 {
                     Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
-                    LIST_PUSH (stm->src, Tr_UnEx(Tr_Temp (r)));
+                    LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (r)));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
                     op->u.rep.pos = LIST_SIZE (stm->src) - 1;
@@ -516,7 +515,7 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                 else if (op->kind == A_asmOpVarKind)
                 {
                     Sema_Exp sexp = Sema_TransVar (context->context, op->u.var, TRUE);
-                    LIST_PUSH (stm->src, Tr_UnEx(sexp.exp));
+                    LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
                     op->kind = A_asmOpRepKind;
                     op->u.rep.use = A_asmOpUseSrc;
                     op->u.rep.pos = LIST_SIZE (stm->src) - 1;
