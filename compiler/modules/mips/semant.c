@@ -22,12 +22,7 @@
             Error_New(loc, code, format, __VA_ARGS__));                  \
 }                                                                        \
 
-#define UINT5_MIN   0
 #define UINT5_MAX   31
-#define UINT16_MIN  0
-#define UINT16_MAX  65535
-#define INT16_MIN  -32768
-#define INT16_MAX   32767
 #define UINT20_MAX  1048575
 #define UINT26_MAX  67108863
 
@@ -132,7 +127,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer , UINT5_MIN , UINT5_MAX))
+            if (!IS_IN_RANGE (op->u.integer , 0 , UINT5_MAX))
             {
                 return String_New (
                            "Shift amount must be a 5-bit value in range from 0 to 31");
@@ -148,7 +143,7 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
                 return String_New ("Expected Const operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer , UINT16_MIN , UINT16_MAX))
+            if (!IS_IN_RANGE (op->u.integer , 0 , UINT16_MAX))
             {
                 return String_New (
                            "Constant must be a 16-bit value in range from 0 to 65535");
