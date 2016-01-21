@@ -426,7 +426,6 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
      * of the top level ASM STM AST node
      * FIXME it is a double work to parse format twice, can you optimize it somehow?
      */
-
     VECTOR_FOREACH (struct String_t, f, format)
     {
         A_asmOp op = opList->head;
@@ -441,10 +440,17 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
                 op->u.mem.base->u.rep.use = A_asmOpUseSrc;
                 op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
             }
-            // TODO lvalue
+            else if (op->u.mem.base->kind == A_asmOpVarKind)
+            {
+                Sema_Exp sexp = Sema_TransVar (context->context, op->u.mem.base->u.var, TRUE);
+                LIST_PUSH (stm->src, Tr_UnEx (sexp.exp));
+                op->u.mem.base->kind = A_asmOpRepKind;
+                op->u.mem.base->u.rep.use = A_asmOpUseSrc;
+                op->u.mem.base->u.rep.pos = LIST_SIZE (stm->src) - 1;
+            }
             else
             {
-                assert (0);
+                assert(0);
             }
         }
         else if (String_Size (f) == 1)
