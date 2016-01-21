@@ -227,11 +227,6 @@ static String NormalizeOp (A_asmOp op)
          */
         case A_asmRegNameKind:
         {
-            // reg search looks up names as $name
-            // TODO fix it
-            struct String_t str = String ("$");
-            String_Append (&str, reg->u.name);
-            reg->u.name = str.data;
             if (!M_RegGet (regs_all, reg->u.name))
             {
                 return String_New ("Unknown register");

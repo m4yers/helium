@@ -142,6 +142,8 @@ char * ASM_Format (
             {
                 int n = atoi (++p);
                 const char * s = Temp_Look (m, nthTemp (src, n));
+                strcpy(result + i, "$");
+                i++;
                 strcpy (result + i, s);
                 i += strlen (s);
             }
@@ -150,6 +152,8 @@ char * ASM_Format (
             {
                 int n = atoi (++p);
                 const char * s = Temp_Look (m, nthTemp (dst, n));
+                strcpy(result + i, "$");
+                i++;
                 strcpy (result + i, s);
                 i += strlen (s);
             }

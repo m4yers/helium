@@ -171,46 +171,46 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             Temp_label l_exit = Temp_NewLabel();
 
             ASM ("add   `d0, `s0, `s1",
-                 SL ("$t0", NULL), SL ("$zero", NULL), exp->u.macro.args->head->u.stringg);
+                 SL ("t0", NULL), SL ("zero", NULL), exp->u.macro.args->head->u.stringg);
 
             ASM ("lw    `d0, 0(`s0)",
-                 SL ("$t1", NULL), SL ("$t0", NULL), NULL);
+                 SL ("t1", NULL), SL ("t0", NULL), NULL);
 
             ASM ("addi  `d0, `s0, 0x04",
-                 SL ("$t0", NULL), SL ("$t0", NULL), NULL);
+                 SL ("t0", NULL), SL ("t0", NULL), NULL);
 
             ASM ("add   `d0, `s0, `s1",
-                 SL ("$t1", NULL), SL ("$t1", SL ("$t0", NULL)), NULL);
+                 SL ("t1", NULL), SL ("t1", SL ("t0", NULL)), NULL);
 
             ASM ("li    `d0, 0xffff0008",
-                 SL ("$t2", NULL), NULL, NULL);
+                 SL ("t2", NULL), NULL, NULL);
 
             ASM ("li    `d0, 0xffff000c",
-                 SL ("$t3", NULL), NULL, NULL);
+                 SL ("t3", NULL), NULL, NULL);
 
             String_Init (&buf, l_wait->name);
             String_PushBack (&buf, ':');
             ASM (buf.data, NULL, NULL, NULL);
 
             ASM ("lw    `d0, 0(`s0)",
-                 SL ("$t4", NULL), SL ("$t2", NULL), NULL);
+                 SL ("t4", NULL), SL ("t2", NULL), NULL);
 
             String_Init (&buf, "beq   `d0, `s0, ");
             String_Append (&buf, l_wait->name);
-            ASM (buf.data, SL ("$t4", NULL), SL ("$zero", NULL), NULL);
+            ASM (buf.data, SL ("t4", NULL), SL ("zero", NULL), NULL);
 
             String_Init (&buf, "beq   `d0, `s0, ");
             String_Append (&buf, l_exit->name);
-            ASM (buf.data, SL ("$t0", NULL), SL ("$t1", NULL), NULL);
+            ASM (buf.data, SL ("t0", NULL), SL ("t1", NULL), NULL);
 
             ASM ("lbu   `d0, 0(`s0)",
-                 SL ("$t5", NULL), SL ("$t0", NULL), NULL);
+                 SL ("t5", NULL), SL ("t0", NULL), NULL);
 
             ASM ("sb    `d0, 0(`s0)",
-                 SL ("$t5", NULL), SL ("$t3", NULL), NULL);
+                 SL ("t5", NULL), SL ("t3", NULL), NULL);
 
             ASM ("addi  `d0, `s0, 0x01",
-                 SL ("$t0", NULL), SL ("$t0", NULL), NULL);
+                 SL ("t0", NULL), SL ("t0", NULL), NULL);
 
             String_Init (&buf, "j     ");
             String_Append (&buf, l_wait->name);
@@ -221,10 +221,10 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             ASM (buf.data, NULL, NULL, NULL);
 
             ASM ("addi  `d0, `s0, 0x0A",
-                 SL ("$t0", NULL), SL ("$zero", NULL), NULL);
+                 SL ("t0", NULL), SL ("zero", NULL), NULL);
 
             ASM ("sb    `d0, 0(`s0)",
-                 SL ("$t0", NULL), SL ("$t3", NULL), NULL);
+                 SL ("t0", NULL), SL ("t3", NULL), NULL);
 
             // this makes the whole panic macro evaluate to 0(OK)
             LIST_PUSH (l, A_IntExp (&exp->loc, 0));
@@ -251,12 +251,12 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
 
             LIST_PUSH (l, TransExp (context, println));
 
-            ASM ("li    `d0, 1", SL ("$a0", NULL), NULL, NULL);
+            ASM ("li    `d0, 1", SL ("a0", NULL), NULL, NULL);
 
             // exit program with status code 1
-            ASM ("li    `d0, 17", SL ("$v0", NULL), NULL, NULL);
+            ASM ("li    `d0, 17", SL ("v0", NULL), NULL, NULL);
 
-            ASM ("syscall",  NULL, SL ("$v0", SL ("$a0", NULL)), NULL);
+            ASM ("syscall",  NULL, SL ("v0", SL ("a0", NULL)), NULL);
 
             // this makes the whole panic macro evaluate to 0(OK)
             // FIXME must be stm
