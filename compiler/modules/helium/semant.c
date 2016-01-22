@@ -618,6 +618,125 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
     }
 }
 
+/*
+ * The method validates A_var expression, without modifying current context, meaning it does not
+ * adds/removes types, it does not spawns errors or try to recorver from an error, it just validates
+ * the expression based on the current state.
+ *
+ * This method MUST NOT modify parsing context in any way.
+ */
+Sema_Exp Sema_ValidateVar (Sema_Context context, A_var var)
+{
+    Sema_Exp e_invalid = {Tr_Void(), Ty_Invalid()};
+
+    static int level = 0;
+
+    switch (var->kind)
+    {
+    case A_simpleVar:
+    {
+        Env_Entry e = (Env_Entry)S_Look (context->venv, var->u.simple);
+        if (!e)
+        {
+            return e_invalid;
+        }
+        else if (e->kind == Env_varEntry)
+        {
+            Ty_ty vty = e->u.var.ty;
+            Tr_exp exp = Tr_SimpleVar (e->u.var.access, context->level, TRUE);
+            return Expression_New (exp, vty);
+        }
+        else
+        {
+            return e_invalid;
+        }
+    }
+    case A_fieldVar:
+    {
+        struct A_varField_t varField = var->u.field;
+
+        level++;
+        Sema_Exp vexp = Sema_ValidateVar (context, varField.var);
+        level--;
+
+        if (is_invalid (vexp.ty))
+        {
+            return e_invalid;
+        }
+
+        int jumps = varField.jumps;
+        bool first = TRUE;
+
+        while (jumps--)
+        {
+            if (vexp.ty->kind != Ty_pointer)
+            {
+                return e_invalid;
+            }
+
+            if (!first)
+            {
+                vexp.exp = Tr_DerefExp (vexp.exp);
+            }
+
+            vexp.ty = vexp.ty->u.pointer;
+            first = FALSE;
+        }
+
+        vexp.ty = GetActualType (vexp.ty);
+        if (vexp.ty->kind != Ty_record)
+        {
+            return e_invalid;
+        }
+
+        LIST_FOREACH (f, vexp.ty->u.record)
+        {
+            if (f->name == varField.sym)
+            {
+                Ty_ty ty = GetActualType (f->ty);
+                Tr_exp exp = Tr_FieldVar (vexp.exp, vexp.ty, f->name, TRUE);
+                return Expression_New (exp, ty);
+            }
+        }
+
+        return e_invalid;
+    }
+    case A_subscriptVar:
+    {
+        struct A_varSubscript_t varSubscript = var->u.subscript;
+
+        level++;
+        Sema_Exp vexp = Sema_TransVar (context, varSubscript.var, TRUE);
+        level--;
+
+        if (is_invalid (vexp.ty))
+        {
+            return e_invalid;
+        }
+        else if (vexp.ty->kind != Ty_array)
+        {
+            return e_invalid;
+        }
+
+        Ty_ty ty = GetActualType (vexp.ty->u.array.type);
+
+        Sema_Exp sexp = Sema_TransExp (context, var->u.subscript.exp);
+        if (!is_int (sexp))
+        {
+            return e_invalid;
+        }
+
+        Tr_exp exp = Tr_SubscriptVar (vexp.exp, vexp.ty, sexp.exp, TRUE);
+        return Expression_New (exp, ty);
+    }
+    default:
+    {
+        assert (0);
+    }
+    }
+
+}
+
 // FIXME deref thing is very unclear, i need a better approach
 // mb trace tree path via stack? -> meaning usage context
 Sema_Exp Sema_TransVar (Sema_Context context, A_var var, bool deref)

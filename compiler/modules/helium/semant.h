@@ -33,6 +33,7 @@ Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope);
 Ty_ty    Sema_TransTyp (Sema_Context context, A_ty ty);
 Tr_exp   Sema_TransDec (Sema_Context context, A_dec dec);
 Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp);
+Sema_Exp Sema_ValidateVar (Sema_Context context, A_var var);
 Sema_Exp Sema_TransVar (Sema_Context context, A_var var, bool deref);
 
 #endif /* end of include guard: SEMANT_H_VYAZ1M7T */

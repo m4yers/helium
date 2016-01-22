@@ -38,7 +38,7 @@
  * @operand An operand to validate
  * @return  An error String if there was one, NULL if the match was a success.
  */
-static String OpMatchFormat (const struct String_t * f, A_asmOp op)
+static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f, A_asmOp op)
 {
     /* should not happen */
     if (String_Empty (f))
@@ -104,6 +104,16 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
             {
                 return String_New ("Expected Reg operand");
             }
+
+            if (op->kind == A_asmOpVarKind)
+            {
+                Sema_Exp sexp = Sema_ValidateVar (context->context, op->u.var);
+                if (sexp.ty == Ty_Invalid())
+                {
+                    return String_New ("The expression is not a valid variable");
+                }
+            }
+
             return NULL;
         }
         case ZERO_REGISTER:
@@ -183,19 +193,49 @@ static String OpMatchFormat (const struct String_t * f, A_asmOp op)
 
             return NULL;
         }
+        /*
+         * This format fragment can accept either an integer immediate 26-bit address or a label
+         * that will be converted to 26-bit address.
+         */
         case TARGET_ADDRESS_26_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            // if op is not a int
+            if (op->kind != A_asmOpIntKind
+                    // and not a var
+                    && (op->kind != A_asmOpVarKind
+                        // or if a var but not a simple one
+                        || (op->kind == A_asmOpVarKind && op->u.var->kind != A_simpleVar)))
             {
-                return String_New ("Expected Const operand");
+                return String_New ("Expected Immediate or Label operand");
             }
 
-            if (!IS_IN_RANGE (op->u.integer, 0, UINT26_MAX))
+            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, 0, UINT26_MAX))
             {
-
                 return String_New (
                            "Target address must be a 20-bit value in range from 0 to 67,108,863");
             }
+            /*
+             * We traverse the context looking for mentioned label
+             */
+            else if (op->kind == A_asmOpVarKind)
+            {
+                const char * label = op->u.var->u.simple->name;
+                bool found = FALSE;
+                VECTOR_FOREACH (Temp_label, ll, &context->labels)
+                {
+                    const char * current = Temp_LabelString (*ll);
+                    if (strcmp (current, label) == 0)
+                    {
+                        found = TRUE;
+                    }
+                }
+
+                if (!found)
+                {
+                    return String_New("The name is not a valid label");
+                }
+            }
+
             return NULL;
         }
         /*
@@ -281,7 +321,7 @@ static String NormalizeOp (A_asmOp op)
     return NULL;
 }
 
-static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
+static const struct M_opCode_t * FindInst (Sema_MIPSContext context, A_asmStm stm, struct Error_t * err)
 {
     A_asmStmInst inst = &stm->u.inst;
 
@@ -336,7 +376,7 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
                 break;
             }
 
-            String r = OpMatchFormat (f, opList->head);
+            String r = OpMatchFormat (context, f, opList->head);
             if (r)
             {
                 Vector_PushBack (&rejections, r);
@@ -376,6 +416,13 @@ static const struct M_opCode_t * FindInst (A_asmStm stm, struct Error_t * err)
             {
                 struct M_opCode_t * candidate = * (M_opCode *)Vector_At (&candidates, i);
                 String rejection = * (String *)Vector_At (&rejections, i);
+                // calculate additional string size we need
+                size_t reserve = 128
+                                 + String_Size (s)
+                                 + String_Size (&candidate->name)
+                                 + String_Size (&candidate->format)
+                                 + String_Size (rejection);
+                String_Reserve (s, reserve);
                 String_AppendF (s, "\n'%s %s' is rejected because '%s'",
                                 candidate->name.data,
                                 candidate->format.data,
@@ -452,7 +499,7 @@ static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is
 static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
 {
     struct Error_t err;
-    const struct M_opCode_t * opcode = FindInst (stm, &err);
+    const struct M_opCode_t * opcode = FindInst (context, stm, &err);
     if (err.code != 0)
     {
         Vector_PushBack (&context->module->errors.semant, err);
@@ -468,7 +515,6 @@ static A_asmStmList TransInst (Sema_MIPSContext context, A_asmStm stm)
      * Now we need to actually parse the instruction and replace all registers occurances with
      * replacements fields like `s0, `s1, `d0 etc, and push all the registers into .src/.dst lists
      * of the top level ASM STM AST node
-     * FIXME it is a double work to parse format twice, can you optimize it somehow?
      */
     VECTOR_FOREACH (struct String_t, f, format)
     {
@@ -539,9 +585,22 @@ A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
     context.dec = d;
     context.context = c;
     context.module = c->module;
+    Vector_Init (&context.labels, Temp_label);
     context.errors = 0;
 
     A_asmStmList result = NULL;
+
+    /*
+     * Before we process all ASM instructions we need to do a preprocessing pass to find all labels
+     * in the program
+     */
+    LIST_FOREACH (stm, (A_asmStmList)d->code)
+    {
+        if (stm->kind == A_asmStmLabKind)
+        {
+            Vector_PushBack (&context.labels, Temp_NamedLabel (stm->u.lab.name));
+        }
+    }
 
     LIST_FOREACH (stm, (A_asmStmList)d->code)
     {

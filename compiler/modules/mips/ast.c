@@ -121,6 +121,15 @@ static void EmitOp (String out, A_asmOp op)
         }
         break;
     }
+    /*
+     * TODO i do need IR!
+     * If exist means label
+     */
+    case A_asmOpVarKind:
+    {
+        String_AppendF(out, "%s", op->u.var->u.simple->name);
+        break;
+    }
     case A_asmOpIntKind:
     {
         String_AppendF (out, "%ld", op->u.integer);

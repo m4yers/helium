@@ -10,6 +10,7 @@ typedef struct Sema_MIPSContext_t
     struct A_asmDec_t * dec;
     Sema_Context context;
     Program_Module module;
+    struct Vector_t /* Temp_label */ labels;
     size_t errors;
 
 } * Sema_MIPSContext;
