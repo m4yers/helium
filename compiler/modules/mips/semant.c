@@ -213,7 +213,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
             if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT26_MAX, INT26_MAX))
             {
                 return String_New ("Target address must be a 26-bit value \
-                in range from -33,554,432 to 33,554,431");
+            in range from -33,554,432 to 33,554,431");
             }
             /*
              * We traverse the context looking for mentioned label
@@ -255,7 +255,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
             if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT16_MIN, INT16_MAX))
             {
                 return String_New ("Target address must be a 16-bit value \
-                        in range from -2,147,483,648 to 2,147,483,647");
+                    in range from -2,147,483,648 to 2,147,483,647");
             }
             /*
              * We traverse the context looking for mentioned label
