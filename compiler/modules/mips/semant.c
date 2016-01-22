@@ -24,7 +24,8 @@
 
 #define UINT5_MAX   31
 #define UINT20_MAX  1048575
-#define UINT26_MAX  67108863
+#define INT26_MIN  -33554432
+#define INT26_MAX   33554431
 
 #define IS_IN_RANGE(value,left,right) ((value) >= (left) && (value) <= (right))
 
@@ -209,10 +210,10 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 return String_New ("Expected Immediate or Label operand");
             }
 
-            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, 0, UINT26_MAX))
+            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT26_MAX, INT26_MAX))
             {
-                return String_New (
-                           "Target address must be a 20-bit value in range from 0 to 67,108,863");
+                return String_New ("Target address must be a 26-bit value \
+                in range from -33,554,432 to 33,554,431");
             }
             /*
              * We traverse the context looking for mentioned label
@@ -232,11 +233,54 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
 
                 if (!found)
                 {
-                    return String_New("The name is not a valid label");
+                    return String_New ("The name is not a valid label");
                 }
             }
 
             return NULL;
+        }
+        // same as 26 bit jump
+        case PC_RELATIVE_BRANCH_TARGET_16_BIT:
+        {
+            // if op is not a int
+            if (op->kind != A_asmOpIntKind
+                    // and not a var
+                    && (op->kind != A_asmOpVarKind
+                        // or if a var but not a simple one
+                        || (op->kind == A_asmOpVarKind && op->u.var->kind != A_simpleVar)))
+            {
+                return String_New ("Expected Immediate or Label operand");
+            }
+
+            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT16_MIN, INT16_MAX))
+            {
+                return String_New ("Target address must be a 16-bit value \
+                        in range from -2,147,483,648 to 2,147,483,647");
+            }
+            /*
+             * We traverse the context looking for mentioned label
+             */
+            else if (op->kind == A_asmOpVarKind)
+            {
+                const char * label = op->u.var->u.simple->name;
+                bool found = FALSE;
+                VECTOR_FOREACH (Temp_label, ll, &context->labels)
+                {
+                    const char * current = Temp_LabelString (*ll);
+                    if (strcmp (current, label) == 0)
+                    {
+                        found = TRUE;
+                    }
+                }
+
+                if (!found)
+                {
+                    return String_New ("The name is not a valid label");
+                }
+            }
+
+            return NULL;
+
         }
         /*
          * It is either 32-bit int or 32-bit uint

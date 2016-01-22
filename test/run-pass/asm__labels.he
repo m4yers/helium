@@ -1,0 +1,22 @@
+fn test_cicle
+{
+    let a = 0;
+    asm
+    {
+            addi $a0, $zero, 0
+            addi $a1, $zero, 5
+        repeat:
+            addi $a0, $a0, 1
+            beq $a0, $a1, exit
+            j repeat
+        exit:
+            add a, $a0, $zero
+    }
+
+    assert! (a == 5);
+}
+
+fn main
+{
+    test_cicle();
+}
