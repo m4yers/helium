@@ -283,33 +283,13 @@ const struct M_opCode_t mips_opcodes[] =
     M_OpCode ("flushid",      ""),
     M_OpCode ("hibernate",    ""),
     M_OpCode ("jr",           "s"),
+    M_OpCode ("j",            "a"),
     M_OpCode ("j",            "s"),
-    /*
-     * SVR4 PIC code requires special handling for j, so it must be a
-     * macro.
-     */
-    M_OpCode ("j",            "a"),
-    /*
-     * This form of j is used by the disassembler and internally by the
-     * assembler, but will never match user input (because the line above
-     * will match first).
-     */
-    M_OpCode ("j",            "a"),
     M_OpCode ("jalr",         "s"),
     M_OpCode ("jalr",         "d,s"),
-    /*
-     * SVR4 PIC code requires special handling for jal, so it must be a
-     * macro.
-     */
     M_OpCode ("jal",          "d,s"),
+    M_OpCode ("jal",          "a"),
     M_OpCode ("jal",          "s"),
-    M_OpCode ("jal",          "a"),
-    /*
-     * This form of jal is used by the disassembler and internally by the
-     * assembler, but will never match user input (because the line above
-     * will match first).
-     */
-    M_OpCode ("jal",          "a"),
     M_OpCode ("la",           "t,A(b)"),
     M_OpCode ("lb",           "t,o(b)"),
     M_OpCode ("lb",           "t,A(b)"),
