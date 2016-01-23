@@ -75,6 +75,7 @@ bool A_LiteralInRange_u (A_literal lit, uintmax_t min, uintmax_t max);
             int16_t:   A_LiteralInRange_i,                                     \
             int32_t:   A_LiteralInRange_i,                                     \
             int64_t:   A_LiteralInRange_i,                                     \
+            intmax_t:  A_LiteralInRange_i,                                     \
             uint8_t:   A_LiteralInRange_u,                                     \
             uint16_t:  A_LiteralInRange_u,                                     \
             uint32_t:  A_LiteralInRange_u,                                     \

@@ -23,10 +23,10 @@
             Error_New(loc, code, format, __VA_ARGS__));                  \
 }                                                                        \
 
-#define UINT5_MAX   31
-#define UINT20_MAX  1048575
-#define INT26_MIN  -33554432
-#define INT26_MAX   33554431
+#define UINT5_MAX  UINTMAX_C( 31)
+#define UINT20_MAX UINTMAX_C( 1048575)
+#define INT26_MIN  INTMAX_C(-33554432)
+#define INT26_MAX  INTMAX_C( 33554431)
 
 #define IS_IN_RANGE(value,left,right) ((value) >= (left) && (value) <= (right))
 
@@ -193,7 +193,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 {
                     return String_New (
                                "Syscall function code must be a 20-bit value in range\
-                               from 0 to 1,048,575");
+                           from 0 to 1,048,575");
                 }
             }
             else
@@ -214,7 +214,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 if (!A_LiteralInRange (op->u.lit, INT26_MAX, INT26_MAX))
                 {
                     return String_New ("Target address must be a 26-bit value \
-                            in range from -33,554,432 to 33,554,431");
+                        in range from -33,554,432 to 33,554,431");
                 }
             }
             /*
@@ -245,7 +245,6 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
 
             return NULL;
         }
-        // same as 26 bit jump
         case PC_RELATIVE_BRANCH_TARGET_16_BIT:
         {
             if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
@@ -285,14 +284,11 @@ in range from -2,147,483,648 to 2,147,483,647");
             return NULL;
 
         }
-        /*
-         * It is either 32-bit int or 32-bit uint
-         */
         case MA_IMMEDIATE_32_BIT:
         {
             if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
             {
-                if (!A_LiteralInRange (op->u.lit , 0 , UINT20_MAX))
+                if (!A_LiteralInRange (op->u.lit, 0, UINT32_MAX))
                 {
                     return String_New ("Target address must be a 32-bit value");
                 }
