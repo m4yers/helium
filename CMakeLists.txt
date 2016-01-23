@@ -80,16 +80,8 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/modules/mips/frame.c
     ${CMAKE_SOURCE_DIR}/compiler/modules/mips/machine.c
     ${CMAKE_SOURCE_DIR}/compiler/modules/mips/semant.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/bitarray.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/list.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/mem.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/stack.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/table.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/util.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/str.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/pair.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/vector.c
     ${CMAKE_SOURCE_DIR}/compiler/core/asm.c
+    ${CMAKE_SOURCE_DIR}/compiler/core/ast.c
     ${CMAKE_SOURCE_DIR}/compiler/core/canon.c
     ${CMAKE_SOURCE_DIR}/compiler/core/error.c
     ${CMAKE_SOURCE_DIR}/compiler/core/flowgraph.c
@@ -101,6 +93,15 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/core/symbol.c
     ${CMAKE_SOURCE_DIR}/compiler/core/temp.c
     ${CMAKE_SOURCE_DIR}/compiler/core/ir.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/bitarray.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/list.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/mem.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/stack.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/table.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/util.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/str.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/pair.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/vector.c
     ${CMAKE_SOURCE_DIR}/compiler/program.c
 )
 

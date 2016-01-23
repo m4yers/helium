@@ -389,46 +389,6 @@ A_ty A_RecordTy (A_loc loc, A_fieldList record)
     return p;
 }
 
-/**************
- *  Literals  *
- **************/
-
-A_literal A_LiteralBool (A_loc loc, bool value)
-{
-    A_literal p = checked_malloc (sizeof (*p));
-    p->kind = A_literalBool;
-    p->u.boolean = value;
-    p->loc = *loc;
-    return p;
-}
-
-A_literal A_LiteralInt (A_loc loc, int value)
-{
-    A_literal p = checked_malloc (sizeof (*p));
-    p->kind = A_literalInt;
-    p->u.integer = value;
-    p->loc = *loc;
-    return p;
-}
-
-A_literal A_LiteralFloat (A_loc loc, double value)
-{
-    A_literal p = checked_malloc (sizeof (*p));
-    p->kind = A_literalFloat;
-    p->u.fp = value;
-    p->loc = *loc;
-    return p;
-}
-
-A_literal A_LiteralString (A_loc loc, const char * value)
-{
-    A_literal p = checked_malloc (sizeof (*p));
-    p->kind = A_literalString;
-    p->u.string = value;
-    p->loc = *loc;
-    return p;
-}
-
 /****************
  *  Statements  *
  ****************/
@@ -513,16 +473,6 @@ void AST_Print (FILE * out, A_decList list, int d)
     fprintf (out, ")\n");
 }
 
-void AST_PrintIndent (FILE * out, int d)
-{
-    int i;
-
-    for (i = 0; i < d; i++)
-    {
-        fprintf (out, "  ");
-    }
-}
-
 void AST_PrintScope (FILE * out, A_scope scope, int d)
 {
     AST_PrintIndent (out, d);
@@ -563,37 +513,6 @@ void AST_PrintScope (FILE * out, A_scope scope, int d)
     }
 
     fprintf (out, ")");
-}
-
-void AST_PrintLiteral (FILE * out, A_literal literal, int d)
-{
-    AST_PrintIndent (out, d);
-
-    fprintf (out, "Literal(");
-
-    switch (literal->kind)
-    {
-    case A_literalBool:
-    {
-        fprintf (out, "Boolean(%s)", literal->u.boolean ? "True" : "False");
-        break;
-    }
-    case A_literalInt:
-    {
-        fprintf (out, "Integer(%d)", literal->u.integer);
-        break;
-    }
-    case A_literalFloat:
-    {
-        fprintf (out, "Float(%f)", literal->u.fp);
-        break;
-    }
-    case A_literalString:
-    {
-        fprintf (out, "String(%s)", literal->u.string);
-        break;
-    }
-    }
 }
 
 void AST_PrintSpecs (FILE * out, A_specList specs, int d)

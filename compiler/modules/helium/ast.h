@@ -14,7 +14,6 @@ typedef struct A_var_t * A_var;
 typedef struct A_exp_t * A_exp;
 typedef struct A_dec_t * A_dec;
 typedef struct A_ty_t * A_ty;
-typedef struct A_literal_t * A_literal;
 typedef struct A_spec_t * A_spec;
 typedef struct A_field_t * A_field;
 typedef struct A_typeDef_t * A_typeDef;
@@ -332,38 +331,6 @@ A_ty A_NameTy (A_loc loc, S_symbol name, A_specList specs);
 A_ty A_PointerTy (A_loc loc, A_ty type);
 A_ty A_ArrayTy (A_loc loc, A_ty type, A_exp size);
 A_ty A_RecordTy (A_loc loc, A_fieldList record);
-
-/**************
- *  Literals  *
- **************/
-
-struct A_literal_t
-{
-    struct A_loc_t loc;
-
-    enum
-    {
-        A_literalBool,
-        A_literalInt,
-        A_literalFloat,
-        A_literalString
-    } kind;
-
-    union
-    {
-        bool boolean;
-        int integer;
-        double fp;
-        const char * string;
-    } u;
-
-    int pos;
-};
-
-A_literal A_LiteralBool (A_loc loc, bool value);
-A_literal A_LiteralInt (A_loc loc, int value);
-A_literal A_LiteralFloat (A_loc loc, double value);
-A_literal A_LiteralString (A_loc loc, const char * value);
 
 /****************
  *  Statements  *
