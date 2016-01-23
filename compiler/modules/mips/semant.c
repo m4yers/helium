@@ -193,7 +193,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 {
                     return String_New (
                                "Syscall function code must be a 20-bit value in range\
-                           from 0 to 1,048,575");
+                   from 0 to 1,048,575");
                 }
             }
             else
@@ -214,7 +214,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 if (!A_LiteralInRange (op->u.lit, INT26_MAX, INT26_MAX))
                 {
                     return String_New ("Target address must be a 26-bit value \
-                        in range from -33,554,432 to 33,554,431");
+                in range from -33,554,432 to 33,554,431");
                 }
             }
             /*
@@ -298,6 +298,53 @@ in range from -2,147,483,648 to 2,147,483,647");
                 return String_New ("Expected Const operand");
             }
             return NULL;
+        }
+        /*
+         * This format specifier accepts any operand that can produce a 32-bit value, it can be
+         * either immediate value, a label or variable
+         */
+        case MA_GENERAL_EXPRESSION_32_BIT:
+        {
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit, INT32_MAX, INT32_MAX))
+                {
+                    return String_New ("Target address must be a 32-bit value");
+                }
+            }
+            else if (op->kind == A_asmOpVarKind)
+            {
+                bool found = FALSE;
+
+                // first we try to find a label
+                if (op->u.var->kind == A_simpleVar)
+                {
+                    const char * label = op->u.var->u.simple->name;
+                    VECTOR_FOREACH (Temp_label, ll, &context->labels)
+                    {
+                        const char * current = Temp_LabelString (*ll);
+                        if (strcmp (current, label) == 0)
+                        {
+                            found = TRUE;
+                        }
+                    }
+                }
+
+                // if not found try to validate name as a variable
+                if (!found)
+                {
+                    Sema_Exp sexp = Sema_ValidateVar (context->context, op->u.var);
+                    if (sexp.ty == Ty_Invalid())
+                    {
+                        return String_New ("The name is not a valid label nor variable");
+                    }
+                }
+            }
+            else
+            {
+                return String_New ("Expected Immediate or Label operand");
+            }
+            break;
         }
         default:
         {
