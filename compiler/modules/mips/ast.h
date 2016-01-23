@@ -57,7 +57,7 @@ typedef enum
 {
     A_asmOpRepKind,
     A_asmOpVarKind,
-    A_asmOpIntKind,
+    A_asmOpLitKind,
     A_asmOpRegKind,
     A_asmOpMemKind,
 } A_asmOpKind;
@@ -80,13 +80,13 @@ typedef struct A_asmOp_t
             int pos;
         } rep;
         A_var var;
-        signed long integer;
         A_asmReg reg;
         struct
         {
-            signed long offset;
+            A_literal offset;
             struct A_asmOp_t * base;
         } mem;
+        A_literal lit;
     } u;
 } * A_asmOp;
 
@@ -95,9 +95,9 @@ LIST_CONST_DEFINE (A_AsmOpList, A_asmOpList, A_asmOp)
 
 A_asmOp A_AsmOpRep (A_loc loc, const char * rep);
 A_asmOp A_AsmOpVar (A_loc loc, A_var);
-A_asmOp A_AsmOpInt (A_loc loc, signed long imm);
+A_asmOp A_AsmOpLit (A_loc loc, A_literal lit);
 A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
-A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmOp base);
+A_asmOp A_AsmOpMem (A_loc loc, A_literal offset, A_asmOp base);
 
 /****************
 *  Statements  *

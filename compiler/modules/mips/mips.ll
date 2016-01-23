@@ -33,38 +33,40 @@
 
 %x STATE_LINE_COMMENT
 
-DIGIT    [0-9]
-ID       [_a-zA-Z][_a-zA-Z0-9]*
+DIGIT_DEC    [0-9]
+DIGIT_HEX    [0-9a-fA-F]
+ID           [_a-zA-Z][_a-zA-Z0-9]*
 
 %%
 
-"//"             { BEGIN(STATE_LINE_COMMENT);                                           }
+"//"                   { BEGIN(STATE_LINE_COMMENT);                                           }
 <STATE_LINE_COMMENT>
 {
-    \n           { lloc_newline(); BEGIN(INITIAL); return NEWLINE;                      }
-    .*           /** eat up all characters */
+    \n                 { lloc_newline(); BEGIN(INITIAL); return NEWLINE;                      }
+    .*                 /** eat up all characters */
 }
 
-" "|\t           { continue;                                                            }
-\n               { lloc_newline(); return NEWLINE;                                      }
-"$"              { return DOLLAR;                                                       }
-","              { return COMMA;                                                        }
-":"              { return COLON;                                                        }
-"."              { return DOT;                                                          }
-"("              { return LPAREN;                                                       }
-")"              { return RPAREN;                                                       }
-"["              { return LBRACK;                                                       }
-"]"              { return RBRACK;                                                       }
-"{"              { return LBRACE;                                                       }
-"}"              { return RBRACE;                                                       }
-"-"              { return MINUS;                                                        }
-{DIGIT}+         { yy_mips_lval.ival = atoi(yy_mips_text);    return INT;               }
-{ID}             { yy_mips_lval.sval = strdup (yy_mips_text); return ID;                }
-.                {
-                    // Vector_PushBack(&module->errors.lexer,
-                    //     Error_New(
-                    //         &yy_mips_lloc,
-                    //         1100,
-                    //         "Unknown token %s",
-                    //         yy_mips_lloc.token));
-                 }
+" "|\t                 { continue;                                                            }
+\n                     { lloc_newline(); return NEWLINE;                                      }
+"$"                    { return DOLLAR;                                                       }
+","                    { return COMMA;                                                        }
+":"                    { return COLON;                                                        }
+"."                    { return DOT;                                                          }
+"("                    { return LPAREN;                                                       }
+")"                    { return RPAREN;                                                       }
+"["                    { return LBRACK;                                                       }
+"]"                    { return RBRACK;                                                       }
+"{"                    { return LBRACE;                                                       }
+"}"                    { return RBRACE;                                                       }
+"-"                    { return MINUS;                                                        }
+{DIGIT_DEC}+           { yy_mips_lval.sval = strdup (yy_mips_text); return LIT_DEC;           }
+0[xX]{DIGIT_HEX}+      { yy_mips_lval.sval = strdup (yy_mips_text); return LIT_HEX;           }
+{ID}                   { yy_mips_lval.sval = strdup (yy_mips_text); return ID;                }
+.                      {
+                            // Vector_PushBack(&module->errors.lexer,
+                            //     Error_New(
+                            //         &yy_mips_lloc,
+                            //         1100,
+                            //         "Unknown token %s",
+                            //         yy_mips_lloc.token));
+                       }

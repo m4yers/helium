@@ -5,6 +5,7 @@
 #include "util/str.h"
 
 #include "core/error.h"
+#include "core/asm.h"
 
 #include "modules/helium/translate.h"
 #include "modules/mips/machine.h"
@@ -60,7 +61,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            if (!IS_IN_RANGE (op->u.mem.offset, INT16_MIN, INT16_MAX))
+            if (!A_LiteralInRange (op->u.mem.offset, INT16_MIN, INT16_MAX))
             {
                 return String_New (
                            "Signed offset must be a 16-bit value in range from -32,768 to 32,767");
@@ -133,15 +134,17 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         }
         case SHIFT_AMOUNT_5_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit , 0 , UINT5_MAX))
+                {
+                    return String_New (
+                               "Shift amount must be a 5-bit value in range from 0 to 31");
+                }
+            }
+            else
             {
                 return String_New ("Expected Const operand");
-            }
-
-            if (!IS_IN_RANGE (op->u.integer , 0 , UINT5_MAX))
-            {
-                return String_New (
-                           "Shift amount must be a 5-bit value in range from 0 to 31");
             }
 
             return NULL;
@@ -149,15 +152,17 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         case UPPER_16_BITS_OF_ADDRESS_16_BIT:
         case UNSIGNED_IMMEDIATE_16_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit , 0 , UINT16_MAX))
+                {
+                    return String_New (
+                               "Constant must be a 16-bit value in range from 0 to 65,535");
+                }
+            }
+            else
             {
                 return String_New ("Expected Const operand");
-            }
-
-            if (!IS_IN_RANGE (op->u.integer , 0 , UINT16_MAX))
-            {
-                return String_New (
-                           "Constant must be a 16-bit value in range from 0 to 65535");
             }
 
             return NULL;
@@ -165,31 +170,35 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         }
         case SIGNED_IMMEDIATE_16_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit , INT16_MIN , INT16_MAX))
+                {
+                    return String_New (
+                               "Constant must be a 16-bit value in range from -32,768 to 32,767");
+                }
+            }
+            else
             {
                 return String_New ("Expected Const operand");
-            }
-
-            if (!IS_IN_RANGE (op->u.integer, INT16_MIN, INT16_MAX))
-            {
-                return String_New (
-                           "Constant must be a 16-bit value in range from -32,768 to 32,767");
             }
 
             return NULL;
         }
         case SYSCALL_FUNCTION_CODE_20_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit , 0 , UINT20_MAX))
+                {
+                    return String_New (
+                               "Syscall function code must be a 20-bit value in range\
+                               from 0 to 1,048,575");
+                }
+            }
+            else
             {
                 return String_New ("Expected Const operand");
-            }
-
-            if (!IS_IN_RANGE (op->u.integer, 0, UINT20_MAX))
-            {
-                return String_New (
-                           "Syscall function code must be a 20-bit value in range\
-   from 0 to 1,048,575");
             }
 
             return NULL;
@@ -200,25 +209,18 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
          */
         case TARGET_ADDRESS_26_BIT:
         {
-            // if op is not a int
-            if (op->kind != A_asmOpIntKind
-                    // and not a var
-                    && (op->kind != A_asmOpVarKind
-                        // or if a var but not a simple one
-                        || (op->kind == A_asmOpVarKind && op->u.var->kind != A_simpleVar)))
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
             {
-                return String_New ("Expected Immediate or Label operand");
-            }
-
-            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT26_MAX, INT26_MAX))
-            {
-                return String_New ("Target address must be a 26-bit value \
-            in range from -33,554,432 to 33,554,431");
+                if (!A_LiteralInRange (op->u.lit, INT26_MAX, INT26_MAX))
+                {
+                    return String_New ("Target address must be a 26-bit value \
+                            in range from -33,554,432 to 33,554,431");
+                }
             }
             /*
              * We traverse the context looking for mentioned label
              */
-            else if (op->kind == A_asmOpVarKind)
+            else if (op->kind == A_asmOpVarKind && op->u.var->kind == A_simpleVar)
             {
                 const char * label = op->u.var->u.simple->name;
                 bool found = FALSE;
@@ -235,6 +237,10 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 {
                     return String_New ("The name is not a valid label");
                 }
+            }
+            else
+            {
+                return String_New ("Expected Immediate or Label operand");
             }
 
             return NULL;
@@ -242,25 +248,18 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         // same as 26 bit jump
         case PC_RELATIVE_BRANCH_TARGET_16_BIT:
         {
-            // if op is not a int
-            if (op->kind != A_asmOpIntKind
-                    // and not a var
-                    && (op->kind != A_asmOpVarKind
-                        // or if a var but not a simple one
-                        || (op->kind == A_asmOpVarKind && op->u.var->kind != A_simpleVar)))
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
             {
-                return String_New ("Expected Immediate or Label operand");
-            }
-
-            if (op->kind == A_asmOpIntKind && !IS_IN_RANGE (op->u.integer, INT16_MIN, INT16_MAX))
-            {
-                return String_New ("Target address must be a 16-bit value \
-                    in range from -2,147,483,648 to 2,147,483,647");
+                if (!A_LiteralInRange (op->u.lit, INT16_MIN, INT16_MAX))
+                {
+                    return String_New ("Target address must be a 16-bit value \
+in range from -2,147,483,648 to 2,147,483,647");
+                }
             }
             /*
              * We traverse the context looking for mentioned label
              */
-            else if (op->kind == A_asmOpVarKind)
+            else if (op->kind == A_asmOpVarKind && op->u.var->kind == A_simpleVar)
             {
                 const char * label = op->u.var->u.simple->name;
                 bool found = FALSE;
@@ -277,6 +276,10 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 {
                     return String_New ("The name is not a valid label");
                 }
+            }
+            else
+            {
+                return String_New ("Expected Immediate or Label operand");
             }
 
             return NULL;
@@ -287,13 +290,16 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
          */
         case MA_IMMEDIATE_32_BIT:
         {
-            if (op->kind != A_asmOpIntKind)
+            if (op->kind == A_asmOpLitKind && A_LiteralIsInteger (op->u.lit))
+            {
+                if (!A_LiteralInRange (op->u.lit , 0 , UINT20_MAX))
+                {
+                    return String_New ("Target address must be a 32-bit value");
+                }
+            }
+            else
             {
                 return String_New ("Expected Const operand");
-            }
-            if (!IS_IN_RANGE (op->u.integer, INT32_MIN, UINT32_MAX))
-            {
-                return String_New ("Target address must be a 32-bit value");
             }
             return NULL;
         }
@@ -466,6 +472,7 @@ static const struct M_opCode_t * FindInst (Sema_MIPSContext context, A_asmStm st
                                  + String_Size (&candidate->name)
                                  + String_Size (&candidate->format)
                                  + String_Size (rejection);
+
                 String_Reserve (s, reserve);
                 String_AppendF (s, "\n'%s %s' is rejected because '%s'",
                                 candidate->name.data,

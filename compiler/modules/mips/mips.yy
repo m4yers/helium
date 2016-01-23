@@ -6,6 +6,7 @@
     #include <stdio.h>
 
     #include "util/util.h"
+    #include "util/parse.h"
 
     #include "modules/mips/ast.h"
 
@@ -57,14 +58,14 @@
 
 %union
 {
-    int pos;
     int ival;
-    char * sval;
+    const char * sval;
     A_asmStm stm;
     A_asmStmList stmList;
     A_asmOp op;
     A_asmOpList opList;
     A_asmReg reg;
+    A_literal lit;
     A_var var;
 }
 
@@ -75,16 +76,19 @@
 %type <reg>     register
 %type <var>     lvalue
 %type <ival>    lvalue_deref
+%type <lit>     literal lit_integer
 
-%token <sval> ID STRING
-%token <ival> INT
+%token <sval> ID
+%token <sval> LIT_STR LIT_HEX LIT_DEC
 
 %token DOLLAR COMMA NEWLINE
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
-%token MINUS DOT COLON
+%token DOT COLON
 %token END 0
 
 %precedence   LOWEST
+
+%left MINUS
 
 %precedence   HIGHEST
 
@@ -148,7 +152,7 @@ operand_list:         %empty { $$ = NULL; }
                           }
                       }
                     ;
-operand:              INT LPAREN operand RPAREN
+operand:              lit_integer LPAREN operand RPAREN
                       {
                           $$ = A_AsmOpMem(&(@$), $1, $3);
                       }
@@ -156,22 +160,36 @@ operand:              INT LPAREN operand RPAREN
                       {
                           $$ = A_AsmOpReg(&(@$), $1);
                       }
-                    | MINUS INT
-                      {
-                          $$ = A_AsmOpInt(&(@$), -$2);
-                      }
-                    | INT
-                      {
-                          $$ = A_AsmOpInt(&(@$), $1);
-                      }
                     | lvalue
                       {
                           $$ = A_AsmOpVar(&(@$), $1);
                       }
-                    ;
-register:             DOLLAR INT
+                    | literal
                       {
-                          $$ = A_AsmRegNum(&(@$), $2);
+                          $$ = A_AsmOpLit(&(@$), $1);
+                      }
+                    ;
+literal:              lit_integer
+lit_integer:          LIT_DEC
+                      {
+                          Parse_status status;
+                          $$ = A_LiteralInt(&(@$), Parse_DecToInt($1, &status));
+                      }
+                    | LIT_HEX
+                      {
+                          Parse_status status;
+                          $$ = A_LiteralInt(&(@$), Parse_HexToInt($1, &status));
+                      }
+                    | MINUS lit_integer
+                      {
+                          //FIXME this assumes it is a signed container
+                          $$->u.ival *= -1;
+                      }
+                    ;
+register:             DOLLAR lit_integer
+                      {
+                          //TODO check type
+                          $$ = A_AsmRegNum(&(@$), $2->u.ival);
                       }
                     | DOLLAR ID
                       {

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <inttypes.h>
 
 #include "util/util.h"
 #include "util/mem.h"
@@ -42,12 +43,12 @@ A_asmOp A_AsmOpVar (A_loc loc, A_var var)
     return p;
 }
 
-A_asmOp A_AsmOpInt (A_loc loc, signed long integer)
+A_asmOp A_AsmOpLit (A_loc loc, A_literal lit)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmOpIntKind;
+    p->kind = A_asmOpLitKind;
     p->loc = *loc;
-    p->u.integer = integer;
+    p->u.lit = lit;
     return p;
 }
 
@@ -60,7 +61,7 @@ A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg)
     return p;
 }
 
-A_asmOp A_AsmOpMem (A_loc loc, signed long offset, A_asmOp base)
+A_asmOp A_AsmOpMem (A_loc loc, A_literal offset, A_asmOp base)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
     p->kind = A_asmOpMemKind;
@@ -121,18 +122,42 @@ static void EmitOp (String out, A_asmOp op)
         }
         break;
     }
-    /*
-     * TODO i do need IR!
-     * If exist means label
-     */
     case A_asmOpVarKind:
     {
-        String_AppendF(out, "%s", op->u.var->u.simple->name);
+        String_AppendF (out, "%s", op->u.var->u.simple->name);
         break;
     }
-    case A_asmOpIntKind:
+    case A_asmOpLitKind:
     {
-        String_AppendF (out, "%ld", op->u.integer);
+        A_literal lit = op->u.lit;
+        switch (lit->kind)
+        {
+        case A_literalBool:
+        {
+            String_AppendF (out, "%s", lit->u.bval ? "0x01" : "0x00");
+            break;
+        }
+        case A_literalInt:
+        {
+            String_AppendF (out, "0x%02lX", lit->u.ival);
+            break;
+        }
+        case A_literalUInt:
+        {
+            String_AppendF (out, "0x%02lX", lit->u.uval);
+            break;
+        }
+        case A_literalFloat:
+        {
+            String_AppendF (out, "%f", lit->u.dval);
+            break;
+        }
+        case A_literalString:
+        {
+            String_AppendF (out, "%s", lit->u.sval);
+            break;
+        }
+        }
         break;
     }
     case A_asmOpRegKind:
@@ -143,7 +168,7 @@ static void EmitOp (String out, A_asmOp op)
     }
     case A_asmOpMemKind:
     {
-        String_AppendF (out, "%ld(", op->u.mem.offset);
+        String_AppendF (out, "%"PRIdMAX"(", op->u.mem.offset->u.ival);
         EmitOp (out, op->u.mem.base);
         String_Append (out, ")");
         break;
@@ -236,9 +261,11 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
         fprintf (out, ")");
         break;
     }
-    case A_asmOpIntKind:
+    case A_asmOpLitKind:
     {
-        fprintf (out, "Int(%ld)", op->u.integer);
+        fprintf (out, "Lit(");
+        AST_PrintLiteral (out, op->u.lit, 0);
+        fprintf (out, ")");
         break;
     }
     case A_asmOpRegKind:
@@ -248,13 +275,14 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
     }
     case A_asmOpMemKind:
     {
-        fprintf (out, "Mem(%ld,", op->u.mem.offset);
+        fprintf (out, "Mem(%"PRIdMAX",", op->u.mem.offset->u.ival);
         PrintOp (out, op->u.mem.base, d);
         fprintf (out, ")");
+        break;
     }
     case A_asmOpRepKind:
     {
-        assert(0);
+        assert (0);
     }
     }
 }

@@ -102,6 +102,7 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/util/str.c
     ${CMAKE_SOURCE_DIR}/compiler/util/pair.c
     ${CMAKE_SOURCE_DIR}/compiler/util/vector.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/parse.c
     ${CMAKE_SOURCE_DIR}/compiler/program.c
 )
 
