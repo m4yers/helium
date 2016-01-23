@@ -290,6 +290,7 @@ const struct M_opCode_t mips_opcodes[] =
     M_OpCode ("jal",          "d,s"),
     M_OpCode ("jal",          "a"),
     M_OpCode ("jal",          "s"),
+    M_OpCode ("la",           "t,A"),
     M_OpCode ("la",           "t,A(b)"),
     M_OpCode ("lb",           "t,o(b)"),
     M_OpCode ("lb",           "t,A(b)"),
