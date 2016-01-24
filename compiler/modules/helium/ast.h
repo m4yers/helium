@@ -43,6 +43,7 @@ typedef enum
     A_asmExpOld, // <- remove this
 
     /** Exp */
+    A_decExp,
     A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
     A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
     A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
@@ -198,6 +199,7 @@ struct A_exp_t
     {
         /* break - need only the pos */
         /* nil; - needs only the pos */
+        A_dec dec;
         struct A_typeCastExp_t typeCast;
         A_var addressOf;
         A_exp valueAt;
@@ -218,6 +220,11 @@ struct A_exp_t
         A_expList array;
     } u;
 };
+
+/*
+ * Somewhat a crutch to allow radical AST transformation in preprocessor
+ */
+A_exp A_DecExp(A_loc loc, A_dec dec);
 
 A_exp A_TypeCastExp(A_loc loc, A_ty type, A_exp exp);
 A_exp A_AddressOfExp (A_loc loc, A_var var);

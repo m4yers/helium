@@ -60,6 +60,7 @@ typedef enum
     A_asmOpLitKind,
     A_asmOpRegKind,
     A_asmOpTmpKind,
+    A_asmOpLabKind,
     A_asmOpMemKind,
 } A_asmOpKind;
 
@@ -89,6 +90,8 @@ typedef struct A_asmOp_t
 
         S_symbol tmp;
 
+        S_symbol lab;
+
         struct
         {
             A_literal offset;
@@ -105,6 +108,7 @@ A_asmOp A_AsmOpVar (A_loc loc, A_var);
 A_asmOp A_AsmOpLit (A_loc loc, A_literal lit);
 A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg);
 A_asmOp A_AsmOpTmp (A_loc loc, S_symbol sym);
+A_asmOp A_AsmOpLab (A_loc loc, S_symbol sym);
 A_asmOp A_AsmOpMem (A_loc loc, A_literal offset, A_asmOp base);
 
 /****************
@@ -126,6 +130,7 @@ typedef struct A_asmStmInst_t
 typedef struct A_asmStmLab_t
 {
     const char * name;
+    bool meta;
 } * A_asmStmLab;
 
 typedef struct A_asmStm_t
@@ -149,7 +154,7 @@ LIST_DEFINE (A_asmStmList, A_asmStm)
 LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 
 A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
-A_asmStm A_AsmStmLab (A_loc loc, const char * name);
+A_asmStm A_AsmStmLab (A_loc loc, const char * name, bool meta);
 
 /*************
 *  Emitter  *

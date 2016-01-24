@@ -70,6 +70,15 @@ A_asmOp A_AsmOpTmp (A_loc loc, S_symbol sym)
     return p;
 }
 
+A_asmOp A_AsmOpLab (A_loc loc, S_symbol sym)
+{
+    A_asmOp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmOpLabKind;
+    p->loc = *loc;
+    p->u.lab = sym;
+    return p;
+}
+
 A_asmOp A_AsmOpMem (A_loc loc, A_literal offset, A_asmOp base)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
@@ -98,12 +107,13 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
     return p;
 }
 
-A_asmStm A_AsmStmLab (A_loc loc, const char * name)
+A_asmStm A_AsmStmLab (A_loc loc, const char * name, bool meta)
 {
     A_asmStm p = checked_malloc (sizeof (*p));
     p->loc = *loc;
     p->kind = A_asmStmLabKind;
     p->u.lab.name = name;
+    p->u.lab.meta = meta;
     p->dst = NULL;
     p->src = NULL;
     p->pre = NULL;
@@ -286,6 +296,11 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
     case A_asmOpTmpKind:
     {
         fprintf(out, "Tmp(%s)", op->u.tmp->name);
+        break;
+    }
+    case A_asmOpLabKind:
+    {
+        fprintf(out, "Lab(%s)", op->u.lab->name);
         break;
     }
     case A_asmOpMemKind:

@@ -4,6 +4,7 @@
 #include "util/vector.h"
 
 #include "core/temp.h"
+#include "core/parse.h"
 
 #include "modules/helium/ast.h"
 #include "modules/helium/preproc.h"
@@ -164,73 +165,31 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             //  addi  $t0, $zero, 0x0A    # newline
             //  sb    $t0, 0($t3)         # write final char
 
-            A_expList l = NULL;
-            struct String_t buf = String ("");
+            struct String_t code = String ("");
+            String_Reserve (&code, strlen (exp->u.macro.args->head->u.stringg) + 256);
+            String_AppendF (&code, "la    `t0, \"%s\"        \n", exp->u.macro.args->head->u.stringg);
+            String_Append (&code, "lw    `t1, 0(`t0)         \n");
+            String_Append (&code, "addi  `t0, `t0, 0x04      \n");
+            String_Append (&code, "add   `t1, `t1, `t0       \n");
+            String_Append (&code, "li    `t2, 0xffff0008     \n");
+            String_Append (&code, "li    `t3, 0xffff000c     \n");
+            String_Append (&code, "``wait:                   \n");
+            String_Append (&code, "lw    `t4, 0(`t2)         \n");
+            String_Append (&code, "beq   `t4, $zero, ``wait  \n");
+            String_Append (&code, "beq   `t0, `t1, ``exit    \n");
+            String_Append (&code, "lbu   `t5, 0(`t0)         \n");
+            String_Append (&code, "sb    `t5, 0(`t3)         \n");
+            String_Append (&code, "addi  `t0, `t0, 0x01      \n");
+            String_Append (&code, "j     ``wait              \n");
+            String_Append (&code, "``exit:                   \n");
+            String_Append (&code, "addi  `t0, $zero, 0x0A    \n");
+            String_Append (&code, "sb    `t0, 0(`t3)         \n");
 
-            Temp_label l_wait = Temp_NewLabel();
-            Temp_label l_exit = Temp_NewLabel();
+            U_stringList opts = NULL;
+            A_dec asmDec = A_AsmDec (&exp->loc, opts, ParseAsm (&exp->loc, code.data), NULL, NULL);
 
-            ASM ("add   `d0, `s0, `s1",
-                 SL ("t0", NULL), SL ("zero", NULL), exp->u.macro.args->head->u.stringg);
-
-            ASM ("lw    `d0, 0(`s0)",
-                 SL ("t1", NULL), SL ("t0", NULL), NULL);
-
-            ASM ("addi  `d0, `s0, 0x04",
-                 SL ("t0", NULL), SL ("t0", NULL), NULL);
-
-            ASM ("add   `d0, `s0, `s1",
-                 SL ("t1", NULL), SL ("t1", SL ("t0", NULL)), NULL);
-
-            ASM ("li    `d0, 0xffff0008",
-                 SL ("t2", NULL), NULL, NULL);
-
-            ASM ("li    `d0, 0xffff000c",
-                 SL ("t3", NULL), NULL, NULL);
-
-            String_Init (&buf, l_wait->name);
-            String_PushBack (&buf, ':');
-            ASM (buf.data, NULL, NULL, NULL);
-
-            ASM ("lw    `d0, 0(`s0)",
-                 SL ("t4", NULL), SL ("t2", NULL), NULL);
-
-            String_Init (&buf, "beq   `d0, `s0, ");
-            String_Append (&buf, l_wait->name);
-            ASM (buf.data, SL ("t4", NULL), SL ("zero", NULL), NULL);
-
-            String_Init (&buf, "beq   `d0, `s0, ");
-            String_Append (&buf, l_exit->name);
-            ASM (buf.data, SL ("t0", NULL), SL ("t1", NULL), NULL);
-
-            ASM ("lbu   `d0, 0(`s0)",
-                 SL ("t5", NULL), SL ("t0", NULL), NULL);
-
-            ASM ("sb    `d0, 0(`s0)",
-                 SL ("t5", NULL), SL ("t3", NULL), NULL);
-
-            ASM ("addi  `d0, `s0, 0x01",
-                 SL ("t0", NULL), SL ("t0", NULL), NULL);
-
-            String_Init (&buf, "j     ");
-            String_Append (&buf, l_wait->name);
-            ASM (buf.data, NULL, NULL, NULL);
-
-            String_Init (&buf, l_exit->name);
-            String_PushBack (&buf, ':');
-            ASM (buf.data, NULL, NULL, NULL);
-
-            ASM ("addi  `d0, `s0, 0x0A",
-                 SL ("t0", NULL), SL ("zero", NULL), NULL);
-
-            ASM ("sb    `d0, 0(`s0)",
-                 SL ("t0", NULL), SL ("t3", NULL), NULL);
-
-            // this makes the whole panic macro evaluate to 0(OK)
-            LIST_PUSH (l, A_IntExp (&exp->loc, 0));
-
-            exp->kind  = A_seqExp;
-            exp->u.seq = l;
+            exp->kind  = A_decExp;
+            exp->u.dec = asmDec;
 
             return exp;
         }

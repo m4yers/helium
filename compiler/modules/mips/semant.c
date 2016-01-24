@@ -214,6 +214,18 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
 in range from -33,554,432 to 33,554,431");
                 }
             }
+            else if (op->kind == A_asmOpLabKind)
+            {
+                Temp_label lab = (Temp_label)TAB_Look(context->meta_labs, op->u.lab);
+                if (!lab)
+                {
+                    return String_New("Expected a valid meta label");
+                }
+
+                // SHIT  OH.. MY... GOD.....
+                op->kind = A_asmOpVarKind;
+                op->u.var = A_SimpleVar(&op->loc, lab);
+            }
             /*
              * We traverse the context looking for mentioned label
              */
@@ -251,6 +263,18 @@ in range from -33,554,432 to 33,554,431");
                     return String_New ("Target address must be a 16-bit value \
 in range from -2,147,483,648 to 2,147,483,647");
                 }
+            }
+            else if (op->kind == A_asmOpLabKind)
+            {
+                Temp_label lab = (Temp_label)TAB_Look(context->meta_labs, op->u.lab);
+                if (!lab)
+                {
+                    return String_New("Expected a valid meta label");
+                }
+
+                // SHIT  OH.. MY... GOD.....
+                op->kind = A_asmOpVarKind;
+                op->u.var = A_SimpleVar(&op->loc, lab);
             }
             /*
              * We traverse the context looking for mentioned label
@@ -308,6 +332,18 @@ in range from -2,147,483,648 to 2,147,483,647");
                 {
                     return String_New ("Target address must be a 32-bit value");
                 }
+            }
+            else if (op->kind == A_asmOpLabKind)
+            {
+                Temp_label lab = (Temp_label)TAB_Look(context->meta_labs, op->u.lab);
+                if (!lab)
+                {
+                    return String_New("Expected a valid meta label");
+                }
+
+                // SHIT  OH.. MY... GOD.....
+                op->kind = A_asmOpVarKind;
+                op->u.var = A_SimpleVar(&op->loc, lab);
             }
             else if (op->kind == A_asmOpVarKind)
             {
@@ -591,11 +627,11 @@ static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is
     }
     case A_asmOpTmpKind:
     {
-        Temp_temp temp = (Temp_temp)TAB_Look (context->temps, op->u.tmp);
+        Temp_temp temp = (Temp_temp)TAB_Look (context->meta_regs, op->u.tmp);
         if (!temp)
         {
             temp = Temp_NewTemp();
-            TAB_Enter (context->temps, op->u.tmp, temp);
+            TAB_Enter (context->meta_regs, op->u.tmp, temp);
         }
         op->kind = A_asmOpRepKind;
         if (is_dst)
@@ -732,7 +768,8 @@ A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
     context.module = c->module;
     Vector_Init (&context.labels, Temp_label);
     context.errors = 0;
-    context.temps = TAB_Empty();
+    context.meta_regs = TAB_Empty();
+    context.meta_labs = TAB_Empty();
 
     A_asmStmList result = NULL;
 
@@ -744,7 +781,24 @@ A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
     {
         if (stm->kind == A_asmStmLabKind)
         {
-            Vector_PushBack (&context.labels, Temp_NamedLabel (stm->u.lab.name));
+            /*
+             * If the label is a meta label we to need generate the name for the label and save it
+             * for furhter occurances of the meta label
+             */
+            if (stm->u.lab.meta)
+            {
+                S_symbol sym = S_Symbol (stm->u.lab.name);
+                if (!TAB_Look (context.meta_labs, sym))
+                {
+                    Temp_label lab = Temp_NewLabel();
+                    TAB_Enter (context.meta_labs, sym, lab);
+                    stm->u.lab.name = lab->name;
+                }
+            }
+            else
+            {
+                Vector_PushBack (&context.labels, Temp_NamedLabel (stm->u.lab.name));
+            }
         }
     }
 

@@ -1299,6 +1299,10 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
         }
         return Expression_New (seq, r.ty);
     }
+    case A_decExp:
+    {
+        return Expression_New (Sema_TransDec (context, exp->u.dec), Ty_Void());
+    }
     case A_varExp:
     {
         return Sema_TransVar (context, exp->u.var, TRUE);

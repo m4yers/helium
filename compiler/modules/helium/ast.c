@@ -85,6 +85,15 @@ A_var A_SubscriptVar (A_loc loc, A_var var, A_exp exp)
  *  Expressions  *
  *****************/
 
+A_exp A_DecExp(A_loc loc, A_dec dec)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_decExp;
+    p->loc = *loc;
+    p->u.dec = dec;
+    return p;
+}
+
 A_exp A_TypeCastExp (A_loc loc, A_ty type, A_exp exp)
 {
     A_exp p = checked_malloc (sizeof (*p));

@@ -129,7 +129,11 @@ statement:            ID
                       }
                     | ID COLON
                       {
-                          $$ = A_AsmStmLab(&(@$), $1);
+                          $$ = A_AsmStmLab(&(@$), $1, FALSE);
+                      }
+                    | BACKTICK BACKTICK ID COLON
+                      {
+                          $$ = A_AsmStmLab(&(@$), $3, TRUE);
                       }
                     ;
 operand_list:         %empty { $$ = NULL; }
@@ -170,6 +174,10 @@ operand:              lit_integer LPAREN operand RPAREN
                     | BACKTICK ID
                       {
                           $$ = A_AsmOpTmp(&(@$), S_Symbol($2));
+                      }
+                    | BACKTICK BACKTICK ID
+                      {
+                          $$ = A_AsmOpLab(&(@$), S_Symbol($3));
                       }
                     ;
 literal:              lit_integer

@@ -12,7 +12,8 @@ typedef struct Sema_MIPSContext_t
     Sema_Context context;
     Program_Module module;
     struct Vector_t /* Temp_label */ labels;
-    TAB_table /* S_symbol: Temp_temp */ temps;
+    TAB_table /* S_symbol: Temp_temp  */ meta_regs;
+    TAB_table /* S_symbol: Temp_label */ meta_labs;
     size_t errors;
 
 } * Sema_MIPSContext;
