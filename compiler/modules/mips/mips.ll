@@ -67,6 +67,7 @@ ID           [_a-zA-Z][_a-zA-Z0-9]*
 "{"                    { return LBRACE;                                                       }
 "}"                    { return RBRACE;                                                       }
 "-"                    { return MINUS;                                                        }
+"`"                    { return BACKTICK;                                                     }
 {DIGIT_DEC}+           { yy_mips_lval.sval = strdup (yy_mips_text); return LIT_DEC;           }
 0[xX]{DIGIT_HEX}+      { yy_mips_lval.sval = strdup (yy_mips_text); return LIT_HEX;           }
 {ID}                   { yy_mips_lval.sval = strdup (yy_mips_text); return ID;                }

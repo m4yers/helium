@@ -1,6 +1,7 @@
 #ifndef SEMANT_MIPS_H_ICPDBCH2
 #define SEMANT_MIPS_H_ICPDBCH2
 
+#include "util/table.h"
 #include "core/program.h"
 
 #include "modules/helium/semant.h"
@@ -11,6 +12,7 @@ typedef struct Sema_MIPSContext_t
     Sema_Context context;
     Program_Module module;
     struct Vector_t /* Temp_label */ labels;
+    TAB_table /* S_symbol: Temp_temp */ temps;
     size_t errors;
 
 } * Sema_MIPSContext;

@@ -81,10 +81,9 @@
 %token <sval> ID
 %token <sval> LIT_STR LIT_HEX LIT_DEC
 
-%token DOLLAR COMMA NEWLINE
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE
-%token DOT COLON
-%token END 0
+%token DOLLAR COMMA DOT COLON BACKTICK
+%token NEWLINE END 0
 
 %precedence   LOWEST
 
@@ -167,6 +166,10 @@ operand:              lit_integer LPAREN operand RPAREN
                     | literal
                       {
                           $$ = A_AsmOpLit(&(@$), $1);
+                      }
+                    | BACKTICK ID
+                      {
+                          $$ = A_AsmOpTmp(&(@$), S_Symbol($2));
                       }
                     ;
 literal:              lit_integer

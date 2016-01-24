@@ -96,11 +96,8 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
         case SAME_REGISTER_SOURCE_AND_DESTINATION_5_BIT:
         case SAME_REGISTER_TARGET_AND_DESTINATION_5_BIT:
         {
-            // at this point register name is already normalized
             if (op->kind != A_asmOpRegKind
-                    /*
-                     * Replacements and Variables gonna be resolved as a register(temp)
-                     */
+                    && op->kind != A_asmOpTmpKind
                     && op->kind != A_asmOpRepKind
                     && op->kind != A_asmOpVarKind)
             {
@@ -572,7 +569,9 @@ static const struct M_opCode_t * FindInst (Sema_MIPSContext context, A_asmStm st
 
 static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is_dst)
 {
-    if (op->kind == A_asmOpRegKind)
+    switch (op->kind)
+    {
+    case A_asmOpRegKind:
     {
         Temp_temp r = M_RegGet (regs_all, op->u.reg->u.name);
         op->kind = A_asmOpRepKind;
@@ -588,8 +587,32 @@ static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is
             op->u.rep.use = A_asmOpUseSrc;
             op->u.rep.pos = LIST_SIZE (stm->src) - 1;
         }
+        break;
     }
-    else if (op->kind == A_asmOpVarKind)
+    case A_asmOpTmpKind:
+    {
+        Temp_temp temp = (Temp_temp)TAB_Look (context->temps, op->u.tmp);
+        if (!temp)
+        {
+            temp = Temp_NewTemp();
+            TAB_Enter (context->temps, op->u.tmp, temp);
+        }
+        op->kind = A_asmOpRepKind;
+        if (is_dst)
+        {
+            LIST_PUSH (stm->dst, Tr_UnEx (Tr_Temp (temp)));
+            op->u.rep.use = A_asmOpUseDst;
+            op->u.rep.pos = LIST_SIZE (stm->dst) - 1;
+        }
+        else
+        {
+            LIST_PUSH (stm->src, Tr_UnEx (Tr_Temp (temp)));
+            op->u.rep.use = A_asmOpUseSrc;
+            op->u.rep.pos = LIST_SIZE (stm->src) - 1;
+        }
+        break;
+    }
+    case A_asmOpVarKind:
     {
         if (is_dst)
         {
@@ -609,10 +632,12 @@ static void TransOp (Sema_MIPSContext context, A_asmOp op, A_asmStm stm, bool is
             op->u.rep.use = A_asmOpUseSrc;
             op->u.rep.pos = LIST_SIZE (stm->src) - 1;
         }
+        break;
     }
-    else
+    default:
     {
         assert (0);
+    }
     }
 }
 
@@ -707,6 +732,7 @@ A_asmStmList SemantMIPS_Translate (Sema_Context c, struct A_asmDec_t * d)
     context.module = c->module;
     Vector_Init (&context.labels, Temp_label);
     context.errors = 0;
+    context.temps = TAB_Empty();
 
     A_asmStmList result = NULL;
 

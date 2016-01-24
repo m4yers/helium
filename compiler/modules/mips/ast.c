@@ -61,6 +61,15 @@ A_asmOp A_AsmOpReg (A_loc loc, A_asmReg reg)
     return p;
 }
 
+A_asmOp A_AsmOpTmp (A_loc loc, S_symbol sym)
+{
+    A_asmOp p = checked_malloc (sizeof (*p));
+    p->kind = A_asmOpTmpKind;
+    p->loc = *loc;
+    p->u.tmp = sym;
+    return p;
+}
+
 A_asmOp A_AsmOpMem (A_loc loc, A_literal offset, A_asmOp base)
 {
     A_asmOp p = checked_malloc (sizeof (*p));
@@ -272,6 +281,11 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
     case A_asmOpRegKind:
     {
         PrintReg (out, op->u.reg);
+        break;
+    }
+    case A_asmOpTmpKind:
+    {
+        fprintf(out, "Tmp(%s)", op->u.tmp->name);
         break;
     }
     case A_asmOpMemKind:
