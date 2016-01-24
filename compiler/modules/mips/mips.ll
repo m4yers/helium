@@ -32,6 +32,7 @@
 %option nounput
 
 %x STATE_LINE_COMMENT
+%x STATE_STRING
 
 DIGIT_DEC    [0-9]
 DIGIT_HEX    [0-9a-fA-F]
@@ -44,6 +45,13 @@ ID           [_a-zA-Z][_a-zA-Z0-9]*
 {
     \n                 { lloc_newline(); BEGIN(INITIAL); return NEWLINE;                      }
     .*                 /** eat up all characters */
+}
+
+\"                     { BEGIN(STATE_STRING);                                                 }
+<STATE_STRING>
+{
+    [^"]*              { yy_mips_lval.sval = strdup (yy_mips_text);                           }
+    \"                 { BEGIN(INITIAL); return LIT_STR;                                      }
 }
 
 " "|\t                 { continue;                                                            }

@@ -76,7 +76,7 @@
 %type <reg>     register
 %type <var>     lvalue
 %type <ival>    lvalue_deref
-%type <lit>     literal lit_integer
+%type <lit>     literal lit_integer lit_string
 
 %token <sval> ID
 %token <sval> LIT_STR LIT_HEX LIT_DEC
@@ -170,6 +170,7 @@ operand:              lit_integer LPAREN operand RPAREN
                       }
                     ;
 literal:              lit_integer
+                    | lit_string
 lit_integer:          LIT_DEC
                       {
                           Parse_status status;
@@ -184,6 +185,11 @@ lit_integer:          LIT_DEC
                       {
                           //FIXME this assumes it is a signed container
                           $$->u.ival *= -1;
+                      }
+                    ;
+lit_string:           LIT_STR
+                      {
+                          $$ = A_LiteralString(&(@$), $1);
                       }
                     ;
 register:             DOLLAR lit_integer

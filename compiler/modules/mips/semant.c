@@ -193,7 +193,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 {
                     return String_New (
                                "Syscall function code must be a 20-bit value in range\
-                   from 0 to 1,048,575");
+   from 0 to 1,048,575");
                 }
             }
             else
@@ -214,7 +214,7 @@ static String OpMatchFormat (Sema_MIPSContext context, const struct String_t * f
                 if (!A_LiteralInRange (op->u.lit, INT26_MAX, INT26_MAX))
                 {
                     return String_New ("Target address must be a 26-bit value \
-                in range from -33,554,432 to 33,554,431");
+in range from -33,554,432 to 33,554,431");
                 }
             }
             /*
@@ -343,6 +343,32 @@ in range from -2,147,483,648 to 2,147,483,647");
             else
             {
                 return String_New ("Expected Immediate or Label operand");
+            }
+            break;
+        }
+        case MA_LITERAL_ADDRESS:
+        {
+            if (op->kind != A_asmOpLitKind)
+            {
+                return String_New ("Expected literal value");
+            }
+
+            switch (op->u.lit->kind)
+            {
+            // FIXME move to asm translate
+            // SHIT very very shitty thing
+            case A_literalString:
+            {
+                Temp_label label = Temp_NewLabel();
+                Program_AddFragment (context->module, F_StringFrag (label, op->u.lit->u.sval, F_lps));
+                op->kind = A_asmOpVarKind;
+                op->u.var = A_SimpleVar (&op->loc, S_Symbol (label->name));
+                break;
+            }
+            default:
+            {
+                assert (0);
+            }
             }
             break;
         }

@@ -601,6 +601,7 @@ decl_asm:                 ASM LBRACE STRING RBRACE
                           {
                               $$ = A_AsmDec(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
                           }
+                        ;
 asm_options_list:         %empty { $$ = NULL; }
                         | ID asm_options
                           {

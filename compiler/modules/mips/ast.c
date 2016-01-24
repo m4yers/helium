@@ -122,6 +122,7 @@ static void EmitOp (String out, A_asmOp op)
         }
         break;
     }
+    // FIXME label
     case A_asmOpVarKind:
     {
         String_AppendF (out, "%s", op->u.var->u.simple->name);

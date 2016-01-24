@@ -49,6 +49,7 @@
 #define COP_DESTINATON_REGISTER_5_BIT                          'G'
 
 /** macro */
+#define MA_LITERAL_ADDRESS                                     'P'
 #define MA_GENERAL_EXPRESSION_32_BIT                           'A'
 #define MA_IMMEDIATE_32_BIT                                    'I'
 #define MA_FLOAT_CONSTANT_RDATA_64_BIT                         'F'
