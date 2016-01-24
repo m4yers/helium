@@ -316,7 +316,7 @@ F_frame F_NewFrame (Temp_label name, U_boolList formals)
         }
     }
 
-    DBG ("F_NewFrame %p:\n%s\n", r, Frame_ToString (r))
+    DBG ("F_NewFrame %p:\n%s\n", (void *)r, Frame_ToString (r))
 
     return r;
 }
@@ -358,7 +358,7 @@ F_access F_Alloc (F_frame frame, const char * name, bool escape)
     access->name = name;
 
     DBG ("F_Alloc %p named as <%s> for <%s>, escapes: %s\n",
-         access,
+         (void *)access,
          name,
          frame->name->name,
          BOOL_TO_STRING (escape))
@@ -399,11 +399,11 @@ F_access F_AllocArray (F_frame frame, int words, const char * name, bool escape)
 
     access->name = name;
     DBG ("F_AllocArray %p for <%s>, name: %s, words: %d, handle: %p, escapes: %s\n",
-         array,
+         (void *)array,
          frame->name->name,
          name,
          words,
-         access,
+         (void *)access,
          BOOL_TO_STRING (escape))
 
     return access;
@@ -414,7 +414,7 @@ F_access F_AllocVirtual (F_frame frame, const char * name)
     F_access v = VirtualNew();
     v->name = name;
     DBG ("F_AllocVirtual %p named as <%s> for <%s>\n",
-         v,
+         (void *)v,
          name,
          frame->name->name);
     LIST_PUSH (frame->virtuals, v);
@@ -461,10 +461,10 @@ F_access F_AllocMaterializeArray (F_frame frame, F_access access, int words, boo
     LIST_PUSH (frame->words, access);
 
     DBG ("F_AllocMaterializeArray %p for <%s>, words: %d, handle: %p, escapes: %s\n",
-         array,
+         (void *)array,
          frame->name->name,
          words,
-         access,
+         (void *)access,
          BOOL_TO_STRING (escape));
 
     return access;
@@ -480,7 +480,7 @@ bool F_AllocIsVirtual (F_access access)
 void F_AllocDelete (F_frame frame, F_access access)
 {
     DBG ("F_AllocDelete %p named as <%s> for <%s>",
-         access,
+         (void *)access,
          access->name,
          frame->name->name)
 
@@ -540,7 +540,7 @@ F_frag F_StringFrag (Temp_label label, const char * str, F_stringType type)
 
 F_frag F_ProcFrag (T_stm body, F_frame frame)
 {
-    DBG ("F_ProcFrag %p for <%s>\n", body, frame->name->name)
+    DBG ("F_ProcFrag %p for <%s>\n", (void *)body, frame->name->name)
     F_frag r = checked_malloc (sizeof (*r));
     r->kind = F_procFrag;
     r->u.proc.body = body;
@@ -550,7 +550,6 @@ F_frag F_ProcFrag (T_stm body, F_frame frame)
 
 F_frag F_CodeFrag (T_stm body)
 {
-    DBG ("F_ProcFrag %p for <%s>\n", body, frame->name->name)
     F_frag r = checked_malloc (sizeof (*r));
     r->kind = F_codeFrag;
     r->u.code.body = body;
