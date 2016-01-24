@@ -254,30 +254,6 @@ expression:               literals
                               $$ = A_TypeCastExp(&(@$), $3, $1);
                           }
                         ;
-asm_options_list:         %empty { $$ = NULL; }
-                        | ID asm_options
-                          {
-                              $$ = U_StringList($1, $2);
-                          }
-asm_options:              %empty { $$ = NULL; }
-                        | asm_options COMMA ID
-                          {
-                              if ($1)
-                              {
-                                  U_stringList current = $1;
-                                  while (current && current->tail)
-                                  {
-                                    current = current->tail;
-                                  }
-                                  current->tail = U_StringList ($3, NULL);
-                                  $$ = $1;
-                              }
-                              else
-                              {
-                                  $$ = U_StringList ($3, NULL);
-                              }
-                          }
-                        ;
 literals:                 NIL     { $$ = A_NilExp (&(@$));        }
                         | INT     { $$ = A_IntExp (&(@$), $1);    }
                         | STRING  { $$ = A_StringExp (&(@$), $1); }
@@ -624,6 +600,29 @@ decl_asm:                 ASM LBRACE STRING RBRACE
                               LBRACE STRING RBRACE
                           {
                               $$ = A_AsmDec(&(@$), $3, ParseAsm(&(@10), $10), $5, $7);
+                          }
+asm_options_list:         %empty { $$ = NULL; }
+                        | ID asm_options
+                          {
+                              $$ = U_StringList($1, $2);
+                          }
+asm_options:              %empty { $$ = NULL; }
+                        | asm_options COMMA ID
+                          {
+                              if ($1)
+                              {
+                                  U_stringList current = $1;
+                                  while (current && current->tail)
+                                  {
+                                    current = current->tail;
+                                  }
+                                  current->tail = U_StringList ($3, NULL);
+                                  $$ = $1;
+                              }
+                              else
+                              {
+                                  $$ = U_StringList ($3, NULL);
+                              }
                           }
                         ;
 
