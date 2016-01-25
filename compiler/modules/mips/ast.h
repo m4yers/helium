@@ -9,6 +9,8 @@
 #include "util/str.h"
 
 #include "core/symbol.h"
+#include "core/temp.h"
+#include "core/asm.h"
 #include "core/ast.h"
 
 #include "modules/helium/types.h"
@@ -67,7 +69,8 @@ typedef enum
 typedef enum
 {
     A_asmOpUseSrc,
-    A_asmOpUseDst
+    A_asmOpUseDst,
+    A_asmOpUseLab
 } A_asmOpUse;
 
 typedef struct A_asmOp_t
@@ -130,6 +133,8 @@ typedef struct A_asmStmInst_t
 typedef struct A_asmStmLab_t
 {
     const char * name;
+    // SHIT really?)))
+    Temp_label lab;
     bool meta;
 } * A_asmStmLab;
 
@@ -144,6 +149,7 @@ typedef struct A_asmStm_t
     } u;
 
     // FIXME not the correct place move to IR
+    struct Temp_labelList_t * trg;
     struct T_expList_t * dst;
     struct T_expList_t * src;
     struct T_stmList_t * pre;
@@ -160,7 +166,8 @@ A_asmStm A_AsmStmLab (A_loc loc, const char * name, bool meta);
 *  Emitter  *
 *************/
 
-void AST_AsmEmitLine (String out, A_asmStm stm);
+void AST_AsmEmitInst (String out, A_asmStmInst inst);
+void AST_AsmEmitLabel (String out, A_asmStmLab lab);
 
 /*************
 *  Printer  *

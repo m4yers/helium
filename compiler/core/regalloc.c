@@ -383,30 +383,30 @@ static char * Workspace_ToString (Workspace w)
     return r;
 }
 
-static void Workspace_Print (FILE * out, Workspace w)
-{
-    fprintf (out, "temps:");
-    for (Temp_tempList l = w->temps; l; l = l->tail)
-    {
-        fprintf (out, " %d", Temp_GetTempIndex (l->head));
-    }
-    fprintf (out, "\n");
-    fprintf (out, "interference graph:\n");
-    BitMatrix_Print (out, w->interference);
-    fprintf (out, "initial:   ");
-    BitArray_Print (out, w->initial);
-    fprintf (out, "simplify:  ");
-    BitArray_Print (out, w->simplify);
-    fprintf (out, "freezify:  ");
-    BitArray_Print (out, w->freezify);
-    fprintf (out, "spillify:  ");
-    BitArray_Print (out, w->spillify);
-    fprintf (out, "spilled:   ");
-    BitArray_Print (out, w->spilled);
-    fprintf (out, "coalesced: ");
-    BitArray_Print (out, w->coalesced);
-    fprintf (out, "\n");
-}
+/* static void Workspace_Print (FILE * out, Workspace w) */
+/* { */
+/*     fprintf (out, "temps:"); */
+/*     for (Temp_tempList l = w->temps; l; l = l->tail) */
+/*     { */
+/*         fprintf (out, " %d", Temp_GetTempIndex (l->head)); */
+/*     } */
+/*     fprintf (out, "\n"); */
+/*     fprintf (out, "interference graph:\n"); */
+/*     BitMatrix_Print (out, w->interference); */
+/*     fprintf (out, "initial:   "); */
+/*     BitArray_Print (out, w->initial); */
+/*     fprintf (out, "simplify:  "); */
+/*     BitArray_Print (out, w->simplify); */
+/*     fprintf (out, "freezify:  "); */
+/*     BitArray_Print (out, w->freezify); */
+/*     fprintf (out, "spillify:  "); */
+/*     BitArray_Print (out, w->spillify); */
+/*     fprintf (out, "spilled:   "); */
+/*     BitArray_Print (out, w->spilled); */
+/*     fprintf (out, "coalesced: "); */
+/*     BitArray_Print (out, w->coalesced); */
+/*     fprintf (out, "\n"); */
+/* } */
 #endif
 
 /* static void Workspace_Reset (Workspace w) */

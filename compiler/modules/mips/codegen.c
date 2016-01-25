@@ -346,13 +346,10 @@ static void munchStm (T_stm s)
 
         LIST_FOREACH (stm, s->u.ASSEMBLY.stms)
         {
-            String_Init (&str, "");        // no fini since we use the data
-            String_Reserve (&str, 128);    // should be more than enough for one line
-            AST_AsmEmitLine (&str, stm);
 
-            LIST_FOREACH(st, stm->pre)
+            LIST_FOREACH (st, stm->pre)
             {
-                munchStm(st);
+                munchStm (st);
             }
 
             Temp_tempList tdst = NULL;
@@ -380,12 +377,31 @@ static void munchStm (T_stm s)
                     LIST_PUSH (tsrc, munchExp (e));
                 }
             }
-            //HMM can i detect MOVE?
-            emit (ASM_Oper (str.data, tdst, tsrc, NULL));
 
-            LIST_FOREACH(st, stm->post)
+            String_Init (&str, "");        // no fini since we use the data
+            String_Reserve (&str, 128);    // should be more than enough for one line
+
+            switch (stm->kind)
             {
-                munchStm(st);
+            case A_asmStmInstKind:
+            {
+                AST_AsmEmitInst (&str, &stm->u.inst);
+                emit (ASM_Oper (str.data, tdst, tsrc, ASM_Targets (stm->trg)));
+                //HMM can i detect MOVE?
+                break;
+            }
+            case A_asmStmLabKind:
+            {
+                AST_AsmEmitLabel (&str, &stm->u.lab);
+                emit (ASM_Label (str.data, stm->u.lab.lab));
+                break;
+            }
+            }
+
+
+            LIST_FOREACH (st, stm->post)
+            {
+                munchStm (st);
             }
         }
         return;

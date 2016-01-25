@@ -166,7 +166,7 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             //  sb    $t0, 0($t3)         # write final char
 
             struct String_t code = String ("");
-            String_Reserve (&code, strlen (exp->u.macro.args->head->u.stringg) + 256);
+            String_Reserve (&code, strlen (exp->u.macro.args->head->u.stringg) + 32);
             String_AppendF (&code, "la    `t0, \"%s\"        \n", exp->u.macro.args->head->u.stringg);
             String_Append (&code, "lw    `t1, 0(`t0)         \n");
             String_Append (&code, "addi  `t0, `t0, 0x04      \n");
@@ -186,7 +186,8 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             String_Append (&code, "sb    `t0, 0(`t3)         \n");
 
             U_stringList opts = NULL;
-            A_dec asmDec = A_AsmDec (&exp->loc, opts, ParseAsm (&exp->loc, code.data), NULL, NULL);
+            A_asmStmList stml = ParseAsm (&exp->loc, code.data);
+            A_dec asmDec = A_AsmDec (&exp->loc, opts, stml, NULL, NULL);
 
             exp->kind  = A_decExp;
             exp->u.dec = asmDec;
@@ -195,6 +196,8 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
         }
         else if (String_Equal (&name, "panic"))
         {
+            A_expList l = NULL;
+
             char * msg = checked_malloc (1024);
             sprintf (msg, "EXIT %d,%d 10000 %s",
                      exp->loc.first_line,
@@ -206,19 +209,20 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
                                 S_Symbol ("println"),
                                 A_ExpList (A_StringExp (&exp->loc, msg), NULL));
 
-            A_expList l = NULL;
-
             LIST_PUSH (l, TransExp (context, println));
 
-            ASM ("li    `d0, 1", SL ("a0", NULL), NULL, NULL);
+            struct String_t code = String ("");
+            String_Append (&code, "addi $a0, $zero, 1\n");
+            String_Append (&code, "addi $v0, $zero, 17\n");
+            String_Append (&code, "syscall");
+            //HMM do i need to pass $a0 and $v0 as sources to syscall?
+            //HMM and how?;)
 
-            // exit program with status code 1
-            ASM ("li    `d0, 17", SL ("v0", NULL), NULL, NULL);
-
-            ASM ("syscall",  NULL, SL ("v0", SL ("a0", NULL)), NULL);
-
-            // this makes the whole panic macro evaluate to 0(OK)
-            // FIXME must be stm
+            U_stringList opts = NULL;
+            A_asmStmList stml = ParseAsm (&exp->loc, code.data);
+            A_dec asmDec = A_AsmDec (&exp->loc, opts, stml, NULL, NULL);
+            LIST_PUSH (l, A_DecExp (&exp->loc, asmDec));
+            // FIXME remove this
             LIST_PUSH (l, A_IntExp (&exp->loc, 0));
 
             exp->kind  = A_seqExp;

@@ -130,6 +130,8 @@ char * ASM_Format (
     ASM_targets jumps,
     Temp_map m)
 {
+    /* strcpy(result, assem); */
+    /* return result; */
     const char * p;
     int i = 0; /* offset to result const char * */
     for (p = assem; p && *p != '\0'; p++)

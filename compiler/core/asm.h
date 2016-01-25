@@ -3,7 +3,7 @@
 
 #include "temp.h"
 
-typedef struct
+typedef struct ASM_targets_t
 {
     Temp_labelList labels;
 } * ASM_targets;

@@ -102,6 +102,7 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
     p->u.inst.opList = opList;
     p->dst = NULL;
     p->src = NULL;
+    p->trg = NULL;
     p->pre = NULL;
     p->post = NULL;
     return p;
@@ -135,13 +136,17 @@ static void EmitOp (String out, A_asmOp op)
         {
             String_AppendF (out, "`s%d", op->u.rep.pos);
         }
-        else
+        else if(op->u.rep.use == A_asmOpUseDst)
         {
             String_AppendF (out, "`d%d", op->u.rep.pos);
         }
+        else
+        {
+            String_AppendF (out, "`j%d", op->u.rep.pos);
+        }
         break;
     }
-    // FIXME label
+    // FIXME non jump label
     case A_asmOpVarKind:
     {
         String_AppendF (out, "%s", op->u.var->u.simple->name);
@@ -180,17 +185,18 @@ static void EmitOp (String out, A_asmOp op)
         }
         break;
     }
-    case A_asmOpRegKind:
-    {
-        //NOTE reg has to be normalized by this point
-        String_AppendF (out, "$%s", op->u.reg->u.name);
-        break;
-    }
     case A_asmOpMemKind:
     {
         String_AppendF (out, "%"PRIdMAX"(", op->u.mem.offset->u.ival);
         EmitOp (out, op->u.mem.base);
         String_Append (out, ")");
+        break;
+    }
+    case A_asmOpRegKind:
+    {
+        // SHIT this MUST go through replacements
+        assert(0);
+        String_AppendF (out, "$%s", op->u.reg->u.name);
         break;
     }
     default:
@@ -200,7 +206,7 @@ static void EmitOp (String out, A_asmOp op)
     }
 }
 
-static void EmitInst (String out, A_asmStmInst inst)
+void AST_AsmEmitInst (String out, A_asmStmInst inst)
 {
     String_AppendF (out, "%-6s", inst->opcode);
     size_t opsSize = LIST_SIZE (inst->opList);
@@ -215,26 +221,9 @@ static void EmitInst (String out, A_asmStmInst inst)
     }
 }
 
-static void EmitLabel (String out, A_asmStmLab lab)
+void AST_AsmEmitLabel (String out, A_asmStmLab lab)
 {
     String_AppendF (out, "%s:", lab->name);
-}
-
-void AST_AsmEmitLine (String out, A_asmStm stm)
-{
-    switch (stm->kind)
-    {
-    case A_asmStmInstKind:
-    {
-        EmitInst (out, &stm->u.inst);
-        break;
-    }
-    case A_asmStmLabKind:
-    {
-        EmitLabel (out, &stm->u.lab);
-        break;
-    }
-    }
 }
 
 /**********************************************************************
