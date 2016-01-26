@@ -10,6 +10,51 @@
 #include "core/temp.h"
 #include "core/ir.h"
 
+// FIXME const parameters
+
+/*************
+*  Closure  *
+*************/
+
+/*
+ * Closure in context of MIPS IR(and any ASM in general means stuff that needs to happen to
+ * successfully use an opperand or invoke instruction. It can be either pre/post ASM statement or
+ * .data segment definition or virtually anything. This also can be thought of as an execution
+ * context of some sort.
+ */
+
+typedef enum
+{
+    /*
+     * These two kinds require pre/post Helium IR evaluation, it is used for vars interpolation etc.
+     */
+    IR_mipsClosureHeStmPreKind,
+    IR_mipsClosureHeStmPostKind,
+} IR_mipsClosure_k;
+
+typedef struct IR_mipsClosureItem_t
+{
+    IR_mipsClosure_k kind;
+
+    union
+    {
+        const struct T_stm_t * heStmPre;
+        const struct T_stm_t * heStmPost;
+    } u;
+} * IR_mipsClosureItem;
+
+static inline IR_mipsClosureItem IR_MipsClosureHeStm (T_stm stm, bool is_pre)
+{
+    U_Create (IR_mipsClosureItem, r)
+    {
+        .kind = is_pre ? IR_mipsClosureHeStmPreKind : IR_mipsClosureHeStmPostKind,
+        .u.heStmPre = stm
+    };
+    return r;
+}
+
+LIST_DEFINE(IR_mipsClosure, IR_mipsClosureItem)
+
 /**************
 *  Operands  *
 **************/
@@ -24,39 +69,10 @@ typedef struct IR_mipsOpdImm_t
     } u;
 } * IR_mipsOpdImm;
 
-static inline IR_mipsOpdImm IR_MipsOpdImmInt (intmax_t value)
-{
-    U_Create (IR_mipsOpdImm, r)
-    {
-        .is_signed = TRUE,
-         .u.ival = value
-    };
-    return r;
-}
-
-static inline IR_mipsOpdImm IR_MipsOpdImmUInt (uintmax_t value)
-{
-    U_Create (IR_mipsOpdImm, r)
-    {
-        .is_signed = FALSE,
-         .u.uval = value
-    };
-    return r;
-}
-
 typedef struct IR_mipsOpdLab_t
 {
     Temp_label label;
 } * IR_mipsOpdLab;
-
-static inline IR_mipsOpdLab IR_MipsOpdLab (Temp_label label)
-{
-    U_Create (IR_mipsOpdLab, r)
-    {
-        .label = label
-    };
-    return r;
-}
 
 typedef enum
 {
@@ -71,90 +87,129 @@ typedef struct IR_mipsOpdRep_t
 
     union
     {
-        const struct T_exp_t * dst;
-        const struct T_exp_t * src;
-        const struct Temp_label_t * jmp;
+        const struct T_exp_t * exp;
+        Temp_label lab;
     } u;
 } * IR_mipsOpdRep;
 
-static inline IR_mipsOpdRep IR_MipsOpdRepDst (const struct T_exp_t * dst)
-{
-    U_Create (IR_mipsOpdRep, r)
-    {
-        .kind = IR_mipsOpdRepDstKind,
-         .u.dst = dst
-    };
-    return r;
-}
+// forward declaration
+typedef struct IR_mipsOpd_t * IR_mipsOpd;
 
-static inline IR_mipsOpdRep IR_MipsOpdRepSrc (const struct T_exp_t * src)
+typedef struct IR_mipsOpdMem_t
 {
-    U_Create (IR_mipsOpdRep, r)
-    {
-        .kind = IR_mipsOpdRepSrcKind,
-         .u.src = src
-    };
-    return r;
-}
-
-static inline IR_mipsOpdRep IR_MipsOpdRepJmp (const struct Temp_label_t * jmp)
-{
-    U_Create (IR_mipsOpdRep, r)
-    {
-        .kind = IR_mipsOpdRepJmpKind,
-         .u.jmp = jmp
-    };
-    return r;
-}
+    intmax_t offset;
+    IR_mipsOpd base;
+} * IR_mipsOpdMem;
 
 typedef enum
 {
     IR_mipsOpdImmKind,
+    IR_mipsOpdMemKind,
     IR_mipsOpdLabKind,
     IR_mipsOpdRepKind
 } IR_mipsOpd_k;
 
-typedef struct IR_mipsOpd_t
+struct IR_mipsOpd_t
 {
     IR_mipsOpd_k kind;
 
     union
     {
         const struct IR_mipsOpdImm_t imm;
+        const struct IR_mipsOpdMem_t mem;
         const struct IR_mipsOpdRep_t rep;
         const struct IR_mipsOpdLab_t lab;
     } u;
-} * IR_mipsOpd;
+
+    const struct IR_mipsClosure_t * cls;
+};
 
 LIST_DEFINE (IR_mipsOpdList, IR_mipsOpd)
 LIST_CONST_DEFINE (IR_MipsOpdList, IR_mipsOpdList, IR_mipsOpd)
 
-static inline IR_mipsOpd IR_MipsOpImm (const struct IR_mipsOpdImm_t imm)
+static inline IR_mipsOpd IR_MipsOpdImmInt (intmax_t value)
 {
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdImmKind,
-         .u.imm = imm
+        .u.imm = (struct IR_mipsOpdImm_t)
+        {
+            .is_signed = TRUE,
+            .u.ival = value
+        }
     };
     return r;
 }
 
-static inline IR_mipsOpd IR_MipsOpRep (const struct IR_mipsOpdRep_t rep)
+static inline IR_mipsOpd IR_MipsOpdImmUInt (uintmax_t value)
 {
     U_Create (IR_mipsOpd, r)
     {
-        .kind = IR_mipsOpdRepKind,
-         .u.rep = rep
+        .kind = IR_mipsOpdImmKind,
+        .u.imm = (struct IR_mipsOpdImm_t)
+        {
+            .is_signed = FALSE,
+            .u.uval = value
+        }
     };
     return r;
 }
 
-static inline IR_mipsOpd IR_MipsOpLab (const struct IR_mipsOpdLab_t lab)
+static inline IR_mipsOpd IR_MipsOpdMem (intmax_t offset, IR_mipsOpd base)
+{
+    assert (base->kind == IR_mipsOpdRepSrcKind);
+    U_Create (IR_mipsOpd, r)
+    {
+        .kind = IR_mipsOpdMemKind,
+        .u.mem = (struct IR_mipsOpdMem_t)
+        {
+            .offset = offset,
+            .base = base
+        }
+    };
+    return r;
+}
+
+static inline IR_mipsOpd IR_MipsOpdLab (Temp_label label)
 {
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdLabKind,
-         .u.lab = lab
+        .u.lab = (struct IR_mipsOpdLab_t)
+        {
+            .label = label
+        }
+    };
+    return r;
+}
+
+static inline IR_mipsOpd IR_MipsOpdRepExp (const struct T_exp_t * exp, bool dst, IR_mipsClosure cls)
+{
+    U_Create (IR_mipsOpd, r)
+    {
+        .kind = IR_mipsOpdRepKind,
+
+        .u.rep = (struct IR_mipsOpdRep_t)
+        {
+            .kind = dst ? IR_mipsOpdRepDstKind : IR_mipsOpdRepSrcKind,
+            .u.exp = exp
+        },
+
+        .cls = cls
+    };
+    return r;
+}
+
+static inline IR_mipsOpd IR_MipsOpdRepJmp (Temp_label lab)
+{
+    U_Create (IR_mipsOpd, r)
+    {
+        .kind = IR_mipsOpdRepKind,
+        .u.rep = (struct IR_mipsOpdRep_t)
+        {
+            .kind = IR_mipsOpdRepJmpKind,
+            .u.lab = lab
+        }
     };
     return r;
 }
@@ -165,42 +220,14 @@ static inline IR_mipsOpd IR_MipsOpLab (const struct IR_mipsOpdLab_t lab)
 
 typedef struct IR_mipsOpc_t
 {
-    const struct M_opCode_t spec;
-    const struct IR_mipsOpdList_t opds;
-    const struct T_stmList_t pre;
-    const struct T_stmList_t post;
+    const struct M_opCode_t * spec;
+    const struct IR_mipsOpdList_t * opdl;
 } * IR_mipsOpc;
-
-static inline IR_mipsOpc IR_MipsOpc (
-    const struct M_opCode_t spec,
-    const struct IR_mipsOpdList_t opds,
-    const struct T_stmList_t pre,
-    const struct T_stmList_t post)
-{
-    U_Create (IR_mipsOpc, r)
-    {
-        .spec = spec,
-         .opds = opds,
-          .pre = pre,
-           .post = post
-    };
-
-    return r;
-}
 
 typedef struct IR_mipsLab_t
 {
     Temp_label label;
 } * IR_mipsLab;
-
-static inline IR_mipsLab IR_MipsLab (Temp_label label)
-{
-    U_Create (IR_mipsLab, r)
-    {
-        .label = label
-    };
-    return r;
-}
 
 typedef enum
 {
@@ -218,12 +245,32 @@ typedef struct IR_mipsStm_t
     } u;
 } * IR_mipsStm;
 
-static inline IR_mipsStm IR_MipsStmOpc (const struct IR_mipsOpc_t opc)
+static inline IR_mipsStm IR_MipsStmOpc (
+    const struct M_opCode_t * spec,
+    const struct IR_mipsOpdList_t * opdl)
 {
     U_Create (IR_mipsStm, r)
     {
         .kind = IR_mipsStmOpcKind,
-         .u.opc = opc
+        .u.opc = (struct IR_mipsOpc_t)
+        {
+            .spec = spec,
+            .opdl = opdl,
+        }
+    };
+
+    return r;
+}
+
+static inline IR_mipsStm IR_MipsStmLab (Temp_label label)
+{
+    U_Create (IR_mipsStm, r)
+    {
+        .kind = IR_mipsStmLabKind,
+        .u.lab = (struct IR_mipsLab_t)
+        {
+            .label = label
+        }
     };
     return r;
 }
