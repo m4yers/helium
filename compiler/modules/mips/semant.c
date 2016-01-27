@@ -214,16 +214,19 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
         case SIGNED_OFFSET_16_BIT:
         {
             if (A_LiteralIsInteger (opd) &&
-                    !A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+                    A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+            {
+                intmax_t offset = opd->u.mem.offset->u.ival;
+                // FIXME do not use "b" literal
+                IR_mipsOpd base = TrOpd (err, cntx, opd->u.mem.base, String_New ("b"), pos);
+                iropd = IR_MipsOpdMem (offset, base);
+            }
+            else
             {
                 *err = String_New (
                            "Signed offset must be a 16-bit value in range from -32,768 to 32,767");
             }
 
-            intmax_t offset = opd->u.mem.offset->u.ival;
-            // FIXME do not use "b" literal
-            IR_mipsOpd base = TrOpd (err, cntx, opd->u.mem.base, String_New ("b"), pos);
-            iropd = IR_MipsOpdMem (offset, base);
             break;
         }
         case MA_GENERAL_EXPRESSION_32_BIT:
