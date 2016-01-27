@@ -243,16 +243,20 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
         }                                                                           \
     }
 
-#define LIST_FOREACH(item, list)                                                    \
-    for (                                                                           \
-            __typeof__ (list) __##item##__iterator = (list);                        \
-            __##item##__iterator;                                                   \
-            __##item##__iterator = NULL)                                            \
-    for (                                                                           \
-        __typeof__ ((list)->head) item = (__##item##__iterator ? __##item##__iterator->head : 0);\
-        __##item##__iterator;                                                       \
-        __##item##__iterator = __##item##__iterator->tail,                          \
-        item = (__##item##__iterator ? __##item##__iterator->head : 0))             \
+#define LIST_FOREACH(item, list)                                                                \
+    for (                                                                                       \
+            bool __##item##__c1 = TRUE, __##item##__c2 = TRUE;                                  \
+            __##item##__c1;                                                                     \
+            __##item##__c1 = FALSE)                                                             \
+    for (                                                                                       \
+            U_voidList __##item##__iter = (U_voidList)(list);                                   \
+            __##item##__iter;                                                                   \
+            __##item##__iter = __##item##__iter->tail,                                          \
+            __##item##__c2 = TRUE)                                                              \
+    for (                                                                                       \
+            __typeof__ ((list)->head) item = ((__typeof__(list))__##item##__iter)->head;        \
+            __##item##__c2;                                                                     \
+            __##item##__c2 = FALSE)                                                             \
 
 LIST_DEFINE (U_boolList, bool)
 U_boolList U_BoolList (bool head, U_boolList tail);

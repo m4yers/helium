@@ -8,7 +8,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/list.h"
+#include "util/list.h"
 
 LIST_DEFINE (ItemList, size_t)
 
@@ -211,6 +211,8 @@ static void list_foreach_ok (void ** state)
     {
         assert_true (i == n++);
     }
+
+    assert_true (size == n);
 
     (void) state;
 }
