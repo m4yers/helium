@@ -108,12 +108,12 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList)
     return p;
 }
 
-A_asmStm A_AsmStmLab (A_loc loc, const char * name, bool meta)
+A_asmStm A_AsmStmLab (A_loc loc, S_symbol sym, bool meta)
 {
     A_asmStm p = checked_malloc (sizeof (*p));
     p->loc = *loc;
     p->kind = A_asmStmLabKind;
-    p->u.lab.name = name;
+    p->u.lab.sym = sym;
     p->u.lab.meta = meta;
     p->dst = NULL;
     p->src = NULL;
@@ -223,7 +223,7 @@ void AST_AsmEmitInst (String out, A_asmStmInst inst)
 
 void AST_AsmEmitLabel (String out, A_asmStmLab lab)
 {
-    String_AppendF (out, "%s:", lab->name);
+    String_AppendF (out, "%s:", lab->sym->name);
 }
 
 /**********************************************************************
@@ -324,7 +324,7 @@ static void PrintInst (FILE * out, A_asmStmInst inst, int d)
 static void PrintLabel (FILE * out, A_asmStmLab lab, int d)
 {
     PrintIndent (out, d);
-    fprintf (out, "Label(%s)", lab->name);
+    fprintf (out, "Label(%s)", lab->sym->name);
 }
 
 void AST_AsmPrint (FILE * out, A_asmStmList list, int d)

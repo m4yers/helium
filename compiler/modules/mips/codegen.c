@@ -14,21 +14,21 @@
 
 #define L Temp_TempList
 
-#define R_INST(buffer, name)\
-{\
-    sprintf (buffer, "%-5s `d0, `s0, `s1", name);\
-}\
+#define R_INST(buffer, name)                                                            \
+{                                                                                       \
+    sprintf (buffer, "%-5s `d0, `s0, `s1", name);                                       \
+}                                                                                       \
 
 // TODO make sure the cast won't break anything
 // C is 16 bit value so it should not
 // instead we need to check the actual C value
-#define I_INST(buffer, name, constant)\
-{\
-    const char * pattern = IS_HEX_SPEAK((unsigned int)constant)\
-        ? "%-5s `d0, `s0, 0x%X"\
-        : "%-5s `d0, `s0, %d";\
-    sprintf (buffer, pattern, name, constant);\
-}\
+#define I_INST(buffer, name, constant)                                                  \
+{                                                                                       \
+    const char * pattern = IS_HEX_SPEAK((unsigned int)constant)                         \
+        ? "%-5s `d0, `s0, 0x%X"                                                         \
+        : "%-5s `d0, `s0, %d";                                                          \
+    sprintf (buffer, pattern, name, constant);                                          \
+}                                                                                       \
 
 static Temp_temp munchExp (T_exp e);
 static void munchStm (T_stm s);
@@ -334,6 +334,86 @@ static Temp_temp munchExp (T_exp e)
     }
 }
 
+static void printAsmOpd (
+    String out,
+    size_t ord,
+    IR_mipsOpd opd,
+    T_stmList * pre,
+    T_stmList * post,
+    Temp_tempList * dsts,
+    Temp_tempList * srcs,
+    Temp_labelList * jmps)
+{
+    LIST_FOREACH (cli, opd->cls)
+    {
+        switch (cli->kind)
+        {
+        // FIXME remove cast after all IR becomes immutable
+        case IR_mipsClosureHeStmPreKind:
+        {
+            LIST_PUSH (*pre, (T_stm)cli->u.heStmPre);
+            break;
+        }
+        case IR_mipsClosureHeStmPostKind:
+        {
+            LIST_PUSH (*post, (T_stm)cli->u.heStmPost);
+            break;
+        }
+        }
+    }
+
+    if (ord != 0)
+    {
+        String_Append (out, ",");
+    }
+
+    switch (opd->kind)
+    {
+    case IR_mipsOpdImmKind:
+    {
+        String_AppendF (out, " 0x%02lX", opd->u.imm.u.ival);
+        break;
+    }
+    case IR_mipsOpdMemKind:
+    {
+        String_AppendF (out, " 0x%02lX(", opd->u.mem.offset);
+        printAsmOpd (out, ord, opd->u.mem.base, pre, post, dsts, srcs, jmps);
+        String_Append (out, ")");
+        break;
+    }
+    case IR_mipsOpdLabKind:
+    {
+        String_AppendF (out, " %s", opd->u.lab.label->name);
+        break;
+    }
+    case IR_mipsOpdRepKind:
+    {
+        switch (opd->u.rep.kind)
+        {
+        case A_asmOpUseDst:
+        {
+            LIST_PUSH (*dsts, opd->u.rep.u.tmp);
+            String_AppendF (out, " `d%ju", LIST_SIZE (*dsts) - 1);
+            break;
+        }
+        case A_asmOpUseSrc:
+        {
+            LIST_PUSH (*srcs, opd->u.rep.u.tmp);
+            String_AppendF (out, " `s%ju", LIST_SIZE (*srcs) - 1);
+            break;
+        }
+        case A_asmOpUseLab:
+        {
+            LIST_PUSH (*jmps, opd->u.rep.u.lab);
+            String_AppendF (out, " `j%ju", LIST_SIZE (*jmps) - 1);
+            break;
+        }
+        }
+        break;
+    }
+    }
+}
+
 static void munchStm (T_stm s)
 {
     char * buffer = checked_malloc (100);
@@ -346,62 +426,40 @@ static void munchStm (T_stm s)
 
         LIST_FOREACH (stm, s->u.ASSEMBLY.stms)
         {
+            String_Init (&str, "");
+            String_Reserve (&str, 128);
+            String_AppendF (&str, "%-5s", stm->u.opc.spec->name.data);
 
-            LIST_FOREACH (st, stm->pre)
-            {
-                munchStm (st);
-            }
+            T_stmList pre = NULL;
+            T_stmList post = NULL;
 
-            Temp_tempList tdst = NULL;
-            LIST_FOREACH (e, stm->dst)
-            {
-                if (e->kind == T_TEMP)
-                {
-                    LIST_PUSH (tdst, e->u.TEMP);
-                }
-                else
-                {
-                    LIST_PUSH (tdst, munchExp (e));
-                }
-            }
-
-            Temp_tempList tsrc = NULL;
-            LIST_FOREACH (e, stm->src)
-            {
-                if (e->kind == T_TEMP)
-                {
-                    LIST_PUSH (tsrc, e->u.TEMP);
-                }
-                else
-                {
-                    LIST_PUSH (tsrc, munchExp (e));
-                }
-            }
-
-            String_Init (&str, "");        // no fini since we use the data
-            String_Reserve (&str, 128);    // should be more than enough for one line
+            Temp_tempList  dsts = NULL;
+            Temp_tempList  srcs = NULL;
+            Temp_labelList jmps = NULL;
 
             switch (stm->kind)
             {
-            case A_asmStmInstKind:
+            case IR_mipsStmOpcKind:
             {
-                AST_AsmEmitInst (&str, &stm->u.inst);
-                emit (ASM_Oper (str.data, tdst, tsrc, ASM_Targets (stm->trg)));
-                //HMM can i detect MOVE?
+                size_t ord = 0;
+                LIST_FOREACH (opd, stm->u.opc.opdl)
+                {
+                    printAsmOpd (&str, ord++, opd, &pre, &post, &dsts, &srcs, &jmps);
+                }
+
+                emit (ASM_Oper (str.data, dsts, srcs, ASM_Targets (jmps)));
                 break;
             }
-            case A_asmStmLabKind:
+            case IR_mipsStmLabKind:
             {
-                AST_AsmEmitLabel (&str, &stm->u.lab);
-                emit (ASM_Label (str.data, stm->u.lab.lab));
+                sprintf (buffer, "%s:", stm->u.lab.label->name);
+                emit (ASM_Label (buffer, stm->u.lab.label));
                 break;
             }
-            }
-
-
-            LIST_FOREACH (st, stm->post)
+            default:
             {
-                munchStm (st);
+                assert (0);
+            }
             }
         }
         return;

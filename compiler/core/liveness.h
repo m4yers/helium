@@ -8,9 +8,9 @@
 typedef struct Live_moveList_ * Live_moveList;
 struct Live_moveList_
 {
+    Live_moveList tail;
     ASM_line line;
     G_node src, dst;
-    Live_moveList tail;
 };
 
 Live_moveList Live_MoveList (ASM_line line, G_node src, G_node dst, Live_moveList tail);

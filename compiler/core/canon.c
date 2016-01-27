@@ -7,12 +7,7 @@
 
 #include "core/canon.h"
 
-typedef struct expRefList_ * expRefList;
-struct expRefList_
-{
-    T_exp * head;
-    expRefList tail;
-};
+LIST_DEFINE (expRefList, T_exp *)
 
 /* local function prototypes */
 static T_stm DoStm (T_stm stm);

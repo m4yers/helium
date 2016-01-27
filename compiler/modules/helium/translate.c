@@ -769,7 +769,7 @@ Tr_exp Tr_Exit (Tr_exp exp)
     return Tr_Sx (T_Exit (Tr_UnEx (exp)));
 }
 
-Tr_exp Tr_Asm (A_asmStmList stms)
+Tr_exp Tr_Asm (IR_mipsStmList stms)
 {
     return Tr_Sx (T_Asm (stms));
 }

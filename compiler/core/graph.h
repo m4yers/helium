@@ -4,16 +4,12 @@
 #include <stdio.h>
 
 #include "util/bool.h"
+#include "util/list.h"
 
 typedef struct G_graph_ * G_graph;
 typedef struct G_node_ * G_node;
 
-typedef struct G_nodeList_ * G_nodeList;
-struct G_nodeList_
-{
-    G_node head;
-    G_nodeList tail;
-};
+LIST_DEFINE(G_nodeList, G_node)
 
 G_graph G_Graph (void);
 G_node G_Node (G_graph g, void * info);

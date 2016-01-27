@@ -3,12 +3,7 @@
 
 #include "core/ir.h"
 
-typedef struct C_stmListList_ * C_stmListList;
-struct C_stmListList_
-{
-    T_stmList head;
-    C_stmListList tail;
-};
+LIST_DEFINE (C_stmListList, T_stmList)
 
 struct C_block
 {

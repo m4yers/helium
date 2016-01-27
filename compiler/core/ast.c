@@ -61,7 +61,7 @@ bool A_LiteralInRange_i (A_literal lit, intmax_t min, intmax_t max)
 
 bool A_LiteralInRange_u (A_literal lit, uintmax_t min, uintmax_t max)
 {
-    assert (lit->kind == A_literalInt);
+    assert (lit->kind == A_literalUInt);
     return lit->u.uval >= min && lit->u.uval <= max;
 }
 

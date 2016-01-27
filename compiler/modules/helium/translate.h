@@ -8,6 +8,7 @@
 #include "core/program.h"
 
 #include "modules/helium/types.h"
+#include "modules/mips/ir.h"
 
 // forward declaration
 struct Sema_Context_t;
@@ -67,7 +68,7 @@ Tr_exp Tr_For (Tr_exp lo, Tr_exp hi, Tr_exp body, Tr_access iter, Temp_label don
 Tr_exp Tr_Break (Temp_label done);
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp);
 Tr_exp Tr_Exit (Tr_exp exp);
-Tr_exp Tr_Asm (A_asmStmList stms);
+Tr_exp Tr_Asm (IR_mipsStmList stms);
 Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src);
 
 // FIXME should not be public?

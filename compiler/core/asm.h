@@ -40,12 +40,7 @@ struct ASM_line_
     } u;
 };
 
-typedef struct ASM_lineList_ * ASM_lineList;
-struct ASM_lineList_
-{
-    ASM_line head;
-    ASM_lineList tail;
-};
+LIST_DEFINE (ASM_lineList, ASM_line)
 
 ASM_line ASM_Oper (const char * a, Temp_tempList d, Temp_tempList s, ASM_targets j);
 ASM_line ASM_Label (const char * a, Temp_label label);

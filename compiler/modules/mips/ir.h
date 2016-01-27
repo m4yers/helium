@@ -43,7 +43,7 @@ typedef struct IR_mipsClosureItem_t
     } u;
 } * IR_mipsClosureItem;
 
-static inline IR_mipsClosureItem IR_MipsClosureHeStm (T_stm stm, bool is_pre)
+static inline IR_mipsClosureItem IR_MipsClosureHeStm (const struct T_stm_t * stm, bool is_pre)
 {
     U_Create (IR_mipsClosureItem, r)
     {
@@ -87,7 +87,7 @@ typedef struct IR_mipsOpdRep_t
 
     union
     {
-        const struct T_exp_t * exp;
+        Temp_temp tmp;
         Temp_label lab;
     } u;
 } * IR_mipsOpdRep;
@@ -170,6 +170,10 @@ static inline IR_mipsOpd IR_MipsOpdMem (intmax_t offset, IR_mipsOpd base)
     return r;
 }
 
+/*
+ * Label operand MUST NOT be used with branch or jump instructions since it WON'T be used for data
+ * flow analysis which will lead to incorrect register allocation and very subtle bugs.
+ */
 static inline IR_mipsOpd IR_MipsOpdLab (Temp_label label)
 {
     U_Create (IR_mipsOpd, r)
@@ -183,7 +187,7 @@ static inline IR_mipsOpd IR_MipsOpdLab (Temp_label label)
     return r;
 }
 
-static inline IR_mipsOpd IR_MipsOpdRepExp (const struct T_exp_t * exp, bool dst, IR_mipsClosure cls)
+static inline IR_mipsOpd IR_MipsOpdRepExp (Temp_temp tmp, bool dst, IR_mipsClosure cls)
 {
     U_Create (IR_mipsOpd, r)
     {
@@ -192,7 +196,7 @@ static inline IR_mipsOpd IR_MipsOpdRepExp (const struct T_exp_t * exp, bool dst,
         .u.rep = (struct IR_mipsOpdRep_t)
         {
             .kind = dst ? IR_mipsOpdRepDstKind : IR_mipsOpdRepSrcKind,
-            .u.exp = exp
+            .u.tmp = tmp
         },
 
         .cls = cls
@@ -200,6 +204,10 @@ static inline IR_mipsOpd IR_MipsOpdRepExp (const struct T_exp_t * exp, bool dst,
     return r;
 }
 
+/*
+ * Label operand MUST be used with branch or jump instruction since it WILL BE used with data flow
+ * analysis.
+ */
 static inline IR_mipsOpd IR_MipsOpdRepJmp (Temp_label lab)
 {
     U_Create (IR_mipsOpd, r)

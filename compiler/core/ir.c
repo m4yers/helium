@@ -36,7 +36,7 @@ T_stmList T_StmList (T_stm head, T_stmList tail)
     return p;
 }
 
-T_stm T_Asm (A_asmStmList stms)
+T_stm T_Asm (IR_mipsStmList stms)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);
     p->kind = T_ASM;

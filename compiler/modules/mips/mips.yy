@@ -129,11 +129,11 @@ statement:            ID
                       }
                     | ID COLON
                       {
-                          $$ = A_AsmStmLab(&(@$), $1, FALSE);
+                          $$ = A_AsmStmLab(&(@$), S_Symbol($1), FALSE);
                       }
                     | BACKTICK BACKTICK ID COLON
                       {
-                          $$ = A_AsmStmLab(&(@$), $3, TRUE);
+                          $$ = A_AsmStmLab(&(@$), S_Symbol($3), TRUE);
                       }
                     ;
 operand_list:         %empty { $$ = NULL; }
@@ -182,6 +182,7 @@ operand:              lit_integer LPAREN operand RPAREN
                     ;
 literal:              lit_integer
                     | lit_string
+                    ;
 lit_integer:          LIT_DEC
                       {
                           Parse_status status;
