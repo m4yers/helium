@@ -12,4 +12,8 @@ char * itoa (int value, char * result, int base);
     T n = checked_malloc (sizeof (*n));                          \
     *n = (__typeof__ (*n))                                       \
 
+#define U_CreateDefault(T,n)                                     \
+    T n = checked_malloc (sizeof (*n));                          \
+    *n = (__typeof__ (*n)){0};                                   \
+
 #endif /* end of include guard: UTIL_H_T8MIWUHH */
