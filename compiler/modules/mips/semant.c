@@ -213,7 +213,8 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            if (!A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+            if (A_LiteralIsInteger (opd) &&
+                    !A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
             {
                 *err = String_New (
                            "Signed offset must be a 16-bit value in range from -32,768 to 32,767");
