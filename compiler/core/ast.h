@@ -38,7 +38,7 @@ typedef struct A_literal_t
         A_literalString
     } kind;
 
-    struct
+    union
     {
         bool         bval;
         intmax_t     ival;
