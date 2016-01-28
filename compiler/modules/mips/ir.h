@@ -48,24 +48,30 @@ static inline IR_mipsClosureItem IR_MipsClosureHeStm (const struct T_stm_t * stm
     U_Create (IR_mipsClosureItem, r)
     {
         .kind = is_pre ? IR_mipsClosureHeStmPreKind : IR_mipsClosureHeStmPostKind,
-        .u.heStmPre = stm
+         .u.heStmPre = stm
     };
     return r;
 }
 
-LIST_DEFINE(IR_mipsClosure, IR_mipsClosureItem)
+LIST_DEFINE (IR_mipsClosure, IR_mipsClosureItem)
 
 /**************
 *  Operands  *
 **************/
 
+typedef enum
+{
+    IR_mipsImmInt32Kind,
+    IR_mipsImmUInt32Kind,
+} IR_mipsImmKind;
+
 typedef struct IR_mipsOpdImm_t
 {
-    const bool is_signed;
+    IR_mipsImmKind kind;
     union
     {
-        const uintmax_t uval;
-        const intmax_t ival;
+        const uint32_t uval;
+        const int32_t ival;
     } u;
 } * IR_mipsOpdImm;
 
@@ -127,28 +133,28 @@ struct IR_mipsOpd_t
 LIST_DEFINE (IR_mipsOpdList, IR_mipsOpd)
 LIST_CONST_DEFINE (IR_MipsOpdList, IR_mipsOpdList, IR_mipsOpd)
 
-static inline IR_mipsOpd IR_MipsOpdImmInt (intmax_t value)
+static inline IR_mipsOpd IR_MipsOpdImmInt32 (int32_t value)
 {
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdImmKind,
         .u.imm = (struct IR_mipsOpdImm_t)
         {
-            .is_signed = TRUE,
+            .kind = IR_mipsImmInt32Kind,
             .u.ival = value
         }
     };
     return r;
 }
 
-static inline IR_mipsOpd IR_MipsOpdImmUInt (uintmax_t value)
+static inline IR_mipsOpd IR_MipsOpdImmUInt32 (uint32_t value)
 {
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdImmKind,
         .u.imm = (struct IR_mipsOpdImm_t)
         {
-            .is_signed = FALSE,
+            .kind = IR_mipsImmUInt32Kind,
             .u.uval = value
         }
     };
@@ -194,7 +200,6 @@ static inline IR_mipsOpd IR_MipsOpdRepExp (Temp_temp tmp, bool dst, IR_mipsClosu
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdRepKind,
-
         .u.rep = (struct IR_mipsOpdRep_t)
         {
             .kind = dst ? IR_mipsOpdRepDstKind : IR_mipsOpdRepSrcKind,

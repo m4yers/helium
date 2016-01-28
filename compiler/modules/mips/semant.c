@@ -363,7 +363,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0) , UINT5_MAX))
                 {
-                    iropd = IR_MipsOpdImmUInt (opd->u.lit->u.uval);
+                    iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
                 }
                 else
                 {
@@ -391,7 +391,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT16_MAX))
                 {
-                    iropd = IR_MipsOpdImmUInt (opd->u.lit->u.uval);
+                    iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
                 }
                 else
                 {
@@ -418,7 +418,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , INT16_MIN, INT16_MAX))
                 {
-                    iropd = IR_MipsOpdImmInt (opd->u.lit->u.ival);
+                    iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
                 else
                 {
@@ -445,7 +445,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT20_MAX))
                 {
-                    iropd = IR_MipsOpdImmUInt (opd->u.lit->u.uval);
+                    iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
                 }
                 else
                 {
@@ -502,7 +502,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit, INT26_MIN, INT26_MAX))
                 {
-                    iropd = IR_MipsOpdImmInt (opd->u.lit->u.ival);
+                    iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
                 else
                 {
@@ -582,7 +582,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit, INT16_MIN, INT16_MAX))
                 {
-                    iropd = IR_MipsOpdImmInt (opd->u.lit->u.ival);
+                    iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
                 else
                 {
@@ -662,7 +662,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit, INT32_MIN, INT32_MAX))
                 {
-                    iropd = IR_MipsOpdImmInt (opd->u.lit->u.ival);
+                    iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
                 else
                 {
@@ -714,7 +714,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 if (A_LiteralIsInteger (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT32_MAX))
                 {
-                    iropd = IR_MipsOpdImmInt (opd->u.lit->u.uval);
+                    iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.uval);
                 }
                 else
                 {
@@ -957,6 +957,14 @@ IR_mipsStmList SemantMIPS_Translate (Sema_Context cntx, struct A_asmDec_t * dec)
         }
 
         LIST_PUSH (result, irstm);
+    }
+
+    LIST_FOREACH(stm, result)
+    {
+        if (stm->kind == IR_mipsStmOpcKind)
+        {
+            printf("opcode: %s %s\n", stm->u.opc.spec->name.data, stm->u.opc.spec->format.data);
+        }
     }
 
     return result;

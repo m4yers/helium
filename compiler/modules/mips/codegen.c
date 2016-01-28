@@ -376,9 +376,7 @@ static void printAsmOpd (
     {
     case IR_mipsOpdImmKind:
     {
-        //NOTE we target 32bit thus far so this cast here is safe
-        int32_t ival = opd->u.imm.u.ival;
-        String_AppendF (out, "0x%02X", ival);
+        String_AppendF (out, "0x%02X", opd->u.imm.u.ival);
         break;
     }
     case IR_mipsOpdMemKind:
