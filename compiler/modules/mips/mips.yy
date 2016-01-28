@@ -196,7 +196,8 @@ lit_integer:          LIT_DEC
                     | MINUS lit_integer
                       {
                           //FIXME this assumes it is a signed container
-                          $$->u.ival *= -1;
+                          $2->u.ival *= -1;
+                          $$ = $2;
                       }
                     ;
 lit_string:           LIT_STR

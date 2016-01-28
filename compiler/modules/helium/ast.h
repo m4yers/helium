@@ -256,11 +256,9 @@ A_expList A_ExpList (A_exp head, A_expList tail);
  *  Declarations  *
  ******************/
 
-struct A_asmStmList_t;
-
 struct A_asmDec_t
 {
-    struct A_asmStmList_t * code; // A_stmStmList
+    struct A_asmStmList_t * code;
     U_stringList options;
 };
 
