@@ -183,21 +183,20 @@ operand:              lit_integer LPAREN operand RPAREN
 literal:              lit_integer
                     | lit_string
                     ;
+//TODO add checks for overflow
 lit_integer:          LIT_DEC
                       {
                           Parse_status status;
-                          $$ = A_LiteralInt(&(@$), Parse_DecToInt($1, &status));
+                          $$ = A_LiteralUInt(&(@$), Parse_DecToUInt($1, &status));
                       }
                     | LIT_HEX
                       {
                           Parse_status status;
-                          $$ = A_LiteralInt(&(@$), Parse_HexToInt($1, &status));
+                          $$ = A_LiteralUInt(&(@$), Parse_HexToUInt($1, &status));
                       }
                     | MINUS lit_integer
                       {
-                          //FIXME this assumes it is a signed container
-                          $2->u.ival *= -1;
-                          $$ = $2;
+                          $$ = A_LiteralInt(&(@$), -$2->u.uval);
                       }
                     ;
 lit_string:           LIT_STR

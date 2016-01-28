@@ -63,8 +63,8 @@ A_literal A_LiteralRawDec (A_loc loc, const char * value);
 A_literal A_LiteralRawFloat (A_loc loc, const char * value);
 
 #define A_LiteralIsBool(l) (l->kind == A_literalBool)
-#define A_LiteralIsInteger(l) (l->kind == A_literalInt || l->kind == A_literalUInt)
-#define A_LiteralIsSignedInteger(l) (l->kind == A_literalInt)
+#define A_LiteralIsUInt(l) (l->kind == A_literalUInt)
+#define A_LiteralIsInt(l) (l->kind == A_literalInt)
 #define A_LiteralIsFloat(l) (l->kind == A_literalFloat)
 #define A_LiteralIsString(l) (l->kind == A_literalString)
 

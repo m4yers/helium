@@ -25,8 +25,11 @@
             Error_New(loc, code, format, __VA_ARGS__));                  \
 }                                                                        \
 
-#define UINT5_MAX  UINTMAX_C( 31)
-#define UINT20_MAX UINTMAX_C( 1048575)
+#define UINT5_MAX  UINTMAX_C(0x1F)
+#define UINT15_MAX UINTMAX_C(0X7FFF)
+#define UINT20_MAX UINTMAX_C(0XFFFFF)
+#define UINT25_MAX UINTMAX_C(0X1FFFFFF)
+#define UINT31_MAX UINTMAX_C(0X7FFFFFFF)
 #define INT26_MIN  INTMAX_C(-33554432)
 #define INT26_MAX  INTMAX_C( 33554431)
 
@@ -169,7 +172,7 @@ static bool PreProcess (Sema_mipsContext cntx, struct A_asmDec_t * dec)
                     TAB_Enter (cntx->norm_labs, sym, lab);
                 }
             }
-            
+
             break;
         }
         }
@@ -217,8 +220,11 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            if (A_LiteralIsInteger (opd->u.mem.offset) &&
+            if ((A_LiteralIsInt (opd->u.mem.offset) &&
                     A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+                    ||
+                    (A_LiteralIsUInt (opd->u.mem.offset) &&
+                     A_LiteralInRange (opd->u.mem.offset, UINTMAX_C(0), UINT15_MAX)))
             {
                 intmax_t offset = opd->u.mem.offset->u.ival;
                 // FIXME do not use "b" literal
@@ -360,7 +366,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
+                if (A_LiteralIsUInt (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0) , UINT5_MAX))
                 {
                     iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
@@ -388,7 +394,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
+                if (A_LiteralIsUInt (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT16_MAX))
                 {
                     iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
@@ -415,8 +421,11 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
-                        A_LiteralInRange (opd->u.lit , INT16_MIN, INT16_MAX))
+                if ((A_LiteralIsInt (opd->u.mem.offset) &&
+                        A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+                        ||
+                        (A_LiteralIsUInt (opd->u.mem.offset) &&
+                         A_LiteralInRange (opd->u.mem.offset, UINTMAX_C (0), UINT15_MAX)))
                 {
                     iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
@@ -442,7 +451,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
+                if (A_LiteralIsUInt (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT20_MAX))
                 {
                     iropd = IR_MipsOpdImmUInt32 ((uint32_t)opd->u.lit->u.uval);
@@ -499,8 +508,11 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             }
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
-                        A_LiteralInRange (opd->u.lit, INT26_MIN, INT26_MAX))
+                if ((A_LiteralIsInt (opd->u.mem.offset) &&
+                        A_LiteralInRange (opd->u.mem.offset, INT26_MIN, INT26_MAX))
+                        ||
+                        (A_LiteralIsUInt (opd->u.mem.offset) &&
+                         A_LiteralInRange (opd->u.mem.offset, UINTMAX_C (0), UINT25_MAX)))
                 {
                     iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
@@ -579,8 +591,11 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             }
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
-                        A_LiteralInRange (opd->u.lit, INT16_MIN, INT16_MAX))
+                if ((A_LiteralIsInt (opd->u.mem.offset) &&
+                        A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
+                        ||
+                        (A_LiteralIsUInt (opd->u.mem.offset) &&
+                         A_LiteralInRange (opd->u.mem.offset, UINTMAX_C (0), UINT15_MAX)))
                 {
                     iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
@@ -659,8 +674,11 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             }
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
-                        A_LiteralInRange (opd->u.lit, INT32_MIN, INT32_MAX))
+                if ((A_LiteralIsInt (opd->u.mem.offset) &&
+                        A_LiteralInRange (opd->u.mem.offset, INT32_MIN, INT32_MAX))
+                        ||
+                        (A_LiteralIsUInt (opd->u.mem.offset) &&
+                         A_LiteralInRange (opd->u.mem.offset, UINTMAX_C (0), UINT31_MAX)))
                 {
                     iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.ival);
                 }
@@ -711,7 +729,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpLitKind:
             {
-                if (A_LiteralIsInteger (opd->u.lit) &&
+                if (A_LiteralIsUInt (opd->u.lit) &&
                         A_LiteralInRange (opd->u.lit , UINTMAX_C (0), UINT32_MAX))
                 {
                     iropd = IR_MipsOpdImmInt32 ((int32_t)opd->u.lit->u.uval);
@@ -959,13 +977,13 @@ IR_mipsStmList SemantMIPS_Translate (Sema_Context cntx, struct A_asmDec_t * dec)
         LIST_PUSH (result, irstm);
     }
 
-    LIST_FOREACH(stm, result)
-    {
-        if (stm->kind == IR_mipsStmOpcKind)
-        {
-            printf("opcode: %s %s\n", stm->u.opc.spec->name.data, stm->u.opc.spec->format.data);
-        }
-    }
+    /* LIST_FOREACH (stm, result) */
+    /* { */
+    /*     if (stm->kind == IR_mipsStmOpcKind) */
+    /*     { */
+    /*         printf ("opc: %s %s\n", stm->u.opc.spec->name.data, stm->u.opc.spec->format.data); */
+    /*     } */
+    /* } */
 
     return result;
 }
