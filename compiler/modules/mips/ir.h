@@ -157,7 +157,9 @@ static inline IR_mipsOpd IR_MipsOpdImmUInt (uintmax_t value)
 
 static inline IR_mipsOpd IR_MipsOpdMem (intmax_t offset, IR_mipsOpd base)
 {
-    assert (base->kind == IR_mipsOpdRepSrcKind);
+    assert (base->kind == IR_mipsOpdRepKind);
+    assert (base->u.rep.kind == IR_mipsOpdRepSrcKind);
+
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdMemKind,
