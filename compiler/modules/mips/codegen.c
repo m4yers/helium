@@ -336,7 +336,7 @@ static Temp_temp munchExp (T_exp e)
 
 static void printAsmOpd (
     String out,
-    size_t ord,
+    ssize_t ord,
     IR_mipsOpd opd,
     T_stmList * pre,
     T_stmList * post,
@@ -362,28 +362,33 @@ static void printAsmOpd (
         }
     }
 
-    if (ord != 0)
+    if (ord != -1)
     {
-        String_Append (out, ",");
+        if (ord != 0)
+        {
+            String_Append (out, ",");
+        }
+
+        String_Append (out, " ");
     }
 
     switch (opd->kind)
     {
     case IR_mipsOpdImmKind:
     {
-        String_AppendF (out, " 0x%02lX", opd->u.imm.u.ival);
+        String_AppendF (out, "0x%02lX", opd->u.imm.u.ival);
         break;
     }
     case IR_mipsOpdMemKind:
     {
-        String_AppendF (out, " 0x%02lX(", opd->u.mem.offset);
-        printAsmOpd (out, ord, opd->u.mem.base, pre, post, dsts, srcs, jmps);
+        String_AppendF (out, "%jd(", opd->u.mem.offset);
+        printAsmOpd (out, -1, opd->u.mem.base, pre, post, dsts, srcs, jmps);
         String_Append (out, ")");
         break;
     }
     case IR_mipsOpdLabKind:
     {
-        String_AppendF (out, " %s", opd->u.lab.label->name);
+        String_AppendF (out, "%s", opd->u.lab.label->name);
         break;
     }
     case IR_mipsOpdRepKind:
@@ -393,19 +398,19 @@ static void printAsmOpd (
         case A_asmOpUseDst:
         {
             LIST_PUSH (*dsts, opd->u.rep.u.tmp);
-            String_AppendF (out, " `d%ju", LIST_SIZE (*dsts) - 1);
+            String_AppendF (out, "`d%ju", LIST_SIZE (*dsts) - 1);
             break;
         }
         case A_asmOpUseSrc:
         {
             LIST_PUSH (*srcs, opd->u.rep.u.tmp);
-            String_AppendF (out, " `s%ju", LIST_SIZE (*srcs) - 1);
+            String_AppendF (out, "`s%ju", LIST_SIZE (*srcs) - 1);
             break;
         }
         case A_asmOpUseLab:
         {
             LIST_PUSH (*jmps, opd->u.rep.u.lab);
-            String_AppendF (out, " `j%ju", LIST_SIZE (*jmps) - 1);
+            String_AppendF (out, "`j%ju", LIST_SIZE (*jmps) - 1);
             break;
         }
         }
@@ -441,7 +446,7 @@ static void munchStm (T_stm s)
             {
             case IR_mipsStmOpcKind:
             {
-                size_t ord = 0;
+                ssize_t ord = 0;
                 LIST_FOREACH (opd, stm->u.opc.opdl)
                 {
                     printAsmOpd (&str, ord++, opd, &pre, &post, &dsts, &srcs, &jmps);
