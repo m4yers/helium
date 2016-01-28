@@ -135,6 +135,8 @@ static bool PreProcess (Sema_mipsContext cntx, struct A_asmDec_t * dec)
                     result = FALSE;
                 }
             }
+
+            break;
         }
         case A_asmStmLabKind:
         {
@@ -167,6 +169,8 @@ static bool PreProcess (Sema_mipsContext cntx, struct A_asmDec_t * dec)
                     TAB_Enter (cntx->norm_labs, sym, lab);
                 }
             }
+            
+            break;
         }
         }
     }
@@ -213,7 +217,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
         {
         case SIGNED_OFFSET_16_BIT:
         {
-            if (A_LiteralIsInteger (opd) &&
+            if (A_LiteralIsInteger (opd->u.mem.offset) &&
                     A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
             {
                 intmax_t offset = opd->u.mem.offset->u.ival;
