@@ -433,20 +433,22 @@ static void munchStm (T_stm s)
         {
             String_Init (&str, "");
             String_Reserve (&str, 128);
-            String_AppendF (&str, "%-5s", stm->u.opc.spec->name.data);
-
-            T_stmList pre = NULL;
-            T_stmList post = NULL;
-
-            Temp_tempList  dsts = NULL;
-            Temp_tempList  srcs = NULL;
-            Temp_labelList jmps = NULL;
 
             switch (stm->kind)
             {
             case IR_mipsStmOpcKind:
             {
+                String_AppendF (&str, "%-5s", stm->u.opc.spec->name.data);
+
+                T_stmList pre = NULL;
+                T_stmList post = NULL;
+
+                Temp_tempList  dsts = NULL;
+                Temp_tempList  srcs = NULL;
+                Temp_labelList jmps = NULL;
+
                 ssize_t ord = 0;
+
                 LIST_FOREACH (opd, stm->u.opc.opdl)
                 {
                     printAsmOpd (&str, ord++, opd, &pre, &post, &dsts, &srcs, &jmps);
@@ -457,8 +459,8 @@ static void munchStm (T_stm s)
             }
             case IR_mipsStmLabKind:
             {
-                sprintf (buffer, "%s:", stm->u.lab.label->name);
-                emit (ASM_Label (buffer, stm->u.lab.label));
+                String_AppendF (&str, "%s:", stm->u.lab.label->name);
+                emit (ASM_Label (str.data, stm->u.lab.label));
                 break;
             }
             default:
