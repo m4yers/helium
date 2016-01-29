@@ -2,21 +2,21 @@ fn test_name
 {
     asm
     {
-        addi blah,   $a0, 1   //~ ERROR 3102 blah is undefined
-        addi blah.a, $a0, 1   //~ ERROR 3102 blah.a is undefined
+        addi blah,   $a0, 1   //~ ERROR 3100 blah is undefined
+        addi blah.a, $a0, 1   //~ ERROR 3100 blah.a is undefined
     }
 
     asm
     {
-        addi $a0, blah,   1   //~ ERROR 3102 blah is undefined
-        addi $a0, blah.a, 1   //~ ERROR 3102 blah.a is undefined
+        addi $a0, blah,   1   //~ ERROR 3100 blah is undefined
+        addi $a0, blah.a, 1   //~ ERROR 3100 blah.a is undefined
     }
 
     let a = 10;
 
     asm
     {
-        addi $a0, a.a, 1     //~ ERROR 3102 'a' exists but it is not a record
+        addi $a0, a.a, 1      //~ ERROR 3100 'a' exists but it is not a record
     }
 
     ret 0;
@@ -26,21 +26,21 @@ fn test_label
 {
     asm
     {
-        beq $0, $0, blah      //~ ERROR 3102 blah is not a label nor variable
-        beq $0, $0, blah.a    //~ ERROR 3102 blah is not a label nor variable
+        beq $0, $0, blah      //~ ERROR 3100 blah is not a label nor variable
+        beq $0, $0, blah.a    //~ ERROR 3100 blah is not a label nor variable
     }
 
     asm
     {
-        j blah                //~ ERROR 3102 blah is not a label nor variable
-        j blah.a              //~ ERROR 3102 blah is not a label nor variable
+        j blah                //~ ERROR 3100 blah is not a label nor variable
+        j blah.a              //~ ERROR 3100 blah is not a label nor variable
     }
 
     let a = 10;
 
     asm
     {
-        j a.a                 //~ ERROR 3102 'a' exists but it is not a record
+        j a.a                 //~ ERROR 3100 'a' exists but it is not a record
     }
 
     ret 0;
