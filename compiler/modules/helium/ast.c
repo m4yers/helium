@@ -122,18 +122,6 @@ A_exp A_ValueAtExp (A_loc loc, A_exp exp)
     return p;
 }
 
-A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data)
-{
-    A_exp p = checked_malloc (sizeof (*p));
-    p->kind = A_asmExpOld;
-    p->loc = *loc;
-    p->u.asmOld.code = code;
-    p->u.asmOld.data = data;
-    p->u.asmOld.dst = dst;
-    p->u.asmOld.src = src;
-    return p;
-}
-
 A_exp A_VarExp (A_loc loc, A_var var)
 {
     A_exp p = checked_malloc (sizeof (*p));
@@ -608,12 +596,6 @@ void AST_PrintExp (FILE * out, A_exp v, int d)
 
     switch (v->kind)
     {
-    case A_asmExpOld:
-        fprintf (out, "AsmExpOld(%s, %s",
-                 v->u.asmOld.code,
-                 v->u.asmOld.data);
-        break;
-
     case A_retExp:
         fprintf (out, "RetExp(\n");
         AST_PrintExp (out, v->u.ret, d + 1);

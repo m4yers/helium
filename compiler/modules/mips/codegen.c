@@ -484,25 +484,6 @@ static void munchStm (T_stm s)
         }
         return;
     }
-    case T_ASMOLD:
-    {
-        T_exp data = s->u.ASMOLD.data;
-        Temp_tempList dl = s->u.ASMOLD.dst;
-        Temp_tempList sl = s->u.ASMOLD.src;
-
-        // the can be max 2 sources
-        if (!sl && data)
-        {
-            sl = L (munchExp (data), NULL);
-        }
-        else if (data)
-        {
-            sl->tail = L (munchExp (data), NULL);
-        }
-
-        emit (ASM_Oper (s->u.ASMOLD.code, dl, sl, NULL));
-        return;
-    }
     case T_MOVE:
     {
         if (s->u.MOVE.dst->kind == T_MEM)

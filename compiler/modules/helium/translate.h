@@ -69,7 +69,6 @@ Tr_exp Tr_Break (Temp_label done);
 Tr_exp Tr_Ret (Tr_level level, Tr_exp exp);
 Tr_exp Tr_Exit (Tr_exp exp);
 Tr_exp Tr_Asm (IR_mipsStmList stms);
-Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src);
 
 // FIXME should not be public?
 T_exp Tr_UnEx (Tr_exp exp);

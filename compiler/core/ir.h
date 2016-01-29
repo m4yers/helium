@@ -29,7 +29,7 @@ struct T_stm_t
 {
     enum
     {
-        T_COMMENT, T_ASM, T_ASMOLD, T_RET, T_EXIT,
+        T_COMMENT, T_ASM, T_RET, T_EXIT,
         T_SEQ, T_LABEL, T_JUMP, T_RJUMP, T_CJUMP, T_MOVE,
         T_EXP
     } kind;
@@ -40,13 +40,6 @@ struct T_stm_t
         {
             IR_mipsStmList stms;
         } ASSEMBLY;
-        struct
-        {
-            const char * code;
-            T_exp data;
-            Temp_tempList dst;
-            Temp_tempList src;
-        } ASMOLD;
         struct
         {
             T_stm left, right;

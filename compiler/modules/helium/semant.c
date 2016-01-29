@@ -1443,20 +1443,6 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
         sexp.ty = cty;
         return sexp;
     }
-    case A_asmExpOld:
-    {
-        const char * data = exp->u.asmOld.data;
-        U_stringList dst = exp->u.asmOld.dst;
-        U_stringList src = exp->u.asmOld.src;
-
-        return Expression_New (
-                   Tr_AsmOld (
-                       exp->u.asmOld.code,
-                       data == NULL ? NULL : Tr_String (context, data),
-                       dst,
-                       src),
-                   Ty_Void());
-    }
     case A_retExp:
     {
         Sema_Exp sexp = Sema_TransExp (context, exp->u.ret);

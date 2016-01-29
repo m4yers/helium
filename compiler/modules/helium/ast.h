@@ -40,8 +40,6 @@ typedef enum
     /** Dec */
     A_typeDec, A_functionDec, A_varDec, A_asmDec,
 
-    A_asmExpOld, // <- remove this
-
     /** Exp */
     A_decExp,
     A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
@@ -163,14 +161,6 @@ struct A_forExp_t
     bool escape;
 };
 
-struct A_asmExpOld_t
-{
-    const char * code;
-    const char * data;
-    U_stringList dst;
-    U_stringList src;
-};
-
 struct A_macroExp_t
 {
     S_symbol name;
@@ -208,7 +198,6 @@ struct A_exp_t
         A_exp ret;
         int intt;
         const char * stringg;
-        struct A_asmExpOld_t  asmOld;
         struct A_callExp_t call;
         struct A_macroExp_t macro;
         struct A_opExp_t op;
@@ -229,10 +218,6 @@ A_exp A_DecExp(A_loc loc, A_dec dec);
 A_exp A_TypeCastExp(A_loc loc, A_ty type, A_exp exp);
 A_exp A_AddressOfExp (A_loc loc, A_var var);
 A_exp A_ValueAtExp (A_loc loc, A_exp exp);
-
-// TODO parse it for real
-// TODO data must be and exp
-A_exp A_AsmExpOld (A_loc loc, const char * code, U_stringList dst, U_stringList src, const char * data);
 
 A_exp A_VarExp (A_loc loc, A_var var);
 A_exp A_NilExp (A_loc loc);

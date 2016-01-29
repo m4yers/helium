@@ -44,17 +44,6 @@ T_stm T_Asm (IR_mipsStmList stms)
     return p;
 }
 
-T_stm T_AsmOld (const char * code, T_exp data, Temp_tempList dst, Temp_tempList src)
-{
-    T_stm p = (T_stm) checked_malloc (sizeof * p);
-    p->kind = T_ASMOLD;
-    p->u.ASMOLD.code = code;
-    p->u.ASMOLD.data = data;
-    p->u.ASMOLD.dst = dst;
-    p->u.ASMOLD.src = src;
-    return p;
-}
-
 T_stm T_Seq (T_stm left, T_stm right)
 {
     T_stm p = (T_stm) checked_malloc (sizeof * p);

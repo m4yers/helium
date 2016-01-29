@@ -774,36 +774,6 @@ Tr_exp Tr_Asm (IR_mipsStmList stms)
     return Tr_Sx (T_Asm (stms));
 }
 
-Tr_exp Tr_AsmOld (const char * code, Tr_exp data, U_stringList dst, U_stringList src)
-{
-    // HMM... is it the right place?
-    Temp_tempList dl = NULL;
-    LIST_FOREACH (d, dst)
-    {
-        Temp_temp t = M_RegGet (regs_all, d);
-        if (!t)
-        {
-            assert (0);
-        }
-
-        LIST_PUSH (dl, t);
-    }
-
-    Temp_tempList sl = NULL;
-    LIST_FOREACH (d, src)
-    {
-        Temp_temp t = M_RegGet (regs_all, d);
-        if (!t)
-        {
-            assert (0);
-        }
-
-        LIST_PUSH (sl, t);
-    }
-
-    return Tr_Sx (T_AsmOld (code, data ? Tr_UnEx (data) : NULL, dl, sl));
-}
-
 void Tr_Init (Sema_Context c)
 {
     c->global = c->level = Tr_NewLevel (NULL, Temp_NamedLabel ("global"), NULL);
