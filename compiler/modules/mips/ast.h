@@ -145,13 +145,6 @@ typedef struct A_asmStm_t
         struct A_asmStmLab_t lab;
         struct A_asmStmInst_t inst;
     } u;
-
-    // FIXME not the correct place move to IR
-    struct Temp_labelList_t * trg;
-    struct T_expList_t * dst;
-    struct T_expList_t * src;
-    struct T_stmList_t * pre;
-    struct T_stmList_t * post;
 } * A_asmStm;
 
 LIST_DEFINE (A_asmStmList, A_asmStm)
