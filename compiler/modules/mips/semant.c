@@ -224,7 +224,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                     A_LiteralInRange (opd->u.mem.offset, INT16_MIN, INT16_MAX))
                     ||
                     (A_LiteralIsUInt (opd->u.mem.offset) &&
-                     A_LiteralInRange (opd->u.mem.offset, UINTMAX_C(0), UINT15_MAX)))
+                     A_LiteralInRange (opd->u.mem.offset, UINTMAX_C (0), UINT15_MAX)))
             {
                 intmax_t offset = opd->u.mem.offset->u.ival;
                 // FIXME do not use "b" literal
@@ -286,10 +286,21 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 {
                     Temp_temp temp = Temp_NewTemp();
                     Sema_Exp sexp = Sema_TransVar (cntx->context, opd->u.var, TRUE);
-                    T_stm stm = T_Move (Tr_UnEx (sexp.exp), T_Temp (temp));
-                    IR_mipsClosure cls = NULL;
-                    LIST_PUSH (cls, IR_MipsClosureHeStm (stm, TRUE));
-                    iropd = IR_MipsOpdRepExp (temp, IS_DST (c, pos), cls);
+                    bool is_dst = IS_DST (c, pos);
+                    if (is_dst)
+                    {
+                        IR_mipsClosure cls = NULL;
+                        T_stm stm = T_Move (Tr_UnEx (sexp.exp), T_Temp (temp));
+                        LIST_PUSH (cls, IR_MipsClosureHeStmPost (stm));
+                        iropd = IR_MipsOpdRepExp (temp, is_dst, cls);
+                    }
+                    else
+                    {
+                        IR_mipsClosure cls = NULL;
+                        T_stm stm = T_Move (T_Temp (temp), Tr_UnEx (sexp.exp));
+                        LIST_PUSH (cls, IR_MipsClosureHeStmPre (stm));
+                        iropd = IR_MipsOpdRepExp (temp, is_dst, cls);
+                    }
                 }
                 else
                 {

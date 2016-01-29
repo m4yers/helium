@@ -43,11 +43,21 @@ typedef struct IR_mipsClosureItem_t
     } u;
 } * IR_mipsClosureItem;
 
-static inline IR_mipsClosureItem IR_MipsClosureHeStm (const struct T_stm_t * stm, bool is_pre)
+static inline IR_mipsClosureItem IR_MipsClosureHeStmPre (const struct T_stm_t * stm)
 {
     U_Create (IR_mipsClosureItem, r)
     {
-        .kind = is_pre ? IR_mipsClosureHeStmPreKind : IR_mipsClosureHeStmPostKind,
+        .kind = IR_mipsClosureHeStmPreKind,
+         .u.heStmPre = stm
+    };
+    return r;
+}
+
+static inline IR_mipsClosureItem IR_MipsClosureHeStmPost (const struct T_stm_t * stm)
+{
+    U_Create (IR_mipsClosureItem, r)
+    {
+        .kind = IR_mipsClosureHeStmPostKind,
          .u.heStmPre = stm
     };
     return r;

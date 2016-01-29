@@ -454,7 +454,20 @@ static void munchStm (T_stm s)
                     printAsmOpd (&str, ord++, opd, &pre, &post, &dsts, &srcs, &jmps);
                 }
 
+                LIST_FOREACH (pre_stm, pre)
+                {
+                    printf("pre\n");
+                    munchStm (pre_stm);
+                }
+
                 emit (ASM_Oper (str.data, dsts, srcs, ASM_Targets (jmps)));
+
+                LIST_FOREACH (post_stm, post)
+                {
+                    printf("post\n");
+                    munchStm (post_stm);
+                }
+
                 break;
             }
             case IR_mipsStmLabKind:
