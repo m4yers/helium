@@ -251,7 +251,8 @@ static inline U_voidList List_At_ (U_voidList list, size_t pos)
     for (                                                                                       \
             U_voidList __##item##__iter = (U_voidList)(list);                                   \
             __##item##__iter;                                                                   \
-            __##item##__iter = __##item##__iter->tail,                                          \
+            /** If there was a break the flag will not change and we need to finish interator*/ \
+            __##item##__iter = __##item##__c2 ? NULL : __##item##__iter->tail,                  \
             __##item##__c2 = TRUE)                                                              \
     for (                                                                                       \
             __typeof__ ((list)->head) item = ((__typeof__(list))__##item##__iter)->head;        \
