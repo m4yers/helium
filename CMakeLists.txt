@@ -67,6 +67,19 @@ ADD_FLEX_BISON_DEPENDENCY (HeliumLexer HeliumParser)
 include_directories (/usr/local/include)
 include_directories (${CMAKE_SOURCE_DIR}/compiler)
 
+set (UTIL_SOURCES
+    ${CMAKE_SOURCE_DIR}/compiler/util/bitarray.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/list.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/mem.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/stack.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/table.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/util.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/str.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/pair.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/vector.c
+    ${CMAKE_SOURCE_DIR}/compiler/util/parse.c
+)
+
 set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/modules/helium/ast.c
     ${CMAKE_SOURCE_DIR}/compiler/modules/helium/preproc.c
@@ -93,16 +106,6 @@ set (HELIUM_SOURCES
     ${CMAKE_SOURCE_DIR}/compiler/core/symbol.c
     ${CMAKE_SOURCE_DIR}/compiler/core/temp.c
     ${CMAKE_SOURCE_DIR}/compiler/core/ir.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/bitarray.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/list.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/mem.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/stack.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/table.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/util.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/str.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/pair.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/vector.c
-    ${CMAKE_SOURCE_DIR}/compiler/util/parse.c
     ${CMAKE_SOURCE_DIR}/compiler/program.c
 )
 
@@ -110,6 +113,7 @@ add_subdirectory (test/libhc)
 
 add_executable (Helium_Compiler
     ${CMAKE_SOURCE_DIR}/compiler/main.c
+    ${UTIL_SOURCES}
     ${HELIUM_SOURCES}
     ${BISON_HeliumParser_OUTPUTS}
     ${FLEX_HeliumLexer_OUTPUTS}

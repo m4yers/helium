@@ -7,9 +7,10 @@
 #include <stddef.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include <assert.h>
 
-#include "ext/str.h"
-#include "ext/vector.h"
+#include "util/str.h"
+#include "util/vector.h"
 
 static const char * a_string = "This is a string";
 

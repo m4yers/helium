@@ -8,9 +8,9 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/pair.h"
+#include "util/pair.h"
 
-static const char * a_string = "This is a string";
+/* static const char * a_string = "This is a string"; */
 
 static void pair_on_stack_ok (void ** state)
 {
@@ -29,6 +29,7 @@ static void pair_on_stack_ok (void ** state)
 
 static void pair_on_heap_ok (void ** state)
 {
+    (void) state;
     /* Pair pair = Pair_New (1337, "blah"); */
     /*  */
     /* Pair_Init (pair, 1337, "blah"); */

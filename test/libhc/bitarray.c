@@ -7,7 +7,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/bitarray.h"
+#include "util/bitarray.h"
 
 static void array_creation_ok (void ** state)
 {

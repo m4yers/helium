@@ -95,7 +95,6 @@ static void run_cases (void ** state, const char * cases[], size_t len)
             T_stmList sl = C_Linearize (f->u.proc.body);
             sl = C_TraceSchedule (C_BasicBlocks (sl));
             ASM_lineList lines = F_CodeGen (f->u.proc.frame, sl);
-            /* ASM_PrintLineList (stdout, lines, Temp_LayerMap (F_tempMap, Temp_Name ())); */
             F_frame frame = f->u.proc.frame;
             lines = F_ProcEntryExit2 (frame, lines);
             RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
@@ -114,33 +113,50 @@ static void main__return (void ** state)
 {
     const char * cases[] =
     {
-        "fn main\n\
-        {\n\
-            def Point = { x: int, y: int }\n\
-            let a = 10;\n\
-            let b: Point;\n\
-            asm\n\
-            {\n\
-                addi b.x, b.x, 1327\n\
-                addi $a0, $a1, 1327\n\
-            }\n\
-            \n\
-            ret 1;\n\
-        }\n\
-        asm{addi $a0, $a1, 1111}",
+        /* "fn main\n\ */
+        /* {\n\ */
+        /*     def Point = { x: int, y: int }\n\ */
+        /*     let a = 10;\n\ */
+        /*     let b: Point;\n\ */
+        /*     asm\n\ */
+        /*     {\n\ */
+        /*          la    `t0, \"blahblah\"   \n\ */
+        /*          lw    `t1, 0(`t0)         \n\ */
+        /*          addi  `t0, `t0, 0x04      \n\ */
+        /*          add   `t1, `t1, `t0       \n\ */
+        /*          li    `t2, 0xffff0008     \n\ */
+        /*          li    `t3, 0xffff000c     \n\ */
+        /*      ``wait:                       \n\ */
+        /*          lw    `t4, 0(`t2)         \n\ */
+        /*          beq   `t4, $zero, ``wait  \n\ */
+        /*          beq   `t0, `t1, ``exit    \n\ */
+        /*          lbu   `t5, 0(`t0)         \n\ */
+        /*          sb    `t5, 0(`t3)         \n\ */
+        /*          addi  `t0, `t0, 0x01      \n\ */
+        /*          j     ``wait              \n\ */
+        /*      ``exit:                       \n\ */
+        /*          addi  `t0, $zero, 0x0A    \n\ */
+        /*          sb    `t0, 0(`t3)         \n\ */
+        /*     }\n\ */
+        /*     ret 1;\n\ */
+        /* }\n\ */
+        /* asm{addi $a0, $a1, 1111}", */
 
         /* "fn main\n\ */
         /* {\n\ */
         /*     let a = 10;\n\ */
-        /*     ret 0;\n\ */
-        /* }\n\ */
-        /* asm(mips;;)\n\ */
-        /* {\n\ */
-        /*     sum:\n\ */
-        /*       add   a.x, $a0, $a1\n\ */
-        /*       add   $v0, $a0, $a1\n\ */
-        /*       jr    $ra\n\ */
+        /* \n\ */
+        /*     asm\n\ */
+        /*     {\n\ */
+        /*         addi a, $zero, 1337\n\ */
+        /*     }\n\ */
         /* }", */
+
+        "fn main\n\
+        {\n\
+            def Point = { x: int, y: int }\n\
+            1;\n\
+        }",
 
         /* "fn main\n\ */
         /* {\n\ */

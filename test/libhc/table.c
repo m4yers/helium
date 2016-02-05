@@ -7,7 +7,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/table.h"
+#include "util/table.h"
 
 static void table_foreach_ok (void ** state)
 {

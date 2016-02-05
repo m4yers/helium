@@ -7,7 +7,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
-#include "ext/stack.h"
+#include "util/stack.h"
 
 static void stack_creation_ok (void ** state)
 {
