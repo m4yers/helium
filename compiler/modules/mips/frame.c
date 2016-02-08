@@ -527,17 +527,6 @@ void F_AllocDelete (F_frame frame, F_access access)
  *  Fragments  *
  ***************/
 
-F_frag F_StringFrag (Temp_label label, const char * str, F_stringType type)
-{
-    DBG ("F_StringFrag \"%s\", label: %s\n", str, label->name)
-    F_frag r = checked_malloc (sizeof (*r));
-    r->kind = F_stringFrag;
-    r->u.str.label = label;
-    r->u.str.str = str;
-    r->u.str.type = type;
-    return r;
-}
-
 F_frag F_ProcFrag (T_stm body, F_frame frame)
 {
     DBG ("F_ProcFrag %p for <%s>\n", (void *)body, frame->name->name)

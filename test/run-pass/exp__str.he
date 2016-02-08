@@ -1,0 +1,15 @@
+fn test__literals
+{
+    let a = "a_string";
+    let b = "a_string";
+    let c = "c_string";
+
+    assert! (a == b);
+    assert! (a <> c);
+    assert! (b <> c);
+}
+
+fn main
+{
+    test__literals();
+}

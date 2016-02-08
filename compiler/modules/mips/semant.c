@@ -772,10 +772,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
                 {
                 case A_literalString:
                 {
-                    Temp_label label = Temp_NewLabel();
-                    Program_AddFragment (
-                        cntx->module,
-                        F_StringFrag (label, opd->u.lit->u.sval, F_lps));
+                    Temp_label label = Program_AddStringFrag(cntx->module, opd->u.lit->u.sval, F_lps);
                     iropd = IR_MipsOpdLab (label);
                     break;
                 }

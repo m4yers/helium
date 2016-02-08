@@ -433,8 +433,8 @@ Tr_exp Tr_Int (int value)
 
 Tr_exp Tr_String (Sema_Context c, const char * value)
 {
-    Temp_label label = Temp_NewLabel();
-    Program_AddFragment (c->module, F_StringFrag (label, value, F_lps));
+    Temp_label label = Program_AddStringFrag(c->module, value, F_lps);
+    assert(label);
     return Tr_Ex (T_Name (label));
 }
 

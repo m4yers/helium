@@ -190,6 +190,40 @@ void Program_ParseArguments (Program_Module m, int argc, char ** argv)
  *                             Fragments                             *
  *********************************************************************/
 
+Temp_label Program_AddStringFrag(Program_Module p, const char * str, F_stringType type)
+{
+    Temp_label rslt = NULL;
+    /*
+     * We traverse the list of string fragments in hope to find a string exactly the same we've
+     * been passed, thus we have a chance to "merge" these fragments into using the same data
+     * declaration and thus the same label.
+     */
+    LIST_FOREACH (f, p->fragments.strings)
+    {
+        if (strcmp(str, f->u.str.str) == 0 && type == f->u.str.type)
+        {
+            rslt = f->u.str.label;
+            break;
+        }
+    }
+
+    if (!rslt)
+    {
+        U_Create (F_frag, frag)
+        {
+            .kind = F_stringFrag,
+            .u.str.str = str,
+            .u.str.type = type,
+            .u.str.label = Temp_NewLabel()
+        };
+        LIST_PUSH (p->fragments.strings, frag);
+
+        rslt = frag->u.str.label;
+    }
+
+    return rslt;
+}
+
 void Program_AddFragment (Program_Module p, F_frag f)
 {
     assert (p);
@@ -197,10 +231,6 @@ void Program_AddFragment (Program_Module p, F_frag f)
 
     switch (f->kind)
     {
-    case F_stringFrag:
-        LIST_PUSH (p->fragments.strings, f);
-        break;
-
     case F_procFrag:
         LIST_PUSH (p->fragments.functions, f);
         break;

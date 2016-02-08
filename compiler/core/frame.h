@@ -122,7 +122,6 @@ struct F_frag_
     } u;
 };
 
-F_frag F_StringFrag (Temp_label label, const char * str, F_stringType type);
 F_frag F_ProcFrag (T_stm body, F_frame frame);
 F_frag F_CodeFrag (T_stm body);
 
