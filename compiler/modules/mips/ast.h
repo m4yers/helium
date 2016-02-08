@@ -154,13 +154,6 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
 A_asmStm A_AsmStmLab (A_loc loc, S_symbol sym, bool meta);
 
 /*************
-*  Emitter  *
-*************/
-
-void AST_AsmEmitInst (String out, A_asmStmInst inst);
-void AST_AsmEmitLabel (String out, A_asmStmLab lab);
-
-/*************
 *  Printer  *
 *************/
 
