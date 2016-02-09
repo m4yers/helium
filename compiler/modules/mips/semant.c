@@ -44,7 +44,7 @@ static String NormalizeReg (A_asmReg reg)
      */
     case A_asmRegNameKind:
     {
-        if (!M_RegGet (regs_all, reg->u.name))
+        if (!M_RegGet (M_regs_all, reg->u.name))
         {
             return String_New ("Unknown register name");
         }
@@ -55,12 +55,12 @@ static String NormalizeReg (A_asmReg reg)
      */
     case A_asmRegNumKind:
     {
-        if (!IS_IN_RANGE (reg->u.num, 0, regs_all->number - 1))
+        if (!IS_IN_RANGE (reg->u.num, 0, M_regs_all->number - 1))
         {
             return String_New ("Unknown register");
         }
         reg->kind = A_asmRegNameKind;
-        reg->u.name = M_RegGetName (regs_all, reg->u.num);
+        reg->u.name = M_RegGetName (M_regs_all, reg->u.num);
         break;
     }
     }
@@ -315,7 +315,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             }
             case A_asmOpRegKind:
             {
-                Temp_temp temp = M_RegGet (regs_all, opd->u.reg->u.name);
+                Temp_temp temp = M_RegGet (M_regs_all, opd->u.reg->u.name);
                 iropd = IR_MipsOpdRepExp (temp, IS_DST (c, pos), NULL);
                 break;
             }
@@ -350,7 +350,7 @@ static IR_mipsOpd TrOpd (String * err, Sema_mipsContext cntx, A_asmOp opd, Strin
             {
             case A_asmOpRegKind:
             {
-                Temp_temp temp = M_RegGet (regs_all, opd->u.reg->u.name);
+                Temp_temp temp = M_RegGet (M_regs_all, opd->u.reg->u.name);
                 if (temp == zero)
                 {
                     iropd = IR_MipsOpdRepExp (temp, FALSE, NULL);

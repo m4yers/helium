@@ -26,6 +26,8 @@ typedef struct
     U_stringList names, last_name;
 } * M_regs;
 
+extern M_regs M_regs_all;
+
 M_regs M_Regs (Temp_tempList temps, U_stringList names);
 
 Temp_temp M_RegGet_s (M_regs regs, const char * name);

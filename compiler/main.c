@@ -113,7 +113,7 @@ int main (int argc, char * argv[])
         /* ASM_PrintLineList (stdout, lines, Temp_LayerMap (F_tempMap, Temp_Name ())); */
         F_frame frame = fragment->u.proc.frame;
         lines = F_ProcEntryExit2 (frame, lines);
-        RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
+        RA_Result rar = RA_RegAlloc (frame, lines, M_regs_all, M_regs_colors);
         lines = F_ProcEntryExit3 (frame, lines, rar->colors);
 
         Vector_PushBack (&m->results.functions, rar);

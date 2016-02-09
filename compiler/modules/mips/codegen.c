@@ -59,7 +59,7 @@ static Temp_tempList munchArgs (int index, T_expList list)
     Temp_temp a;
     if (index < 4)
     {
-        a = M_RegGet (regs_arguments, index);
+        a = M_RegGet (M_regs_arguments, index);
         R_INST (buffer, "add");
         emit (ASM_Move (
                   buffer,
@@ -302,7 +302,7 @@ static Temp_temp munchExp (T_exp e)
         Temp_tempList args = munchArgs (0, e->u.CALL.args);
         sprintf (buffer, "%-5s %s", "jal", munchName (e->u.CALL.fun));
         emit (ASM_Oper (buffer,
-                        L (r, L (ra, regs_caller_save->temps)),
+                        L (r, L (ra, M_regs_caller_save->temps)),
                         args,
                         NULL));
         emit (ASM_MetaCallOut());

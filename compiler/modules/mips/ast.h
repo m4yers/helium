@@ -57,7 +57,7 @@ A_asmReg A_AsmRegName (A_loc loc, const char * name);
 
 typedef enum
 {
-    A_asmOpRepKind,
+    A_asmOpRepKind, //TODO implement
     A_asmOpVarKind,
     A_asmOpLitKind,
     A_asmOpRegKind,
@@ -153,9 +153,21 @@ LIST_CONST_DEFINE (A_AsmStmList, A_asmStmList, A_asmStm)
 A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
 A_asmStm A_AsmStmLab (A_loc loc, S_symbol sym, bool meta);
 
-/*************
-*  Printer  *
-*************/
+/**********************************************************************
+*                              Analysis                              *
+**********************************************************************/
+
+/*
+ * This method checks whether the passed list of asm statements contains nodes that cannot be used
+ * outside function body, such as meta registers or variable interpolation. Though meta registers
+ * is extended feature meta labels are allowed since its validation is done in Sema module.
+ */
+bool A_AsmIsExtended(A_asmStmList stml);
+
+/**********************************************************************
+*                              Printer                               *
+**********************************************************************/
+
 
 void AST_AsmPrint (FILE * out, A_asmStmList list, int d);
 

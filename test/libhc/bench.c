@@ -97,7 +97,7 @@ static void run_cases (void ** state, const char * cases[], size_t len)
             ASM_lineList lines = F_CodeGen (f->u.proc.frame, sl);
             F_frame frame = f->u.proc.frame;
             lines = F_ProcEntryExit2 (frame, lines);
-            RA_Result rar = RA_RegAlloc (frame, lines, regs_all, regs_colors);
+            RA_Result rar = RA_RegAlloc (frame, lines, M_regs_all, M_regs_colors);
             lines = F_ProcEntryExit3 (frame, lines, rar->colors);
 
             Vector_PushBack (&m->results.functions, rar);
@@ -152,19 +152,17 @@ static void main__return (void ** state)
         /*     }\n\ */
         /* }", */
 
-        "fn main\n\
-        {\n\
-            def Point = { x: int, y: int }\n\
-            1;\n\
-        }",
-
         /* "fn main\n\ */
         /* {\n\ */
         /*     def Point = { x: int, y: int }\n\ */
-        /*     let a = Point{ x = 10, y = 11 };\n\ */
-        /*     a = Point{ x = 10, y = 11 };\n\ */
-        /*     ret 1;\n\ */
+        /*     1;\n\ */
         /* }", */
+
+        "fn main\n\
+        {\n\
+            let a = \"a_string\";\n\
+            let b = \"a_string\";\n\
+        }",
     };
 
     run_cases (state, cases, TOTAL_ELEMENTS (cases));

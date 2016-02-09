@@ -303,7 +303,7 @@ F_frame F_NewFrame (Temp_label name, U_boolList formals)
             // if escapes and within 4 arguments reg limit
             if (!l->head && r->formalsNum < 4)
             {
-                Temp_temp temp = M_RegGet (regs_arguments, r->formalsNum);
+                Temp_temp temp = M_RegGet (M_regs_arguments, r->formalsNum);
                 access = RegWordNew (temp, NULL);
             }
             else
@@ -567,7 +567,7 @@ T_stm F_ProcEntryExit1 (F_frame frame, T_stm stm)
                                         T_plus,
                                         T_Temp (F_FP()),
                                         T_Const (a->u.stackWord.offset))),
-                             T_Temp (M_RegGet (regs_arguments, count))),
+                             T_Temp (M_RegGet (M_regs_arguments, count))),
                          stm);
         }
         count++;
@@ -754,11 +754,11 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
      */
     LIST_FOREACH (color, colors)
     {
-        if (M_RegsHas (regs_caller_save, color))
+        if (M_RegsHas (M_regs_caller_save, color))
         {
             frame->tUsed++;
         }
-        else if (M_RegsHas (regs_callee_save, color))
+        else if (M_RegsHas (M_regs_callee_save, color))
         {
             frame->sUsed++;
         }
@@ -871,7 +871,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                                T_Temp (sp),
                                // 1 for ra and 1 for word offset
                                T_Const (ldssSize + M_wordSize + (i + 1) * M_wordSize - frameSize))),
-                       T_Temp (M_RegGet (regs_callee_save, i))));
+                       T_Temp (M_RegGet (M_regs_callee_save, i))));
     }
 
     // Set FP
@@ -902,7 +902,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
     {
         LIST_PUSH (stms,
                    T_Move (
-                       T_Temp (M_RegGet (regs_callee_save, i)),
+                       T_Temp (M_RegGet (M_regs_callee_save, i)),
                        T_Mem (
                            T_Binop (
                                T_minus,
@@ -942,7 +942,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
                                    T_minus,
                                    T_Temp (fp),
                                    T_Const (lSize + (i + 1) * M_wordSize))),
-                           T_Temp (M_RegGet (regs_caller_save, i))));
+                           T_Temp (M_RegGet (M_regs_caller_save, i))));
         }
         ASM_lineList save = F_CodeGen (frame, stms);
 
@@ -951,7 +951,7 @@ ASM_lineList F_ProcEntryExit3 (F_frame frame, ASM_lineList body, Temp_tempList c
         {
             LIST_PUSH (stms,
                        T_Move (
-                           T_Temp (M_RegGet (regs_caller_save, i)),
+                           T_Temp (M_RegGet (M_regs_caller_save, i)),
                            T_Mem (
                                T_Binop (
                                    T_minus,
@@ -991,11 +991,11 @@ void F_Init()
     LIST_PUSH (sink, zero);
     LIST_PUSH (sink, ra);
     LIST_PUSH (sink, sp);
-    LIST_JOIN (sink, regs_callee_save->temps);
+    LIST_JOIN (sink, M_regs_callee_save->temps);
 
     F_tempMap = Temp_Empty();
 
-    M_RegsToTempMap (F_tempMap, regs_special);
+    M_RegsToTempMap (F_tempMap, M_regs_special);
 }
 
 Temp_temp F_Zero (void)

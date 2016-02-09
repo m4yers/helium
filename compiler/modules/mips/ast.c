@@ -171,12 +171,12 @@ static void PrintOp (FILE * out, A_asmOp op, int d)
     }
     case A_asmOpTmpKind:
     {
-        fprintf(out, "Tmp(%s)", op->u.tmp->name);
+        fprintf (out, "Tmp(%s)", op->u.tmp->name);
         break;
     }
     case A_asmOpLabKind:
     {
-        fprintf(out, "Lab(%s)", op->u.lab->name);
+        fprintf (out, "Lab(%s)", op->u.lab->name);
         break;
     }
     case A_asmOpMemKind:

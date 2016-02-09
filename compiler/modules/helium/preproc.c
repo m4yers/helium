@@ -243,8 +243,8 @@ static A_exp TransExp (PreProc_Context context, A_exp exp)
             exp = A_IfExp (&test->loc, test, NULL, fl);
 
             // this makes the whole assert macro evaluate to 0(OK)
-            A_exp zero = A_IntExp (&test->loc, 0);
-            return A_SeqExp (&test->loc, A_ExpList (exp, A_ExpList (zero, NULL)));
+            A_exp zexp = A_IntExp (&test->loc, 0);
+            return A_SeqExp (&test->loc, A_ExpList (exp, A_ExpList (zexp, NULL)));
         }
         else
         {
