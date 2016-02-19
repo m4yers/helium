@@ -48,7 +48,7 @@ static inline IR_mipsClosureItem IR_MipsClosureHeStmPre (const struct T_stm_t * 
     U_Create (IR_mipsClosureItem, r)
     {
         .kind = IR_mipsClosureHeStmPreKind,
-         .u.heStmPre = stm
+        .u.heStmPre = stm
     };
     return r;
 }
@@ -58,7 +58,7 @@ static inline IR_mipsClosureItem IR_MipsClosureHeStmPost (const struct T_stm_t *
     U_Create (IR_mipsClosureItem, r)
     {
         .kind = IR_mipsClosureHeStmPostKind,
-         .u.heStmPre = stm
+        .u.heStmPre = stm
     };
     return r;
 }
@@ -148,10 +148,10 @@ static inline IR_mipsOpd IR_MipsOpdImmInt32 (int32_t value)
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdImmKind,
-        .u.imm = (struct IR_mipsOpdImm_t)
+         .u.imm = (struct IR_mipsOpdImm_t)
         {
             .kind = IR_mipsImmInt32Kind,
-            .u.ival = value
+             .u.ival = value
         }
     };
     return r;
@@ -162,10 +162,10 @@ static inline IR_mipsOpd IR_MipsOpdImmUInt32 (uint32_t value)
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdImmKind,
-        .u.imm = (struct IR_mipsOpdImm_t)
+         .u.imm = (struct IR_mipsOpdImm_t)
         {
             .kind = IR_mipsImmUInt32Kind,
-            .u.uval = value
+             .u.uval = value
         }
     };
     return r;
@@ -179,10 +179,10 @@ static inline IR_mipsOpd IR_MipsOpdMem (intmax_t offset, IR_mipsOpd base)
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdMemKind,
-        .u.mem = (struct IR_mipsOpdMem_t)
+         .u.mem = (struct IR_mipsOpdMem_t)
         {
             .offset = offset,
-            .base = base
+             .base = base
         }
     };
     return r;
@@ -197,7 +197,7 @@ static inline IR_mipsOpd IR_MipsOpdLab (Temp_label label)
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdLabKind,
-        .u.lab = (struct IR_mipsOpdLab_t)
+         .u.lab = (struct IR_mipsOpdLab_t)
         {
             .label = label
         }
@@ -210,10 +210,10 @@ static inline IR_mipsOpd IR_MipsOpdRepExp (Temp_temp tmp, bool dst, IR_mipsClosu
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdRepKind,
-        .u.rep = (struct IR_mipsOpdRep_t)
+         .u.rep = (struct IR_mipsOpdRep_t)
         {
             .kind = dst ? IR_mipsOpdRepDstKind : IR_mipsOpdRepSrcKind,
-            .u.tmp = tmp
+             .u.tmp = tmp
         },
 
         .cls = cls
@@ -230,10 +230,10 @@ static inline IR_mipsOpd IR_MipsOpdRepJmp (Temp_label lab)
     U_Create (IR_mipsOpd, r)
     {
         .kind = IR_mipsOpdRepKind,
-        .u.rep = (struct IR_mipsOpdRep_t)
+         .u.rep = (struct IR_mipsOpdRep_t)
         {
             .kind = IR_mipsOpdRepJmpKind,
-            .u.lab = lab
+             .u.lab = lab
         }
     };
     return r;
@@ -277,10 +277,10 @@ static inline IR_mipsStm IR_MipsStmOpc (
     U_Create (IR_mipsStm, r)
     {
         .kind = IR_mipsStmOpcKind,
-        .u.opc = (struct IR_mipsOpc_t)
+         .u.opc = (struct IR_mipsOpc_t)
         {
             .spec = spec,
-            .opdl = opdl,
+             .opdl = opdl,
         }
     };
 
@@ -292,7 +292,7 @@ static inline IR_mipsStm IR_MipsStmLab (Temp_label label)
     U_Create (IR_mipsStm, r)
     {
         .kind = IR_mipsStmLabKind,
-        .u.lab = (struct IR_mipsLab_t)
+         .u.lab = (struct IR_mipsLab_t)
         {
             .label = label
         }
@@ -302,3 +302,101 @@ static inline IR_mipsStm IR_MipsStmLab (Temp_label label)
 
 LIST_DEFINE (IR_mipsStmList, IR_mipsStm)
 LIST_CONST_DEFINE (IR_MipsStmList, IR_mipsStmList, IR_mipsStm)
+
+/**********************************************************************
+*                              Analysis                              *
+**********************************************************************/
+
+static inline bool IR_mipsIsOpdExtended (IR_mipsOpd opd)
+{
+    bool rslt = FALSE;
+
+    switch (opd->kind)
+    {
+    // immediate values are basic
+    case IR_mipsOpdImmKind:
+    {
+        rslt = FALSE;
+        break;
+    }
+    case IR_mipsOpdMemKind:
+    {
+        rslt = IR_mipsIsOpdExtended (opd->u.mem.base);
+        break;
+    }
+    // any label is basic
+    case IR_mipsOpdLabKind:
+    {
+        rslt = FALSE;
+        break;
+    }
+    /*
+     * Replacement are tricky because it can be either badic using just registers names or it could
+     * be a variable interpolation resulting in a temp instance and a asm closure deps.
+     */
+    case IR_mipsOpdRepKind:
+    {
+        // any jump is basic for now
+        if (opd->u.rep.kind == IR_mipsOpdRepJmpKind)
+        {
+            rslt = FALSE;
+        }
+        /*
+         * Otherwise if the temp used by replacement maps to a real register and there is no asm
+         * closure bound to it we assume it is basic register reference.
+         */
+        else if (M_RegsHas (M_regs_all, opd->u.rep.u.tmp) && opd->cls == NULL)
+        {
+            rslt = FALSE;
+        }
+        else
+        {
+            rslt = TRUE;
+        }
+        break;
+    }
+    default:
+    {
+        assert (0);
+        break;
+    }
+    }
+
+    return rslt;
+}
+
+static inline bool IR_mipsIsExtended (IR_mipsStmList stml)
+{
+    bool rslt = FALSE;
+
+    LIST_FOREACH (stm, stml)
+    {
+        switch (stm->kind)
+        {
+
+        case IR_mipsStmOpcKind:
+        {
+            LIST_FOREACH (opd, stm->u.opc.opdl)
+            {
+                if (IR_mipsIsOpdExtended (opd))
+                {
+                    rslt = TRUE;
+                }
+            }
+            break;
+        }
+        case IR_mipsStmLabKind:
+        {
+            // any label is fine
+            break;
+        }
+        }
+
+        if (rslt)
+        {
+            break;
+        }
+    }
+
+    return rslt;
+}

@@ -1,0 +1,9 @@
+asm
+{
+    addi `a0, $a1, 1111     //~ERROR 3200 You cannot use meta registers here
+}
+
+fn main
+{
+    0;
+}

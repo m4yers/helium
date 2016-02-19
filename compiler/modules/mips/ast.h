@@ -9,6 +9,7 @@
 #include "util/str.h"
 
 #include "core/symbol.h"
+#include "core/error.h"
 #include "core/temp.h"
 #include "core/asm.h"
 #include "core/ast.h"
@@ -154,20 +155,52 @@ A_asmStm A_AsmStmInst (A_loc loc, const char * opcode, A_asmOpList opList);
 A_asmStm A_AsmStmLab (A_loc loc, S_symbol sym, bool meta);
 
 /**********************************************************************
-*                              Analysis                              *
+*                           Usage Contexts                           *
 **********************************************************************/
 
 /*
- * This method checks whether the passed list of asm statements contains nodes that cannot be used
- * outside function body, such as meta registers or variable interpolation. Though meta registers
- * is extended feature meta labels are allowed since its validation is done in Sema module.
+ * Context type says what subset of asm inline assembly can be used in a particular environment,
+ * such as block scope, function scope, global scope etc.
+ * NOTE this is a bitmask
  */
-bool A_AsmIsExtended(A_asmStmList stml);
+typedef enum
+{
+    /*
+     * At the time of writing no constraints at all, the full asm inline facilities can be used
+     * inside any function.
+     */
+    A_asmContextFuncKind = 1,
+
+    /*
+     * Global scope does not allow meta registers due inability to run register allocation pass
+     * there, unless inline asm defines its own function(TBD).
+     */
+    A_asmContextGlobKind = 2,
+} A_asmContext;
+
+LIST_DEFINE (A_asmContextList, A_asmContext)
+
+typedef struct AST_asmContextRecord_t
+{
+    const char * name;
+    int kind; // enum
+    int mask;
+} * AST_asmContextRecord;
+
+#define AST_AsmContextRec(n,k,m) { .name = n, .kind = k, .mask = m }
+
+extern const struct AST_asmContextRecord_t mips_ast_opd_contexts[];
+
+/**********************************************************************
+*                              Analysis                              *
+**********************************************************************/
+
+ErrorList A_AsmValidateContext (A_asmStmList stml, A_asmContext cntx);
+
 
 /**********************************************************************
 *                              Printer                               *
 **********************************************************************/
-
 
 void AST_AsmPrint (FILE * out, A_asmStmList list, int d);
 

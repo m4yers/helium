@@ -114,6 +114,92 @@ A_asmStm A_AsmStmLab (A_loc loc, S_symbol sym, bool meta)
 }
 
 /**********************************************************************
+*                           Usage Contexts                           *
+**********************************************************************/
+
+const struct AST_asmContextRecord_t mips_ast_opd_contexts[] =
+{
+    AST_AsmContextRec ("Replacement", A_asmOpRepKind, A_asmContextFuncKind),
+    AST_AsmContextRec ("Variable", A_asmOpVarKind, A_asmContextFuncKind),
+    AST_AsmContextRec ("Literal", A_asmOpLitKind, A_asmContextFuncKind | A_asmContextGlobKind),
+    AST_AsmContextRec ("Register", A_asmOpRegKind, A_asmContextFuncKind | A_asmContextGlobKind),
+    AST_AsmContextRec ("Meta Register", A_asmOpTmpKind, A_asmContextFuncKind),
+    AST_AsmContextRec ("Label", A_asmOpLabKind, A_asmContextFuncKind | A_asmContextGlobKind),
+    AST_AsmContextRec ("Memory Access", A_asmOpMemKind, A_asmContextFuncKind | A_asmContextGlobKind),
+};
+
+#define TOTAL_ELEMENTS(array) (sizeof(array) / sizeof(array[0]))
+
+static const struct AST_asmContextRecord_t * GetMipsAstOpdCntxDesc (A_asmOpKind kind)
+{
+    for (size_t i = 0; i < TOTAL_ELEMENTS (mips_ast_opd_contexts); ++i)
+    {
+        if (mips_ast_opd_contexts[i].kind == kind)
+        {
+            return &mips_ast_opd_contexts[i];
+        }
+    }
+
+    assert (0);
+    return NULL;
+}
+
+/**********************************************************************
+*                              Analysis                              *
+**********************************************************************/
+
+static Error ValidateOpdContext (A_asmOp opd, A_asmContext cntx)
+{
+    const struct AST_asmContextRecord_t * desc = GetMipsAstOpdCntxDesc (opd->kind);
+    if ((desc->mask & cntx) == 0)
+    {
+        // TODO organize error codes somehow
+        return Error_NewPtr (&opd->loc, 3200,
+                             "You cannot use %s operand in this context",
+                             desc->name);
+    }
+
+    if (opd->kind == A_asmOpMemKind)
+    {
+        return ValidateOpdContext(opd->u.mem.base, cntx);
+    }
+
+    return NULL;
+}
+
+ErrorList A_AsmValidateContext (A_asmStmList stml, A_asmContext cntx)
+{
+    ErrorList rslt = NULL;
+
+    LIST_FOREACH (stm, stml)
+    {
+        switch (stm->kind)
+        {
+        case A_asmStmInstKind:
+        {
+            LIST_FOREACH (opd, stm->u.inst.opList)
+            {
+                Error err = ValidateOpdContext (opd, cntx);
+                if (err)
+                {
+                    LIST_PUSH (rslt, err);
+                    continue;
+                }
+            }
+            break;
+        }
+        case A_asmStmLabKind:
+        {
+            rslt = FALSE;
+            break;
+        }
+        }
+    }
+
+    return rslt;
+}
+
+/**********************************************************************
 *                              Printer                               *
 **********************************************************************/
 

@@ -28,6 +28,7 @@ Program_Module Program_ModuleNew()
     r->ast = NULL;
     r->fragments.strings = NULL;
     r->fragments.functions = NULL;
+    r->fragments.code = NULL;
 
     Vector_Init (&r->errors.lexer, struct Error_t);
     Vector_Init (&r->errors.parser, struct Error_t);

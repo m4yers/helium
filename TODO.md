@@ -27,13 +27,8 @@
     - [x] pointers
     - [x] type cast
     - [x] strings
-    - [ ] asm base
-    - [ ] asm extended
-    - [ ] integer range validation
-    - [ ] arrays and records on function boundries
-    - [ ] str vs &str, what happens to str?
-    - [ ] assert! is somehow broken
-    - [ ] default values for array
+    - [x] asm base
+    - [x] asm extended
     - [ ] aliasing
     - [ ] proper macro
     - [ ] boolean
@@ -46,6 +41,7 @@
     - [ ] proper int ranges
     - [ ] array and record function results
     - [ ] floats?
+- [ ] better type inference using "meta types tree"
 - [ ] clean-up error codes
 - [ ] minimal stdlib
     - [ ] io
@@ -76,6 +72,19 @@
  ...
 
 - [ ] self-hoisting
+
+# BUGS
+- [x] equal literals same location, does it work?
+- [x] add asm features context-wise validation
+- [ ] function empty body
+- [ ] different types of multiple rets, including local type inference(LTI)
+- [ ] diffrence between stm and exp and function edge
+- [ ] function and types preproc pass to map names to definitions
+- [ ] integer range validation
+- [ ] arrays and records on function boundries
+- [ ] str vs &str, what happens to str?
+- [ ] assert! is somehow broken
+- [ ] default values for array
 
 # QUESTIONS
 - classes, to be or not to be?

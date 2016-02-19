@@ -269,7 +269,6 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
 
     switch (dec->kind)
     {
-    // TODO must not contain replacements in and out, like base in GCC
     case A_asmDec:
     {
         IR_mipsStmList stml = SemantMIPS_Translate (context, &dec->u.assembly);
@@ -282,6 +281,16 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
          */
         if (context->global == context->level)
         {
+            ErrorList errl = A_AsmValidateContext (dec->u.assembly.code, A_asmContextGlobKind);
+            if (errl)
+            {
+                LIST_FOREACH (err, errl)
+                {
+                    Vector_PushBack(&context->module->errors.semant, *err);
+                }
+
+                return Tr_Void();
+            }
             Tr_AddCodeFragment (context, exp);
             return Tr_Void();
         }
