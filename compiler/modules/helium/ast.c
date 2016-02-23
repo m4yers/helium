@@ -131,6 +131,14 @@ A_exp A_VarExp (A_loc loc, A_var var)
     return p;
 }
 
+A_exp A_VoidExp (A_loc loc)
+{
+    A_exp p = checked_malloc (sizeof (*p));
+    p->kind = A_voidExp;
+    p->loc = *loc;
+    return p;
+}
+
 A_exp A_NilExp (A_loc loc)
 {
     A_exp p = checked_malloc (sizeof (*p));

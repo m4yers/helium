@@ -76,7 +76,7 @@
 # BUGS
 - [x] equal literals same location, does it work?
 - [x] add asm features context-wise validation
-- [ ] function empty body
+- [x] function empty body
 - [ ] different types of multiple rets, including local type inference(LTI)
 - [ ] diffrence between stm and exp and function edge
 - [ ] function and types preproc pass to map names to definitions

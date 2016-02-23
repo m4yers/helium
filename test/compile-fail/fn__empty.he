@@ -1,0 +1,3 @@
+fn blah: &str //~ ERROR 3016 Typed function cannot be empty
+{
+}

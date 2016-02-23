@@ -395,6 +395,7 @@ controls:                 IF LPAREN expression RPAREN scope
                           }
                         | BREAK { $$ = A_BreakExp (&(@$)); }
                         | RET expression SEMICOLON %prec LOWEST { $$ = A_RetExp (&(@$), $2); }
+                        | RET SEMICOLON %prec LOWEST { $$ = A_RetExp (&(@$), A_VoidExp(&(@$))); }
                         ;
 scope:                    LBRACE stm_list RBRACE
                           {

@@ -1,0 +1,7 @@
+fn blah {}
+
+fn main
+{
+    blah();
+    ret 0;
+}

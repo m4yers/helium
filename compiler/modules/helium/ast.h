@@ -43,7 +43,8 @@ typedef enum
     /** Exp */
     A_decExp,
     A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
-    A_varExp, A_nilExp, A_intExp, A_stringExp, A_callExp, A_macroCallExp,
+    A_varExp, A_voidExp, A_nilExp, A_intExp, A_stringExp,
+    A_callExp, A_macroCallExp,
     A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
     A_whileExp, A_forExp, A_breakExp, A_arrayExp,
 
@@ -220,6 +221,7 @@ A_exp A_AddressOfExp (A_loc loc, A_var var);
 A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 
 A_exp A_VarExp (A_loc loc, A_var var);
+A_exp A_VoidExp (A_loc loc);
 A_exp A_NilExp (A_loc loc);
 A_exp A_IntExp (A_loc loc, int i);
 A_exp A_StringExp (A_loc loc, const char * s);

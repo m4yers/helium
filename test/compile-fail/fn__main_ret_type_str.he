@@ -1,4 +1,3 @@
 fn main : &str //~ ERROR 3001
 {
-    ret 0;
 }

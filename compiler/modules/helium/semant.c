@@ -286,7 +286,7 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
             {
                 LIST_FOREACH (err, errl)
                 {
-                    Vector_PushBack(&context->module->errors.semant, *err);
+                    Vector_PushBack (&context->module->errors.semant, *err);
                 }
 
                 return Tr_Void();
@@ -490,6 +490,11 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
 
         // translate name
         Temp_label label = Tr_ScopedLabel (context->level, decFn.name->name);
+
+        /*
+         * The main function is treated differently throughout the translation, specifically there
+         * is type and formal parameters restrictions.
+         */
         bool is_main = strcmp (label->name, "main") == 0;
 
         // translate return type
@@ -569,23 +574,67 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
             }
         }
 
-        // add implicit return
-        A_stm last = LIST_BACK (decFn.scope->list);
-        if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
+        //
+        // body modification
+        //
+
+        // empty body
+        if (decFn.scope->list == NULL)
         {
-            A_exp e = last->u.exp;
-            last->u.exp = A_RetExp (&e->loc, e);
+            /*
+             * Main function implies return type 'int', if there is nothing that returns at the end
+             * of the function, or like here there is nothing at all we add explicit 'ret 0' stm.
+             */
+            if (is_main)
+            {
+                LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_IntExp (loc, 0))));
+            }
+            /*
+             * Otherwise for an empty regular function if the return type is auto we explicitly
+             * set the return type to void and return nothing.
+             */
+            else if (is_auto (rty))
+            {
+                LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_VoidExp(loc))));
+                entry->u.fun.result = rty = Ty_Void();
+            }
+            /*
+             * Otherwise it is an error to use an empty body for explicitly typed function
+             */
+            else
+            {
+                ERROR (
+                    &dec->loc,
+                    3016,
+                    "Typed function(%s) cannot be empty",
+                    decFn.name->name);
+                return Tr_Void();
+            }
         }
-        /*
-         * main function is treated specially because its job is to return program's execution
-         * status, where 0 means success and any positive value is treated as an error. Thus if
-         * the last statement in the main function is some sort of declaration we add implicit
-         * ret 0 statement to the main's body end.
-         */
-        else if (last->kind == A_stmDec && is_main)
+        else
         {
-            LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_IntExp (loc, 0))));
+            // add implicit return
+            A_stm last = LIST_BACK (decFn.scope->list);
+            if (last->kind == A_stmExp && last->u.exp->kind != A_retExp)
+            {
+                A_exp e = last->u.exp;
+                last->u.exp = A_RetExp (&e->loc, e);
+            }
+            /*
+             * main function is treated specially because its job is to return program's execution
+             * status, where 0 means success and any positive value is treated as an error. Thus if
+             * the last statement in the main function is some sort of declaration we add implicit
+             * ret 0 statement to the main's body end.
+             */
+            else if (last->kind == A_stmDec && is_main)
+            {
+                LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_IntExp (loc, 0))));
+            }
         }
+
+        //
+        // body translation
+        //
 
         // save current frame before processing the body
         Tr_level current = context->level;
@@ -607,10 +656,12 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
         }
         else if (is_main && !is_int (sexp))
         {
+            A_stm last = LIST_BACK (decFn.scope->list);
             ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, Ty_Int(), sexp.ty);
         }
         else if (!is_invalid (rty) && !is_invalid (rty) && rty != sexp.ty)
         {
+            A_stm last = LIST_BACK (decFn.scope->list);
             ERROR_UNEXPECTED_TYPE (&last->u.exp->loc, rty, sexp.ty);
         }
 
@@ -1344,7 +1395,6 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
          */
         else if (GetActualType (aty->u.pointer)->meta.is_handle)
         {
-            printf ("handle deref\n");
             sexp.ty = sexp.ty->u.pointer;
         }
         /*
@@ -1520,6 +1570,10 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
     case A_nilExp:
     {
         return Expression_New (Tr_Nil(), Ty_Nil());
+    }
+    case A_voidExp:
+    {
+        return Expression_New (Tr_Void(), Ty_Void());
     }
     case A_intExp:
     {

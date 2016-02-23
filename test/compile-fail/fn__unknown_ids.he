@@ -1,0 +1,15 @@
+fn func1( a: blah ) //~ ERROR 3004
+{
+    ret 0;
+}
+
+fn func2 : blah //~ ERROR 3004
+{
+    ret 0;
+}
+
+fn func3(a: blah) : blah //~ ERROR 3004
+          //^ ERROR 3004
+{
+    ret 0;
+}
