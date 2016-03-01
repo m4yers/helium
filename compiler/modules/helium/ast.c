@@ -398,6 +398,14 @@ A_ty A_RecordTy (A_loc loc, A_fieldList record)
  *  Statements  *
  ****************/
 
+A_stm A_StmStm (A_exp stm)
+{
+    A_stm p = checked_malloc (sizeof (*p));
+    p->kind = A_stmStm;
+    p->u.exp = stm;
+    return p;
+}
+
 A_stm A_StmExp (A_exp exp)
 {
     A_stm p = checked_malloc (sizeof (*p));
@@ -499,14 +507,19 @@ void AST_PrintScope (FILE * out, A_scope scope, int d)
     {
         switch (stm->kind)
         {
-        case A_stmDec:
+        case A_stmStm:
         {
-            AST_PrintDec (out, stm->u.dec, d + 1);
+            AST_PrintExp (out, stm->u.stm, d + 1);
             break;
         }
         case A_stmExp:
         {
             AST_PrintExp (out, stm->u.exp, d + 1);
+            break;
+        }
+        case A_stmDec:
+        {
+            AST_PrintDec (out, stm->u.dec, d + 1);
             break;
         }
         }

@@ -34,23 +34,62 @@ LIST_DEFINE (A_stmList, A_stm)
 
 typedef enum
 {
-    /** Var */
-    A_simpleVar, A_fieldVar, A_subscriptVar,
+    A_stmStm         = 100,
+    A_stmExp         = 101,
+    A_stmDec         = 102,
+} A_stmKind;
 
-    /** Dec */
-    A_typeDec, A_functionDec, A_varDec, A_asmDec,
+typedef enum
+{
+    A_simpleVar      = 200,
+    A_fieldVar       = 201,
+    A_subscriptVar   = 202,
+} A_varKind;
 
-    /** Exp */
-    A_decExp,
-    A_retExp, A_addressOf, A_valueAt, A_typeCastExp,
-    A_varExp, A_voidExp, A_nilExp, A_intExp, A_stringExp,
-    A_callExp, A_macroCallExp,
-    A_opExp, A_recordExp, A_seqExp, A_assignExp, A_ifExp,
-    A_whileExp, A_forExp, A_breakExp, A_arrayExp,
+typedef enum
+{
+    A_typeDec        = 300,
+    A_functionDec    = 301,
+    A_varDec         = 302,
+    A_asmDec         = 303,
+} A_decKind;
 
-    /** Types */
-    A_nameTy, A_pointerTy, A_arrayTy, A_recordTy,
-} A_nodeKind;
+typedef enum
+{
+    A_decExp         = 300,
+    A_retExp         = 301,
+    A_addressOf      = 302,
+    A_valueAt        = 303,
+    A_typeCastExp    = 304,
+    A_varExp         = 305,
+    A_voidExp        = 306,
+    A_nilExp         = 307,
+    A_intExp         = 308,
+    A_stringExp      = 309,
+    A_callExp        = 310,
+    A_macroCallExp   = 311,
+    A_opExp          = 312,
+    A_recordExp      = 313,
+    A_seqExp         = 314,
+    A_assignExp      = 315,
+    A_ifExp          = 316,
+    A_whileExp       = 317,
+    A_forExp         = 318,
+    A_breakExp       = 319,
+    A_arrayExp       = 320,
+} A_expKind;
+
+typedef enum {
+    A_nameTy         = 400,
+    A_pointerTy      = 401,
+    A_arrayTy        = 402,
+    A_recordTy       = 403,
+} A_typeKind;
+
+typedef enum {
+    A_specType       = 500,
+    A_specLiteral    = 501,
+} A_specKind;
 
 /************
  *  Fields  *
@@ -98,7 +137,7 @@ struct A_var_t
 {
     struct A_loc_t loc;
 
-    A_nodeKind kind;
+    A_varKind kind;
 
     union
     {
@@ -184,7 +223,7 @@ struct A_exp_t
 {
     struct A_loc_t loc;
 
-    A_nodeKind kind;
+    A_expKind kind;
 
     union
     {
@@ -214,9 +253,9 @@ struct A_exp_t
 /*
  * Somewhat a crutch to allow radical AST transformation in preprocessor
  */
-A_exp A_DecExp(A_loc loc, A_dec dec);
+A_exp A_DecExp (A_loc loc, A_dec dec);
 
-A_exp A_TypeCastExp(A_loc loc, A_ty type, A_exp exp);
+A_exp A_TypeCastExp (A_loc loc, A_ty type, A_exp exp);
 A_exp A_AddressOfExp (A_loc loc, A_var var);
 A_exp A_ValueAtExp (A_loc loc, A_exp exp);
 
@@ -275,7 +314,7 @@ struct A_dec_t
 {
     struct A_loc_t loc;
 
-    A_nodeKind kind;
+    A_decKind kind;
 
     union
     {
@@ -306,7 +345,7 @@ struct A_ty_t
 {
     struct A_loc_t loc;
 
-    A_nodeKind kind;
+    A_typeKind kind;
 
     union
     {
@@ -330,14 +369,17 @@ A_ty A_RecordTy (A_loc loc, A_fieldList record);
 
 struct A_stm_t
 {
-    enum  { A_stmDec, A_stmExp } kind;
+    A_stmKind kind;
+
     union
     {
-        A_dec dec;
+        A_exp stm;
         A_exp exp;
+        A_dec dec;
     } u;
 };
 
+A_stm A_StmStm (A_exp stm);
 A_stm A_StmExp (A_exp exp);
 A_stm A_StmDec (A_dec exp);
 A_stmList A_StmList (A_stm head, A_stmList tail);
@@ -361,11 +403,7 @@ struct A_spec_t
 {
     struct A_loc_t loc;
 
-    enum
-    {
-        A_specType,
-        A_specLiteral
-    } kind;
+    A_specKind kind;
 
     union
     {
