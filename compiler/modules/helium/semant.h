@@ -10,10 +10,15 @@
 typedef struct Sema_Context_t
 {
     Program_Module module;
+
     Tr_level global;
     Tr_level level;
+
     S_table venv;
     S_table tenv;
+
+    struct Stack_t /** A_*Kind */ stack;
+
     Temp_label breaker;
     int loopNesting;
 
@@ -29,7 +34,7 @@ typedef struct Sema_Exp_t
 
 int Semant_Translate (Program_Module m);
 
-Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope);
+Sema_Exp Sema_TransBlock (Sema_Context context, A_scope scope);
 Ty_ty    Sema_TransTyp (Sema_Context context, A_ty ty);
 Tr_exp   Sema_TransDec (Sema_Context context, A_dec dec);
 Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp);

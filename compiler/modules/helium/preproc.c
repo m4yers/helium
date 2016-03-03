@@ -25,6 +25,7 @@ static A_scope TransScope (PreProc_Context context, A_scope scope)
     {
         switch (stm->kind)
         {
+        case A_stmStm:
         case A_stmExp:
         {
             stm->u.exp = TransExp (context, stm->u.exp);

@@ -3,6 +3,6 @@
  */
 fn main
 {
-    fn blah { 1; }
-    blah();
+    fn blah { 1 }
+    blah()
 }

@@ -177,11 +177,16 @@ stm_semi:                 %empty { $$ = NULL; }
                         ;
 stm:                      expression SEMICOLON
                           {
+                              $$ = A_StmStm($1);
+                          }
+                        | expression
+                          {
+                              //TODO implement, it can be only one for a block and at the end
                               $$ = A_StmExp($1);
                           }
                         | controls
                           {
-                              $$ = A_StmExp($1);
+                              $$ = A_StmStm($1);
                           }
                         | declaration
                           {

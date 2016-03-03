@@ -32,6 +32,7 @@ static void TraverseScope (S_table env, int depth, A_scope scope)
     {
         switch (stm->kind)
         {
+        case A_stmStm:
         case A_stmExp:
         {
             TraverseExp (env, depth, stm->u.exp);

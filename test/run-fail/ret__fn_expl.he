@@ -4,5 +4,5 @@
 fn main
 {
     fn blah { ret 1; }
-    blah();
+    ret blah();
 }

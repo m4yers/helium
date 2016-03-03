@@ -1,0 +1,11 @@
+fn blah
+{
+    1            //~ERROR 3017 missed semicolon
+    0;
+}
+
+fn main
+{
+    blah()       //~ERROR 3017 missed semicolon
+    0;
+}

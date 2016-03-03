@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <assert.h>
 
 #include "util/table.h"
@@ -80,7 +79,13 @@
         loc,                                                             \
         3014,                                                            \
         "Symbol '%s' already exist",                                     \
-        S_Name(sym));                                                    \
+        S_Name(sym));
+
+#define ERROR_MISSED_SEMICOLON(loc)                                      \
+    ERROR(                                                               \
+        loc,                                                             \
+        3017,                                                            \
+        "Expected semicolon", "");
 
 static bool is_auto (Ty_ty ty)
 {
@@ -132,16 +137,27 @@ static Ty_ty GetOrCreateTypeEntry (Sema_Context context, Ty_ty ty)
     return ety;
 }
 
-Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope)
+Sema_Exp Sema_TransBlock (Sema_Context context, A_scope scope)
 {
     Sema_Exp r = { Tr_Void(), Ty_Void() };
     Tr_exp seq = NULL;
+    size_t len = LIST_SIZE(scope->list);
     LIST_FOREACH (stm, scope->list)
     {
         switch (stm->kind)
         {
+        case A_stmStm:
+        {
+            r = Sema_TransExp (context, stm->u.exp);
+            break;
+        }
         case A_stmExp:
         {
+            // if this expression is not last in the block
+            if (len != 1)
+            {
+                ERROR_MISSED_SEMICOLON(&stm->u.exp->loc)
+            }
             r = Sema_TransExp (context, stm->u.exp);
             break;
         }
@@ -152,6 +168,8 @@ Sema_Exp Sema_TransScope (Sema_Context context, A_scope scope)
             break;
         }
         }
+
+        len--;
 
         seq = Tr_Seq (seq, r.exp);
     }
@@ -595,7 +613,7 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
              */
             else if (is_auto (rty))
             {
-                LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_VoidExp(loc))));
+                LIST_PUSH (decFn.scope->list, A_StmExp (A_RetExp (loc, A_VoidExp (loc))));
                 entry->u.fun.result = rty = Ty_Void();
             }
             /*
@@ -643,7 +661,7 @@ Tr_exp Sema_TransDec (Sema_Context context, A_dec dec)
         context->level = level;
 
         // translate body
-        Sema_Exp sexp = Sema_TransScope (context, decFn.scope);
+        Sema_Exp sexp = Sema_TransBlock (context, decFn.scope);
         Tr_ProcEntryExit (context, context->level, sexp.exp);
 
         // restore frame
@@ -1823,7 +1841,7 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
         {
             S_BeginScope (context->venv);
 
-            pexp = Sema_TransScope (context, ifExp.tr);
+            pexp = Sema_TransBlock (context, ifExp.tr);
 
             S_EndScope (context->venv);
         }
@@ -1833,7 +1851,7 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
         {
             S_BeginScope (context->venv);
 
-            nexp = Sema_TransScope (context, ifExp.fl);
+            nexp = Sema_TransBlock (context, ifExp.fl);
 
             S_EndScope (context->venv);
         }
@@ -1859,7 +1877,7 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
 
         S_BeginScope (context->venv);
 
-        Sema_Exp body = Sema_TransScope (context, whileExp.body);
+        Sema_Exp body = Sema_TransBlock (context, whileExp.body);
 
         S_EndScope (context->venv);
 
@@ -1898,7 +1916,7 @@ Sema_Exp Sema_TransExp (Sema_Context context, A_exp exp)
         context->breaker = breaker;
         context->loopNesting++;
 
-        Sema_Exp body = Sema_TransScope (context, forExp.body);
+        Sema_Exp body = Sema_TransBlock (context, forExp.body);
 
         context->loopNesting--;
         context->breaker = label;
@@ -1943,6 +1961,8 @@ int Semant_Translate (Program_Module m)
     Escape_Find (m->ast);
 
     struct Sema_Context_t context;
+    // TODO use it;)
+    Stack_Init (&context.stack, sizeof (A_expKind), NULL);
     context.module = m;
     context.loopNesting = 0;
 
